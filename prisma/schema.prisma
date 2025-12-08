@@ -43,3 +43,35 @@ model Opportunity {
   @@index([region])
   @@index([segment])
 }
+
+model Contact {
+  id                String    @id @default(cuid())
+  fullName          String
+  firstName         String?
+  lastName          String?
+  level             Int?
+  potentialSale     Boolean   @default(false)
+  photoUrl          String?
+  linkedinUrl       String?
+  position          String?
+  company           String?
+  email             String?
+  phone             String?
+  relation          String?
+  circles           String?
+  employmentField   String?
+  lastUpdated       DateTime?
+  region            String?
+  birthday          String?
+  link              String?
+  tags              String?
+  linkedOpportunities String?
+  projects          String?
+  language          String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([region])
+  @@index([employmentField])
+  @@index([company])
+}

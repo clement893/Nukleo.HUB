@@ -27,3 +27,12 @@
 - [x] Cartes d'opportunités avec informations clés
 - [x] Import des données CSV
 - [x] Filtres par région, segment, responsable
+
+## Page Contacts
+- [x] Schéma de base de données pour les contacts
+- [x] API REST pour les contacts (GET, POST, PATCH, DELETE)
+- [x] Page contacts avec liste et vue grille
+- [x] Filtres par région, domaine d'emploi, cercles
+- [x] Recherche par nom, entreprise, poste
+- [ ] Fiche contact détaillée
+- [x] Import des données CSV
