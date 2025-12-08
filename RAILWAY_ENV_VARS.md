@@ -33,7 +33,7 @@ DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public
 1. Allez sur [railway.app](https://railway.app)
 2. Cliquez sur "New Project"
 3. Sélectionnez "Deploy from GitHub repo"
-4. Choisissez le dépôt `Intern.Nukleo`
+4. Choisissez le dépôt `Nukleo.HUB`
 
 ### Étape 2 : Ajouter PostgreSQL
 1. Dans votre projet Railway, cliquez sur "New"
