@@ -2,7 +2,7 @@
 nixPkgs = ["nodejs_20", "pnpm"]
 
 [phases.install]
-cmds = ["pnpm install"]
+cmds = ["pnpm install --ignore-scripts"]
 
 [phases.build]
 cmds = ["pnpm exec prisma generate", "pnpm build"]
