@@ -11,15 +11,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from "recharts";
 
 // Mock data
 const kpiData = [
@@ -62,12 +53,12 @@ const kpiData = [
 ];
 
 const pipelineData = [
-  { name: "Pistes", value: 15, color: "#6366f1" },
-  { name: "Qualification", value: 12, color: "#8b5cf6" },
-  { name: "Contact", value: 8, color: "#a855f7" },
-  { name: "Découverte", value: 6, color: "#d946ef" },
-  { name: "Proposition", value: 4, color: "#ec4899" },
-  { name: "Négociation", value: 2, color: "#10b981" },
+  { name: "Pistes", value: 15, color: "#6366f1", percent: 32 },
+  { name: "Qualification", value: 12, color: "#8b5cf6", percent: 26 },
+  { name: "Contact", value: 8, color: "#a855f7", percent: 17 },
+  { name: "Découverte", value: 6, color: "#d946ef", percent: 13 },
+  { name: "Proposition", value: 4, color: "#ec4899", percent: 9 },
+  { name: "Négociation", value: 2, color: "#10b981", percent: 4 },
 ];
 
 const recentActivity = [
@@ -161,34 +152,24 @@ export function PipelineChart() {
   return (
     <div className="glass-card rounded-xl p-5">
       <h3 className="text-lg font-semibold text-foreground mb-4">Répartition du pipeline</h3>
-      <div className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={pipelineData} layout="vertical">
-            <XAxis type="number" hide />
-            <YAxis
-              type="category"
-              dataKey="name"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: "#a1a1aa", fontSize: 12 }}
-              width={100}
-            />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "#16161d",
-                border: "1px solid #27272a",
-                borderRadius: "8px",
-                color: "#f4f4f5",
-              }}
-              cursor={{ fill: "rgba(99, 102, 241, 0.1)" }}
-            />
-            <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-              {pipelineData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+      <div className="space-y-3">
+        {pipelineData.map((item) => (
+          <div key={item.name} className="space-y-1">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">{item.name}</span>
+              <span className="text-foreground font-medium">{item.value}</span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${item.percent}%`,
+                  backgroundColor: item.color,
+                }}
+              />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

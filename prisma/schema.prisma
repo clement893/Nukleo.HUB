@@ -10,11 +10,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Example User model - customize as needed
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Opportunity {
+  id              String    @id @default(cuid())
+  name            String
+  value           Float?
+  company         String?
+  referredBy      String?
+  leadSourceType  String?
+  contact         String?
+  completedAt     DateTime?
+  stage           String    @default("00 - Idées de contact")
+  proposal        String?   @db.Text
+  assignee        String?
+  closedDate      DateTime?
+  openDate        DateTime?
+  region          String?
+  segment         String?
+  proposalSentDate DateTime?
+  projectType     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([stage])
+  @@index([region])
+  @@index([segment])
 }

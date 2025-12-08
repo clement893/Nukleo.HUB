@@ -20,3 +20,10 @@
 - [ ] Espace Projets (Mandats)
 - [ ] Espace Équipes (Départements)
 - [ ] Espace Agenda (Calendrier)
+
+## Pipeline de vente (Kanban)
+- [x] Schéma de base de données pour les opportunités
+- [x] Page pipeline Kanban avec colonnes par étape
+- [x] Cartes d'opportunités avec informations clés
+- [x] Import des données CSV
+- [x] Filtres par région, segment, responsable
