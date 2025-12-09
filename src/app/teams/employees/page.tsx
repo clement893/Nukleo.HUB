@@ -26,6 +26,7 @@ interface Employee {
   phone?: string;
   role?: string;
   department: string;
+  capacityHoursPerWeek?: number;
   avatar?: string;
   status?: string;
   currentTaskId?: string;
@@ -55,6 +56,7 @@ export default function EmployeesPage() {
     phone: "",
     role: "",
     department: "Lab",
+    capacityHoursPerWeek: 35,
   });
 
   useEffect(() => {
@@ -131,6 +133,7 @@ export default function EmployeesPage() {
       phone: employee.phone || "",
       role: employee.role || "",
       department: employee.department,
+      capacityHoursPerWeek: employee.capacityHoursPerWeek || 35,
     });
     setShowForm(true);
   };
@@ -144,6 +147,7 @@ export default function EmployeesPage() {
       phone: "",
       role: "",
       department: "Lab",
+      capacityHoursPerWeek: 35,
     });
   };
 
@@ -366,9 +370,14 @@ export default function EmployeesPage() {
                   </div>
 
                   <div className="flex items-center justify-between pt-3 border-t border-border">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium border ${deptInfo.color}`}>
-                      {deptInfo.label}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${deptInfo.color}`}>
+                        {deptInfo.label}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {employee.capacityHoursPerWeek || 35}h/sem
+                      </span>
+                    </div>
                     <span className={`text-xs ${isAvailable ? 'text-green-500' : 'text-orange-500'}`}>
                       {isAvailable ? 'Disponible' : 'Occupé'}
                     </span>
@@ -440,6 +449,17 @@ export default function EmployeesPage() {
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   placeholder="Designer, Développeur, Chef de projet..."
+                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-muted-foreground mb-1">Capacité (heures/semaine)</label>
+                <input
+                  type="number"
+                  value={formData.capacityHoursPerWeek}
+                  onChange={(e) => setFormData({ ...formData, capacityHoursPerWeek: parseInt(e.target.value) || 35 })}
+                  min="1"
+                  max="60"
                   className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>

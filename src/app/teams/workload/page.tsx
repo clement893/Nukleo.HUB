@@ -22,25 +22,28 @@ interface WorkloadData {
     totalTasks: number;
     urgentTasks: number;
     overdueTasks: number;
-    totalWeight: number;
+    totalHours: number;
+    totalCapacity: number;
+    loadPercentage: number;
   };
   weeklyWorkload: Array<{
     weekStart: string;
     weekNumber: number;
-    tasks: Array<{ id: string; title: string; priority: string }>;
-    totalWeight: number;
-    byDepartment: Record<string, { count: number; weight: number }>;
-    byEmployee: Record<string, { count: number; weight: number; name: string }>;
+    tasks: Array<{ id: string; title: string; priority: string; estimatedHours?: number }>;
+    totalHours: number;
+    byDepartment: Record<string, { count: number; hours: number }>;
+    byEmployee: Record<string, { count: number; hours: number; name: string }>;
   }>;
   employeeWorkload: Array<{
     id: string;
     name: string;
     department: string;
     role: string;
+    capacityHoursPerWeek: number;
     currentTask: string | null;
     isAvailable: boolean;
     taskCount: number;
-    totalWeight: number;
+    totalHours: number;
     urgentTasks: number;
     overdueTasks: number;
     loadPercentage: number;
@@ -51,8 +54,8 @@ interface WorkloadData {
     employeeCount: number;
     availableEmployees: number;
     taskCount: number;
-    totalWeight: number;
-    capacity: number;
+    totalHours: number;
+    totalCapacity: number;
     loadPercentage: number;
     status: string;
   }>;
@@ -136,7 +139,7 @@ export default function WorkloadPage() {
     );
   }
 
-  const maxWeekWeight = Math.max(...data.weeklyWorkload.map(w => w.totalWeight), 1);
+  const maxWeekHours = Math.max(...data.weeklyWorkload.map(w => w.totalHours), 1);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -221,8 +224,8 @@ export default function WorkloadPage() {
                 <TrendingUp className="w-5 h-5 text-purple-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-foreground">{data.summary.totalWeight}</p>
-                <p className="text-xs text-muted-foreground">Points de charge</p>
+                <p className="text-2xl font-bold text-foreground">{data.summary.totalHours}h</p>
+                <p className="text-xs text-muted-foreground">Heures planifiées</p>
               </div>
             </div>
           </div>
@@ -283,20 +286,20 @@ export default function WorkloadPage() {
                       {formatWeekLabel(week.weekStart, week.weekNumber)}
                     </span>
                     <span className="text-sm text-muted-foreground">
-                      {week.tasks.length} tâches • {week.totalWeight} pts
+                      {week.tasks.length} tâches • {week.totalHours}h
                     </span>
                   </div>
                   <div className="relative h-8 bg-muted rounded-lg overflow-hidden flex">
                     {["Lab", "Bureau", "Studio"].map((dept) => {
                       const deptData = week.byDepartment[dept];
-                      if (!deptData || deptData.weight === 0) return null;
-                      const width = (deptData.weight / maxWeekWeight) * 100;
+                      if (!deptData || deptData.hours === 0) return null;
+                      const width = (deptData.hours / maxWeekHours) * 100;
                       return (
                         <div
                           key={dept}
                           className={`h-full ${DEPT_COLORS[dept]} flex items-center justify-center text-xs text-white font-medium`}
                           style={{ width: `${width}%` }}
-                          title={`${dept}: ${deptData.count} tâches (${deptData.weight} pts)`}
+                          title={`${dept}: ${deptData.count} tâches (${deptData.hours}h)`}
                         >
                           {width > 15 && `${dept}`}
                         </div>
@@ -330,6 +333,8 @@ export default function WorkloadPage() {
                   <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Employé</th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Département</th>
                   <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Tâches</th>
+                  <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Heures</th>
+                  <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Capacité</th>
                   <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">Urgentes</th>
                   <th className="text-center py-3 px-4 text-sm font-medium text-muted-foreground">En retard</th>
                   <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Charge</th>
@@ -367,6 +372,8 @@ export default function WorkloadPage() {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-center text-foreground">{emp.taskCount}</td>
+                      <td className="py-3 px-4 text-center text-foreground">{emp.totalHours}h</td>
+                      <td className="py-3 px-4 text-center text-muted-foreground">{emp.capacityHoursPerWeek}h/sem</td>
                       <td className="py-3 px-4 text-center">
                         {emp.urgentTasks > 0 ? (
                           <span className="text-red-500 font-medium">{emp.urgentTasks}</span>

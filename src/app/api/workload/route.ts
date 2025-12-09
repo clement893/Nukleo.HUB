@@ -18,13 +18,6 @@ function getWeekStart(date: Date): Date {
   return new Date(d.setDate(diff));
 }
 
-// Priority weights for workload calculation
-const PRIORITY_WEIGHTS: Record<string, number> = {
-  high: 3,
-  medium: 2,
-  low: 1,
-};
-
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -62,9 +55,9 @@ export async function GET(request: NextRequest) {
       weekStart: string;
       weekNumber: number;
       tasks: typeof tasks;
-      totalWeight: number;
-      byDepartment: Record<string, { count: number; weight: number }>;
-      byEmployee: Record<string, { count: number; weight: number; name: string }>;
+      totalHours: number;
+      byDepartment: Record<string, { count: number; hours: number }>;
+      byEmployee: Record<string, { count: number; hours: number; name: string }>;
     }> = {};
 
     // Initialize weeks
@@ -79,11 +72,11 @@ export async function GET(request: NextRequest) {
         weekStart: weekKey,
         weekNumber: weekNum,
         tasks: [],
-        totalWeight: 0,
+        totalHours: 0,
         byDepartment: {
-          Lab: { count: 0, weight: 0 },
-          Bureau: { count: 0, weight: 0 },
-          Studio: { count: 0, weight: 0 },
+          Lab: { count: 0, hours: 0 },
+          Bureau: { count: 0, hours: 0 },
+          Studio: { count: 0, hours: 0 },
         },
         byEmployee: {},
       };
@@ -107,17 +100,17 @@ export async function GET(request: NextRequest) {
 
       if (!weeklyWorkload[targetWeekKey]) return;
 
-      const weight = PRIORITY_WEIGHTS[task.priority || "medium"] || 2;
+      const hours = task.estimatedHours || 2;
       const week = weeklyWorkload[targetWeekKey];
       
       week.tasks.push(task);
-      week.totalWeight += weight;
+      week.totalHours += hours;
 
       // By department
       const dept = task.department || "Lab";
       if (week.byDepartment[dept]) {
         week.byDepartment[dept].count++;
-        week.byDepartment[dept].weight += weight;
+        week.byDepartment[dept].hours += hours;
       }
 
       // By employee (if assigned)
@@ -126,12 +119,12 @@ export async function GET(request: NextRequest) {
         if (!week.byEmployee[empId]) {
           week.byEmployee[empId] = {
             count: 0,
-            weight: 0,
+            hours: 0,
             name: task.assignedEmployee.name,
           };
         }
         week.byEmployee[empId].count++;
-        week.byEmployee[empId].weight += weight;
+        week.byEmployee[empId].hours += hours;
       }
     });
 
@@ -142,8 +135,8 @@ export async function GET(request: NextRequest) {
                (t.department === emp.department && !t.assignedEmployee)
       );
       
-      const totalWeight = empTasks.reduce(
-        (sum, t) => sum + (PRIORITY_WEIGHTS[t.priority || "medium"] || 2),
+      const totalHours = empTasks.reduce(
+        (sum, t) => sum + (t.estimatedHours || 2),
         0
       );
 
@@ -153,19 +146,21 @@ export async function GET(request: NextRequest) {
         return new Date(t.dueDate) < today;
       }).length;
 
-      // Calculate capacity (assume 5 weight points per week is normal)
-      const normalCapacity = 5 * weeks;
-      const loadPercentage = Math.round((totalWeight / normalCapacity) * 100);
+      // Calculate capacity based on employee's weekly hours
+      const capacityPerWeek = emp.capacityHoursPerWeek || 35;
+      const totalCapacity = capacityPerWeek * weeks;
+      const loadPercentage = totalCapacity > 0 ? Math.round((totalHours / totalCapacity) * 100) : 0;
 
       return {
         id: emp.id,
         name: emp.name,
         department: emp.department,
         role: emp.role,
+        capacityHoursPerWeek: capacityPerWeek,
         currentTask: emp.currentTask?.title || null,
         isAvailable: !emp.currentTaskId,
         taskCount: empTasks.length,
-        totalWeight,
+        totalHours,
         urgentTasks,
         overdueTasks,
         loadPercentage,
@@ -178,27 +173,40 @@ export async function GET(request: NextRequest) {
       const deptEmployees = employees.filter((e) => e.department === dept);
       const deptTasks = tasks.filter((t) => t.department === dept);
       
-      const totalWeight = deptTasks.reduce(
-        (sum, t) => sum + (PRIORITY_WEIGHTS[t.priority || "medium"] || 2),
+      const totalHours = deptTasks.reduce(
+        (sum, t) => sum + (t.estimatedHours || 2),
         0
       );
 
-      const capacity = deptEmployees.length * 5 * weeks;
-      const loadPercentage = capacity > 0 ? Math.round((totalWeight / capacity) * 100) : 0;
+      // Sum capacity of all employees in department
+      const totalCapacity = deptEmployees.reduce(
+        (sum, e) => sum + ((e.capacityHoursPerWeek || 35) * weeks),
+        0
+      );
+      const loadPercentage = totalCapacity > 0 ? Math.round((totalHours / totalCapacity) * 100) : 0;
 
       return {
         department: dept,
         employeeCount: deptEmployees.length,
         availableEmployees: deptEmployees.filter((e) => !e.currentTaskId).length,
         taskCount: deptTasks.length,
-        totalWeight,
-        capacity,
+        totalHours,
+        totalCapacity,
         loadPercentage,
         status: loadPercentage > 120 ? "overloaded" : loadPercentage > 80 ? "busy" : loadPercentage > 40 ? "normal" : "available",
       };
     });
 
     // Overall summary
+    const totalCapacity = employees.reduce(
+      (sum, e) => sum + ((e.capacityHoursPerWeek || 35) * weeks),
+      0
+    );
+    const totalHours = tasks.reduce(
+      (sum, t) => sum + (t.estimatedHours || 2),
+      0
+    );
+
     const summary = {
       totalEmployees: employees.length,
       availableEmployees: employees.filter((e) => !e.currentTaskId).length,
@@ -208,10 +216,9 @@ export async function GET(request: NextRequest) {
         if (!t.dueDate) return false;
         return new Date(t.dueDate) < today;
       }).length,
-      totalWeight: tasks.reduce(
-        (sum, t) => sum + (PRIORITY_WEIGHTS[t.priority || "medium"] || 2),
-        0
-      ),
+      totalHours,
+      totalCapacity,
+      loadPercentage: totalCapacity > 0 ? Math.round((totalHours / totalCapacity) * 100) : 0,
     };
 
     return NextResponse.json({

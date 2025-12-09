@@ -213,3 +213,10 @@
 
 ## Bugs
 - [x] Pages Employés et Charge de travail passent sous le menu sidebar
+
+## Capacité et heures
+- [x] Ajouter champ capacité (heures/semaine) aux employés
+- [x] Ajouter champ heures estimées aux tâches
+- [x] Mettre à jour le formulaire employé
+- [x] Mettre à jour le formulaire tâche
+- [x] Recalculer la charge en heures au lieu de points

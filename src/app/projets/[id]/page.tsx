@@ -71,6 +71,7 @@ interface Task {
   department?: string;
   status?: string;
   priority?: string;
+  estimatedHours?: number;
   dueDate?: string;
   completedAt?: string;
   projectId?: string;
@@ -156,7 +157,7 @@ export default function ProjectDetailPage() {
   const [showMilestoneForm, setShowMilestoneForm] = useState(false);
   const [newMilestone, setNewMilestone] = useState({ title: "", description: "", dueDate: "" });
   const [showTaskForm, setShowTaskForm] = useState(false);
-  const [newTask, setNewTask] = useState({ title: "", description: "", priority: "medium", dueDate: "", department: "Lab" });
+  const [newTask, setNewTask] = useState({ title: "", description: "", priority: "medium", dueDate: "", department: "Lab", estimatedHours: 2 });
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
   const [sendingToTeam, setSendingToTeam] = useState<string | null>(null);
@@ -323,7 +324,7 @@ export default function ProjectDetailPage() {
       if (response.ok) {
         const task = await response.json();
         setTasks([...tasks, task]);
-        setNewTask({ title: "", description: "", priority: "medium", dueDate: "", department: "Lab" });
+        setNewTask({ title: "", description: "", priority: "medium", dueDate: "", department: "Lab", estimatedHours: 2 });
         setShowTaskForm(false);
       }
     } catch (error) {
@@ -1169,6 +1170,17 @@ export default function ProjectDetailPage() {
                         type="date"
                         value={newTask.dueDate}
                         onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-muted-foreground mb-1">Heures estimées</label>
+                      <input
+                        type="number"
+                        value={newTask.estimatedHours}
+                        onChange={(e) => setNewTask({ ...newTask, estimatedHours: parseFloat(e.target.value) || 2 })}
+                        min="0.5"
+                        step="0.5"
                         className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                       />
                     </div>

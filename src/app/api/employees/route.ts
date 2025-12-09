@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, photoUrl, role, department } = body;
+    const { name, email, phone, photoUrl, role, department, capacityHoursPerWeek } = body;
 
     if (!name || !department) {
       return NextResponse.json(
@@ -52,9 +52,11 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         email,
+        phone,
         photoUrl,
         role,
         department,
+        capacityHoursPerWeek: capacityHoursPerWeek || 35,
       },
     });
 

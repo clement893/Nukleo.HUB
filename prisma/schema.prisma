@@ -153,16 +153,18 @@ model Company {
 
 // Departments: Lab, Bureau, Studio
 model Employee {
-  id            String    @id @default(cuid())
-  name          String
-  email         String?
-  photoUrl      String?
-  role          String?
-  department    String    // Lab, Bureau, Studio
-  currentTaskId String?   @unique // Only one current task per employee
-  currentTask   Task?     @relation("CurrentTask", fields: [currentTaskId], references: [id])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                    String    @id @default(cuid())
+  name                  String
+  email                 String?
+  phone                 String?
+  photoUrl              String?
+  role                  String?
+  department            String    // Lab, Bureau, Studio
+  capacityHoursPerWeek  Int       @default(35) // Capacité en heures par semaine
+  currentTaskId         String?   @unique // Only one current task per employee
+  currentTask           Task?     @relation("CurrentTask", fields: [currentTaskId], references: [id])
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@index([department])
 }
@@ -170,18 +172,19 @@ model Employee {
 // Task zones: current, shelf, storage, dock
 // Task status: todo, in_progress, done
 model Task {
-  id            String    @id @default(cuid())
-  title         String
-  description   String?   @db.Text
-  zone          String    @default("shelf") // current, shelf, storage, dock
-  department    String    @default("Lab") // Lab, Bureau, Studio
-  status        String    @default("todo") // todo, in_progress, done
-  projectId     String?
-  project       Project?  @relation(fields: [projectId], references: [id])
-  priority      String?   @default("medium") // low, medium, high
-  dueDate       DateTime?
-  completedAt   DateTime?
-  order         Int       @default(0)
+  id              String    @id @default(cuid())
+  title           String
+  description     String?   @db.Text
+  zone            String    @default("shelf") // current, shelf, storage, dock
+  department      String    @default("Lab") // Lab, Bureau, Studio
+  status          String    @default("todo") // todo, in_progress, done
+  projectId       String?
+  project         Project?  @relation(fields: [projectId], references: [id])
+  priority        String?   @default("medium") // low, medium, high
+  estimatedHours  Float?    @default(2) // Heures estimées pour la tâche
+  dueDate         DateTime?
+  completedAt     DateTime?
+  order           Int       @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

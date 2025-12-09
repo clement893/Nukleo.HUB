@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, description, zone, department, projectId, priority, dueDate, status } = body;
+    const { title, description, zone, department, projectId, priority, dueDate, status, estimatedHours } = body;
 
     if (!title || !department) {
       return NextResponse.json(
@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
         status: status || "todo",
         projectId,
         priority: priority || "medium",
+        estimatedHours: estimatedHours || 2,
         dueDate: dueDate ? new Date(dueDate) : null,
       },
       include: {
