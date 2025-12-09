@@ -66,3 +66,8 @@
 - [x] Recherche par nom, site web
 - [x] Affichage des informations clés (logo, description, contacts, réseaux sociaux)
 - [x] Import des données CSV (244 entreprises importées)
+
+## Automatisation Favicons
+- [x] API route pour récupérer les favicons via Google Favicon API
+- [x] Script pour mettre à jour les logos des entreprises depuis leurs sites web (218 logos mis à jour)
+- [x] Affichage des favicons comme logos d'entreprises

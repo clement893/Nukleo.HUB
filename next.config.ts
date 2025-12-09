@@ -22,7 +22,13 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "**",
+        hostname: "www.google.com",
+        pathname: "/s2/favicons/**",
+      },
+      {
+        protocol: "https",
+        hostname: "icons.duckduckgo.com",
+        pathname: "/**",
       },
     ],
   },
