@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Sidebar from "@/components/Sidebar";
 import KanbanColumn from "@/components/KanbanColumn";
+import OpportunityModal from "@/components/OpportunityModal";
 import { Opportunity, PIPELINE_STAGES, REGIONS, SEGMENTS } from "@/types/opportunity";
 import { Filter, RefreshCw, Search } from "lucide-react";
 
@@ -14,6 +15,10 @@ export default function PipelinePage() {
   const [filterRegion, setFilterRegion] = useState<string>("");
   const [filterSegment, setFilterSegment] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Modal state
+  const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchOpportunities = useCallback(async () => {
     try {
@@ -64,6 +69,56 @@ export default function PipelinePage() {
     }
 
     setDraggedId(null);
+  };
+
+  // Handle card click to open modal
+  const handleCardClick = (opportunity: Opportunity) => {
+    setSelectedOpportunity(opportunity);
+    setIsModalOpen(true);
+  };
+
+  // Handle save from modal
+  const handleSaveOpportunity = async (updatedOpportunity: Opportunity) => {
+    try {
+      const response = await fetch(`/api/opportunities/${updatedOpportunity.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedOpportunity),
+      });
+
+      if (response.ok) {
+        // Update local state
+        setOpportunities((prev) =>
+          prev.map((opp) =>
+            opp.id === updatedOpportunity.id ? updatedOpportunity : opp
+          )
+        );
+      } else {
+        throw new Error("Failed to update opportunity");
+      }
+    } catch (error) {
+      console.error("Error saving opportunity:", error);
+      throw error;
+    }
+  };
+
+  // Handle delete from modal
+  const handleDeleteOpportunity = async (id: string) => {
+    try {
+      const response = await fetch(`/api/opportunities/${id}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        // Remove from local state
+        setOpportunities((prev) => prev.filter((opp) => opp.id !== id));
+      } else {
+        throw new Error("Failed to delete opportunity");
+      }
+    } catch (error) {
+      console.error("Error deleting opportunity:", error);
+      throw error;
+    }
   };
 
   // Filter opportunities
@@ -214,12 +269,25 @@ export default function PipelinePage() {
                   onDragStart={handleDragStart}
                   onDragOver={handleDragOver}
                   onDrop={handleDrop}
+                  onCardClick={handleCardClick}
                 />
               ))}
             </div>
           )}
         </div>
       </main>
+
+      {/* Opportunity Modal */}
+      <OpportunityModal
+        opportunity={selectedOpportunity}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedOpportunity(null);
+        }}
+        onSave={handleSaveOpportunity}
+        onDelete={handleDeleteOpportunity}
+      />
     </div>
   );
 }

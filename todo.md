@@ -47,3 +47,8 @@
 
 ## Corrections
 - [x] Corriger l'import Sidebar dans la page contacts
+
+## Pipeline - Modale de modification
+- [x] Modale de modification d'opportunité au clic sur une carte
+- [x] Formulaire avec tous les champs de l'opportunité
+- [x] Sauvegarde et mise à jour en temps réel

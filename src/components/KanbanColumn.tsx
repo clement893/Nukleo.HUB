@@ -13,6 +13,7 @@ interface KanbanColumnProps {
   onDragStart: (e: React.DragEvent, id: string) => void;
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent, stageId: string) => void;
+  onCardClick: (opportunity: Opportunity) => void;
 }
 
 export default function KanbanColumn({
@@ -21,6 +22,7 @@ export default function KanbanColumn({
   onDragStart,
   onDragOver,
   onDrop,
+  onCardClick,
 }: KanbanColumnProps) {
   const totalValue = opportunities.reduce((sum, opp) => sum + (opp.value || 0), 0);
   
@@ -68,6 +70,7 @@ export default function KanbanColumn({
             key={opportunity.id}
             opportunity={opportunity}
             onDragStart={onDragStart}
+            onClick={onCardClick}
           />
         ))}
         
