@@ -32,7 +32,7 @@ export async function GET() {
         company: true,
         contact: true,
         openDate: true,
-        closeDate: true,
+        closedDate: true,
         updatedAt: true,
       },
       orderBy: { updatedAt: "desc" },
