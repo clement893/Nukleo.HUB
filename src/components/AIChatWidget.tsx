@@ -41,7 +41,7 @@ export default function AIChatWidget({ employeeId, employeeName }: AIChatWidgetP
         {
           id: "welcome",
           role: "assistant",
-          content: `Bonjour${employeeName ? ` ${employeeName}` : ""}! 👋 Je suis l'assistant Nukleo. Comment puis-je vous aider aujourd'hui?\n\nJe peux répondre à vos questions sur:\n• Les politiques internes\n• L'organisation et les équipes\n• L'utilisation de la plateforme\n• Les processus et procédures`,
+          content: `Bonjour${employeeName ? ` ${employeeName}` : ""}! 👋 Je suis **Leo**, l'assistant IA de Nukleo. J'ai accès à toutes les données de l'entreprise.\n\nJe peux vous aider avec:\n• **Contacts** - "Qui est Daly-Anne Zogbo ?"\n• **Projets** - "Quels projets sont en cours ?"\n• **Équipe** - "Qui travaille au Lab ?"\n• **Opportunités** - "Quelles sont nos opportunités ?"\n• **Statistiques** - "Donne-moi un résumé"`,
           timestamp: new Date(),
         },
       ]);
@@ -81,11 +81,10 @@ export default function AIChatWidget({ employeeId, employeeName }: AIChatWidgetP
         .slice(-10)
         .map((m) => ({ role: m.role, content: m.content }));
 
-      const response = await fetch("/api/chat", {
+      const response = await fetch("/api/leo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          employeeId,
           message: input.trim(),
           conversationHistory,
         }),
@@ -96,7 +95,7 @@ export default function AIChatWidget({ employeeId, employeeName }: AIChatWidgetP
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: data.message,
+        content: data.response || data.message,
         timestamp: new Date(),
       };
 
