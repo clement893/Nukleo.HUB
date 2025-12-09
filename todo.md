@@ -167,3 +167,6 @@
 - [x] Changement de statut en un clic
 - [x] Formulaire de modification de tâche
 - [ ] Historique des changements de statut
+
+## Bugs
+- [x] Bouton "Créer" dans le formulaire de création de tâche ne fonctionne pas (API GET manquait le filtre projectId)

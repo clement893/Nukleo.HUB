@@ -6,10 +6,12 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const department = searchParams.get("department");
     const zone = searchParams.get("zone");
+    const projectId = searchParams.get("projectId");
 
     const where: Record<string, string> = {};
     if (department) where.department = department;
     if (zone) where.zone = zone;
+    if (projectId) where.projectId = projectId;
 
     const tasks = await prisma.task.findMany({
       where,
