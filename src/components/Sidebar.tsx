@@ -46,6 +46,7 @@ const navigation: NavItem[] = [
     children: [
       { name: "Contacts", href: "/reseau/contacts" },
       { name: "Entreprises", href: "/reseau/entreprises" },
+      { name: "Témoignages", href: "/reseau/temoignages" },
     ],
   },
   { name: "Projets", href: "/projects", icon: FolderKanban },

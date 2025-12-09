@@ -181,3 +181,10 @@
 - [x] Améliorer l'onglet Historique avec une vraie timeline visuelle
 - [x] Afficher les événements chronologiquement
 - [x] Icônes et couleurs par type d'événement
+
+## Section Témoignages
+- [x] Créer le modèle Testimonial dans Prisma
+- [x] Créer l'API CRUD pour les témoignages
+- [x] Créer la page Témoignages dans Réseau
+- [x] Importer les données du CSV (29 témoignages importés)
+- [x] Ajouter le lien dans la navigation

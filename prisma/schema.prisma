@@ -297,3 +297,25 @@ model Note {
 
   @@index([entityType, entityId])
 }
+
+// Témoignages clients
+model Testimonial {
+  id            String    @id @default(cuid())
+  clientName    String
+  contactName   String?
+  companyName   String?
+  status        String    @default("received") // received, requested, online, pending
+  textFr        String?   @db.Text
+  textEn        String?   @db.Text
+  titleFr       String?
+  titleEn       String?
+  rating        Int?      @default(5)
+  featured      Boolean   @default(false)
+  companyId     String?
+  contactId     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status])
+  @@index([featured])
+}
