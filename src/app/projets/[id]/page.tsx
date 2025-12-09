@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Building2,
   Calendar,
+  CalendarDays,
   DollarSign,
   Users,
   FileText,
@@ -30,6 +31,8 @@ import {
   Send,
   X,
   Eye,
+  Flag,
+  Milestone as MilestoneIcon,
 } from "lucide-react";
 
 interface Project {
@@ -114,6 +117,7 @@ interface ActivityLog {
 
 const TABS = [
   { id: "overview", label: "Vue d'ensemble", icon: Target },
+  { id: "timeline", label: "Timeline", icon: CalendarDays },
   { id: "milestones", label: "Milestones", icon: CheckSquare },
   { id: "tasks", label: "Tâches", icon: FileText },
   { id: "team", label: "Équipe", icon: Users },
@@ -720,6 +724,253 @@ export default function ProjectDetailPage() {
                     <p className="text-muted-foreground">Aucun lien externe</p>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "timeline" && (
+            <div>
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-foreground">Timeline du projet</h3>
+                <p className="text-sm text-muted-foreground">Vue chronologique des milestones et tâches</p>
+              </div>
+
+              {/* Timeline View */}
+              <div className="relative">
+                {/* Timeline line */}
+                <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-border" />
+
+                {(() => {
+                  // Combine milestones and tasks with dates
+                  const timelineItems: Array<{
+                    id: string;
+                    type: 'milestone' | 'task';
+                    title: string;
+                    description?: string;
+                    date: Date | null;
+                    status: string;
+                    priority?: string;
+                  }> = [];
+
+                  // Add milestones
+                  milestones.forEach((m) => {
+                    timelineItems.push({
+                      id: m.id,
+                      type: 'milestone',
+                      title: m.title,
+                      description: m.description,
+                      date: m.dueDate ? new Date(m.dueDate) : null,
+                      status: m.status,
+                    });
+                  });
+
+                  // Add tasks
+                  tasks.forEach((t) => {
+                    timelineItems.push({
+                      id: t.id,
+                      type: 'task',
+                      title: t.title,
+                      description: t.description,
+                      date: t.dueDate ? new Date(t.dueDate) : null,
+                      status: t.status || 'todo',
+                      priority: t.priority,
+                    });
+                  });
+
+                  // Sort by date (items without date at the end)
+                  timelineItems.sort((a, b) => {
+                    if (!a.date && !b.date) return 0;
+                    if (!a.date) return 1;
+                    if (!b.date) return -1;
+                    return a.date.getTime() - b.date.getTime();
+                  });
+
+                  // Group by month
+                  const groupedByMonth: Record<string, typeof timelineItems> = {};
+                  const noDateItems: typeof timelineItems = [];
+
+                  timelineItems.forEach((item) => {
+                    if (item.date) {
+                      const monthKey = item.date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                      if (!groupedByMonth[monthKey]) {
+                        groupedByMonth[monthKey] = [];
+                      }
+                      groupedByMonth[monthKey].push(item);
+                    } else {
+                      noDateItems.push(item);
+                    }
+                  });
+
+                  const months = Object.keys(groupedByMonth);
+
+                  if (timelineItems.length === 0) {
+                    return (
+                      <div className="text-center py-12">
+                        <CalendarDays className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-muted-foreground">Aucun élément avec une date</p>
+                        <p className="text-sm text-muted-foreground mt-1">Ajoutez des dates aux milestones et tâches pour les voir ici</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-8">
+                      {months.map((month) => (
+                        <div key={month}>
+                          {/* Month header */}
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center z-10">
+                              <Calendar className="w-6 h-6 text-primary" />
+                            </div>
+                            <h4 className="text-lg font-semibold text-foreground capitalize">{month}</h4>
+                          </div>
+
+                          {/* Items for this month */}
+                          <div className="ml-8 pl-8 space-y-4 border-l-2 border-transparent">
+                            {groupedByMonth[month].map((item) => {
+                              const isMilestone = item.type === 'milestone';
+                              const isCompleted = item.status === 'completed' || item.status === 'done';
+                              const isInProgress = item.status === 'in_progress';
+                              const isPastDue = item.date && item.date < new Date() && !isCompleted;
+
+                              return (
+                                <div
+                                  key={`${item.type}-${item.id}`}
+                                  className={`relative p-4 rounded-xl border transition-all hover:shadow-md ${
+                                    isCompleted
+                                      ? 'bg-green-500/5 border-green-500/30'
+                                      : isPastDue
+                                      ? 'bg-red-500/5 border-red-500/30'
+                                      : isInProgress
+                                      ? 'bg-blue-500/5 border-blue-500/30'
+                                      : 'bg-card border-border'
+                                  }`}
+                                >
+                                  {/* Timeline dot */}
+                                  <div className={`absolute -left-[2.85rem] top-6 w-4 h-4 rounded-full border-2 ${
+                                    isCompleted
+                                      ? 'bg-green-500 border-green-500'
+                                      : isPastDue
+                                      ? 'bg-red-500 border-red-500'
+                                      : isInProgress
+                                      ? 'bg-blue-500 border-blue-500'
+                                      : 'bg-muted border-border'
+                                  }`} />
+
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex items-start gap-3">
+                                      <div className={`p-2 rounded-lg ${
+                                        isMilestone ? 'bg-purple-500/10' : 'bg-primary/10'
+                                      }`}>
+                                        {isMilestone ? (
+                                          <Flag className={`w-4 h-4 ${
+                                            isCompleted ? 'text-green-500' : 'text-purple-500'
+                                          }`} />
+                                        ) : (
+                                          <CheckSquare className={`w-4 h-4 ${
+                                            isCompleted ? 'text-green-500' : 'text-primary'
+                                          }`} />
+                                        )}
+                                      </div>
+                                      <div>
+                                        <div className="flex items-center gap-2">
+                                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                            isMilestone
+                                              ? 'bg-purple-500/10 text-purple-500'
+                                              : 'bg-primary/10 text-primary'
+                                          }`}>
+                                            {isMilestone ? 'Milestone' : 'Tâche'}
+                                          </span>
+                                          {item.priority && (
+                                            <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                              item.priority === 'high' ? 'bg-red-500/10 text-red-500' :
+                                              item.priority === 'medium' ? 'bg-yellow-500/10 text-yellow-500' :
+                                              'bg-green-500/10 text-green-500'
+                                            }`}>
+                                              {item.priority === 'high' ? 'Haute' : item.priority === 'medium' ? 'Moyenne' : 'Basse'}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <h5 className={`font-medium mt-1 ${
+                                          isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'
+                                        }`}>
+                                          {item.title}
+                                        </h5>
+                                        {item.description && (
+                                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                            {item.description}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className={`text-sm font-medium ${
+                                        isPastDue ? 'text-red-500' : 'text-muted-foreground'
+                                      }`}>
+                                        {item.date?.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                                      </p>
+                                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                        isCompleted
+                                          ? 'bg-green-500/10 text-green-500'
+                                          : isInProgress
+                                          ? 'bg-blue-500/10 text-blue-500'
+                                          : 'bg-gray-500/10 text-gray-500'
+                                      }`}>
+                                        {isCompleted ? 'Terminé' : isInProgress ? 'En cours' : 'À faire'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Items without date */}
+                      {noDateItems.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-4 mb-4">
+                            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center z-10">
+                              <Clock className="w-6 h-6 text-muted-foreground" />
+                            </div>
+                            <h4 className="text-lg font-semibold text-muted-foreground">Sans date</h4>
+                          </div>
+                          <div className="ml-8 pl-8 space-y-4">
+                            {noDateItems.map((item) => (
+                              <div
+                                key={`${item.type}-${item.id}`}
+                                className="p-4 rounded-xl border border-dashed border-border bg-muted/30"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className={`p-2 rounded-lg ${
+                                    item.type === 'milestone' ? 'bg-purple-500/10' : 'bg-primary/10'
+                                  }`}>
+                                    {item.type === 'milestone' ? (
+                                      <Flag className="w-4 h-4 text-purple-500" />
+                                    ) : (
+                                      <CheckSquare className="w-4 h-4 text-primary" />
+                                    )}
+                                  </div>
+                                  <div>
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                      item.type === 'milestone'
+                                        ? 'bg-purple-500/10 text-purple-500'
+                                        : 'bg-primary/10 text-primary'
+                                    }`}>
+                                      {item.type === 'milestone' ? 'Milestone' : 'Tâche'}
+                                    </span>
+                                    <h5 className="font-medium text-foreground mt-1">{item.title}</h5>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           )}

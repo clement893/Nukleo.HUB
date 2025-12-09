@@ -188,3 +188,8 @@
 - [x] Créer la page Témoignages dans Réseau
 - [x] Importer les données du CSV (29 témoignages importés)
 - [x] Ajouter le lien dans la navigation
+
+## Onglet Timeline projet
+- [x] Ajouter onglet Timeline dans les tabs
+- [x] Frise chronologique avec tâches et milestones par date
+- [x] Affichage visuel des deadlines et progression
