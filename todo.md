@@ -82,3 +82,13 @@
 ## Page d'accueil - Vraies données
 - [x] API pour les données de la page d'accueil (KPI, activité, contacts, échéances)
 - [x] Mise à jour de la page d'accueil avec les vraies données de la base
+
+## Espace Équipes (Départements)
+- [x] Schéma de base de données (Employee, Task avec zones)
+- [x] 3 départements : Lab, Bureau, Studio
+- [x] 4 zones par département : Current, Shelf, Storage, Dock
+- [x] Gestion des employés par département
+- [x] Chaque employé = 1 seule tâche en cours (Current)
+- [x] Tâches liées aux projets existants
+- [x] Drag & drop entre les zones
+- [x] Modales d'ajout/modification employés et tâches
