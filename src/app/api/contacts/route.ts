@@ -1,39 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url);
-    const search = searchParams.get("search") || "";
-    const region = searchParams.get("region") || "";
-    const employmentField = searchParams.get("employmentField") || "";
-    const circles = searchParams.get("circles") || "";
-
-    const where: Record<string, unknown> = {};
-
-    if (search) {
-      where.OR = [
-        { fullName: { contains: search, mode: "insensitive" } },
-        { company: { contains: search, mode: "insensitive" } },
-        { position: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
-      ];
-    }
-
-    if (region) {
-      where.region = { contains: region, mode: "insensitive" };
-    }
-
-    if (employmentField) {
-      where.employmentField = { contains: employmentField, mode: "insensitive" };
-    }
-
-    if (circles) {
-      where.circles = { contains: circles, mode: "insensitive" };
-    }
-
     const contacts = await prisma.contact.findMany({
-      where,
       orderBy: { fullName: "asc" },
     });
 
@@ -47,7 +17,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const body = await request.json();
     const contact = await prisma.contact.create({
