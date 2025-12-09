@@ -112,8 +112,39 @@
 
 ## Refonte page Équipes - UX/UI
 - [x] Hiérarchie visuelle : Current dominant (50%), autres zones en panneau
-- [ ] Employé au centre : colonnes par employé avec leur tâche
-- [ ] Flux de production : barre visuelle Shelf → Current → Dock
-- [ ] Indicateurs de santé : capacité, vélocité, alertes par département
-- [ ] Micro-interactions : animations drag & drop, feedback visuel
-- [ ] Avatars améliorés : photos/avatars stylisés avec statut
+- [x] Employé au centre : colonnes par employé avec leur tâche
+- [x] Flux de production : barre visuelle Shelf → Current → Dock
+- [x] Indicateurs de santé : capacité, vélocité, alertes par département
+- [x] Micro-interactions : animations drag & drop, feedback visuel
+- [x] Avatars améliorés : photos/avatars stylisés avec statut
+
+## Fiches détaillées
+- [x] Fiche Contact détaillée (page dédiée)
+- [x] Fiche Organisation avec onglets (Équipe, Opportunités, Mandats, Documents, Historique)
+- [x] Page détaillée Projet avec onglets (Détails, Équipe, Tâches, Discussion, Historique)
+
+## Export et Import
+- [x] Export CSV contacts
+- [x] Export CSV opportunités
+- [x] Export CSV organisations
+- [ ] Upload photos de profil contacts
+
+## Enrichissement intelligent
+- [x] Analyse automatique du site web d'une organisation
+- [x] Extraction description, industrie, insights
+- [x] Récupération logo automatique
+
+## Gestion documentaire
+- [x] Upload fichiers par organisation
+- [x] Liste des documents attachés
+- [x] Téléchargement des documents
+
+## Historique et traçabilité
+- [x] Timeline des activités sur chaque entité
+- [x] Notes et commentaires
+- [x] Horodatage des modifications
+
+## Conversion Opportunité → Projet
+- [x] Bouton de conversion dans la fiche opportunité
+- [x] Transfert automatique des informations
+- [x] Lien maintenu entre opportunité et projet

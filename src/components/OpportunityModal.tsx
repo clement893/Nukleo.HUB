@@ -15,7 +15,9 @@ import {
   Save,
   Trash2,
   Link2,
+  ArrowRightCircle,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface OpportunityModalProps {
   opportunity: Opportunity | null;
@@ -23,6 +25,7 @@ interface OpportunityModalProps {
   onClose: () => void;
   onSave: (opportunity: Opportunity) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
+  onConvert?: (id: string) => Promise<void>;
 }
 
 export default function OpportunityModal({
@@ -31,10 +34,13 @@ export default function OpportunityModal({
   onClose,
   onSave,
   onDelete,
+  onConvert,
 }: OpportunityModalProps) {
   const [formData, setFormData] = useState<Partial<Opportunity>>({});
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [converting, setConverting] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (opportunity) {
@@ -98,6 +104,34 @@ export default function OpportunityModal({
       setDeleting(false);
     }
   };
+
+  const handleConvert = async () => {
+    if (!opportunity?.id) return;
+    if (!confirm("Convertir cette opportunité en projet ? Cette action créera un nouveau projet avec les informations de l'opportunité.")) return;
+    
+    setConverting(true);
+    try {
+      const response = await fetch(`/api/opportunities/${opportunity.id}/convert`, {
+        method: "POST",
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert("Opportunité convertie en projet avec succès !");
+        onClose();
+        router.push(`/projets/${data.project.id}`);
+      } else {
+        alert(data.error || "Erreur lors de la conversion");
+      }
+    } catch (error) {
+      console.error("Error converting opportunity:", error);
+      alert("Erreur lors de la conversion");
+    } finally {
+      setConverting(false);
+    }
+  };
+
+  const canConvert = formData.stage?.includes("signé") || formData.stage?.includes("Mandat signé");
 
   const formatDateForInput = (date: Date | string | null | undefined) => {
     if (!date) return "";
@@ -365,17 +399,30 @@ export default function OpportunityModal({
 
           {/* Actions */}
           <div className="flex items-center justify-between pt-4 border-t border-border">
-            {onDelete && (
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={deleting}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
-              >
-                <Trash2 className="w-4 h-4" />
-                {deleting ? "Suppression..." : "Supprimer"}
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  {deleting ? "Suppression..." : "Supprimer"}
+                </button>
+              )}
+              {canConvert && (
+                <button
+                  type="button"
+                  onClick={handleConvert}
+                  disabled={converting}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-green-400 hover:text-green-300 hover:bg-green-500/10 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <ArrowRightCircle className="w-4 h-4" />
+                  {converting ? "Conversion..." : "Convertir en projet"}
+                </button>
+              )}
+            </div>
             <div className="flex items-center gap-3 ml-auto">
               <button
                 type="button"

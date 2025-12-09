@@ -220,3 +220,57 @@ model Event {
   @@index([opportunityId])
   @@index([projectId])
 }
+
+// Documents attachés aux entités
+model Document {
+  id            String    @id @default(cuid())
+  name          String
+  url           String
+  type          String?   // pdf, doc, xls, image, etc.
+  size          Int?      // taille en bytes
+  
+  // Entité liée (une seule à la fois)
+  companyId     String?
+  contactId     String?
+  projectId     String?
+  opportunityId String?
+  
+  uploadedBy    String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([companyId])
+  @@index([contactId])
+  @@index([projectId])
+  @@index([opportunityId])
+}
+
+// Historique des activités
+model ActivityLog {
+  id            String    @id @default(cuid())
+  action        String    // created, updated, status_changed, note_added, document_uploaded, etc.
+  description   String?
+  entityType    String    // contact, company, project, opportunity
+  entityId      String
+  oldValue      String?   @db.Text
+  newValue      String?   @db.Text
+  userId        String?
+  userName      String?
+  createdAt     DateTime  @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+// Notes et commentaires
+model Note {
+  id            String    @id @default(cuid())
+  content       String    @db.Text
+  entityType    String    // contact, company, project, opportunity
+  entityId      String
+  authorName    String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([entityType, entityId])
+}

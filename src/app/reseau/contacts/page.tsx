@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Contact } from "@/types/contact";
 import { ContactCard } from "@/components/ContactCard";
 import Sidebar from "@/components/Sidebar";
@@ -28,6 +29,15 @@ export default function ContactsPage() {
   const [selectedField, setSelectedField] = useState("");
   const [selectedCircle, setSelectedCircle] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const router = useRouter();
+
+  const handleContactClick = (contact: Contact) => {
+    router.push(`/reseau/contacts/${contact.id}`);
+  };
+
+  const handleExport = async () => {
+    window.location.href = "/api/export/contacts";
+  };
 
   useEffect(() => {
     fetchContacts();
@@ -136,9 +146,12 @@ export default function ContactsPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-4 py-2 text-sm bg-muted hover:bg-muted/80 rounded-lg transition-colors">
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-2 px-4 py-2 text-sm bg-muted hover:bg-muted/80 rounded-lg transition-colors"
+            >
               <Download className="w-4 h-4" />
-              Exporter
+              Exporter CSV
             </button>
             <button className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white hover:bg-primary/90 rounded-lg transition-colors">
               <Plus className="w-4 h-4" />
@@ -293,7 +306,9 @@ export default function ContactsPage() {
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredContacts.map((contact) => (
-              <ContactCard key={contact.id} contact={contact} />
+              <div key={contact.id} onClick={() => handleContactClick(contact)} className="cursor-pointer">
+                <ContactCard contact={contact} />
+              </div>
             ))}
           </div>
         ) : (
@@ -325,6 +340,7 @@ export default function ContactsPage() {
                 {filteredContacts.map((contact) => (
                   <tr
                     key={contact.id}
+                    onClick={() => handleContactClick(contact)}
                     className="border-b border-border hover:bg-muted/50 transition-colors cursor-pointer"
                   >
                     <td className="px-4 py-3">

@@ -5,7 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import KanbanColumn from "@/components/KanbanColumn";
 import OpportunityModal from "@/components/OpportunityModal";
 import { Opportunity, PIPELINE_STAGES, REGIONS, SEGMENTS } from "@/types/opportunity";
-import { Filter, RefreshCw, Search } from "lucide-react";
+import { Filter, RefreshCw, Search, Download } from "lucide-react";
 
 export default function PipelinePage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
@@ -19,6 +19,10 @@ export default function PipelinePage() {
   // Modal state
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleExport = () => {
+    window.location.href = "/api/export/opportunities";
+  };
 
   const fetchOpportunities = useCallback(async () => {
     try {
@@ -197,6 +201,15 @@ export default function PipelinePage() {
               >
                 <Filter className="h-4 w-4" />
                 Filtres
+              </button>
+
+              {/* Export */}
+              <button
+                onClick={handleExport}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted text-foreground hover:bg-muted/80 transition-colors text-sm"
+              >
+                <Download className="h-4 w-4" />
+                Exporter
               </button>
 
               {/* Refresh */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import CompanyCard from "@/components/CompanyCard";
 import CompanyModal from "@/components/CompanyModal";
@@ -14,6 +15,7 @@ import {
   Star,
   Globe,
   Users,
+  Download,
 } from "lucide-react";
 
 export default function EntreprisesPage() {
@@ -25,6 +27,15 @@ export default function EntreprisesPage() {
   const [showClientsOnly, setShowClientsOnly] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const router = useRouter();
+
+  const handleCompanyClick = (company: Company) => {
+    router.push(`/reseau/entreprises/${company.id}`);
+  };
+
+  const handleExport = () => {
+    window.location.href = "/api/export/companies";
+  };
 
   useEffect(() => {
     fetchCompanies();
@@ -118,11 +129,20 @@ export default function EntreprisesPage() {
 
       <main className="flex-1 ml-64 p-8 overflow-x-hidden max-w-[calc(100vw-16rem)]">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Entreprises</h1>
-          <p className="text-muted-foreground">
-            Gérez votre répertoire d'organisations et de clients
-          </p>
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Entreprises</h1>
+            <p className="text-muted-foreground">
+              Gérez votre répertoire d'organisations et de clients
+            </p>
+          </div>
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 rounded-lg transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Exporter CSV
+          </button>
         </div>
 
         {/* Stats */}
@@ -272,7 +292,7 @@ export default function EntreprisesPage() {
               <CompanyCard
                 key={company.id}
                 company={company}
-                onClick={setSelectedCompany}
+                onClick={handleCompanyClick}
               />
             ))}
           </div>
@@ -302,7 +322,7 @@ export default function EntreprisesPage() {
                 {filteredCompanies.map((company) => (
                   <tr
                     key={company.id}
-                    onClick={() => setSelectedCompany(company)}
+                    onClick={() => handleCompanyClick(company)}
                     className="hover:bg-muted/50 cursor-pointer transition-colors"
                   >
                     <td className="px-4 py-3">
