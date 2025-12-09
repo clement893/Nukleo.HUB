@@ -210,3 +210,6 @@
 - [x] Graphiques de répartition par département
 - [x] Timeline de charge par semaine/mois
 - [x] Indicateurs de surcharge/sous-charge
+
+## Bugs
+- [x] Pages Employés et Charge de travail passent sous le menu sidebar

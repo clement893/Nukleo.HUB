@@ -118,7 +118,7 @@ export default function WorkloadPage() {
     return (
       <div className="flex min-h-screen bg-background">
         <Sidebar />
-        <main className="flex-1 p-8 flex items-center justify-center">
+        <main className="flex-1 ml-64 p-8 flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </main>
       </div>
@@ -129,7 +129,7 @@ export default function WorkloadPage() {
     return (
       <div className="flex min-h-screen bg-background">
         <Sidebar />
-        <main className="flex-1 p-8 flex items-center justify-center">
+        <main className="flex-1 ml-64 p-8 flex items-center justify-center">
           <p className="text-muted-foreground">Erreur de chargement des données</p>
         </main>
       </div>
@@ -141,7 +141,7 @@ export default function WorkloadPage() {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
-      <main className="flex-1 p-8 overflow-x-hidden">
+      <main className="flex-1 ml-64 p-8 overflow-x-hidden">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
