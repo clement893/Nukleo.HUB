@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { Contact } from "@/types/contact";
-import { ContactCard } from "@/components/ContactCard";
+import { Project } from "@/types/project";
+import { ProjectCard } from "@/components/ProjectCard";
 import Sidebar from "@/components/Sidebar";
 import {
   Search,
-  Filter,
   Grid3X3,
   List,
-  Users,
+  FolderKanban,
   X,
   ChevronDown,
   Plus,
@@ -19,106 +18,128 @@ import {
 
 type ViewMode = "grid" | "list";
 
-export default function ContactsPage() {
-  const [contacts, setContacts] = useState<Contact[]>([]);
+export default function ProjectsPage() {
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState("");
-  const [selectedField, setSelectedField] = useState("");
-  const [selectedCircle, setSelectedCircle] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    fetchContacts();
+    fetchProjects();
   }, []);
 
-  const fetchContacts = async () => {
+  const fetchProjects = async () => {
     try {
-      const response = await fetch("/api/contacts");
+      const response = await fetch("/api/projects");
       if (response.ok) {
         const data = await response.json();
-        setContacts(data);
+        setProjects(data);
       }
     } catch (error) {
-      console.error("Error fetching contacts:", error);
+      console.error("Error fetching projects:", error);
     } finally {
       setLoading(false);
     }
   };
 
   // Extract unique values for filters
-  const regions = useMemo(() => {
-    const uniqueRegions = new Set<string>();
-    contacts.forEach((c) => {
-      if (c.region) uniqueRegions.add(c.region);
+  const statuses = useMemo(() => {
+    const uniqueStatuses = new Set<string>();
+    projects.forEach((p) => {
+      if (p.status) uniqueStatuses.add(p.status);
     });
-    return Array.from(uniqueRegions).sort();
-  }, [contacts]);
+    return Array.from(uniqueStatuses).sort();
+  }, [projects]);
 
-  const employmentFields = useMemo(() => {
-    const uniqueFields = new Set<string>();
-    contacts.forEach((c) => {
-      if (c.employmentField) uniqueFields.add(c.employmentField);
+  const projectTypes = useMemo(() => {
+    const uniqueTypes = new Set<string>();
+    projects.forEach((p) => {
+      if (p.projectType) uniqueTypes.add(p.projectType);
     });
-    return Array.from(uniqueFields).sort();
-  }, [contacts]);
+    return Array.from(uniqueTypes).sort();
+  }, [projects]);
 
-  const circles = useMemo(() => {
-    const uniqueCircles = new Set<string>();
-    contacts.forEach((c) => {
-      if (c.circles) {
-        c.circles.split(",").forEach((circle) => {
-          const trimmed = circle.trim();
-          if (trimmed) uniqueCircles.add(trimmed);
+  const years = useMemo(() => {
+    const uniqueYears = new Set<string>();
+    projects.forEach((p) => {
+      if (p.year) uniqueYears.add(p.year);
+    });
+    return Array.from(uniqueYears).sort().reverse();
+  }, [projects]);
+
+  const departments = useMemo(() => {
+    const uniqueDepts = new Set<string>();
+    projects.forEach((p) => {
+      if (p.departments) {
+        p.departments.split(",").forEach((dept) => {
+          const trimmed = dept.trim();
+          if (trimmed) uniqueDepts.add(trimmed);
         });
       }
     });
-    return Array.from(uniqueCircles).sort();
-  }, [contacts]);
+    return Array.from(uniqueDepts).sort();
+  }, [projects]);
 
-  // Filter contacts
-  const filteredContacts = useMemo(() => {
-    return contacts.filter((contact) => {
+  // Filter projects
+  const filteredProjects = useMemo(() => {
+    return projects.filter((project) => {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const matchesSearch =
-          contact.fullName?.toLowerCase().includes(query) ||
-          contact.company?.toLowerCase().includes(query) ||
-          contact.position?.toLowerCase().includes(query) ||
-          contact.email?.toLowerCase().includes(query);
+          project.name?.toLowerCase().includes(query) ||
+          project.client?.toLowerCase().includes(query) ||
+          project.lead?.toLowerCase().includes(query);
         if (!matchesSearch) return false;
       }
 
-      // Region filter
-      if (selectedRegion && contact.region !== selectedRegion) {
+      // Status filter
+      if (selectedStatus && project.status !== selectedStatus) {
         return false;
       }
 
-      // Employment field filter
-      if (selectedField && contact.employmentField !== selectedField) {
+      // Type filter
+      if (selectedType && project.projectType !== selectedType) {
         return false;
       }
 
-      // Circle filter
-      if (selectedCircle && !contact.circles?.includes(selectedCircle)) {
+      // Year filter
+      if (selectedYear && project.year !== selectedYear) {
+        return false;
+      }
+
+      // Department filter
+      if (selectedDepartment && !project.departments?.includes(selectedDepartment)) {
         return false;
       }
 
       return true;
     });
-  }, [contacts, searchQuery, selectedRegion, selectedField, selectedCircle]);
+  }, [projects, searchQuery, selectedStatus, selectedType, selectedYear, selectedDepartment]);
 
   const clearFilters = () => {
     setSearchQuery("");
-    setSelectedRegion("");
-    setSelectedField("");
-    setSelectedCircle("");
+    setSelectedStatus("");
+    setSelectedType("");
+    setSelectedYear("");
+    setSelectedDepartment("");
   };
 
   const hasActiveFilters =
-    searchQuery || selectedRegion || selectedField || selectedCircle;
+    searchQuery || selectedStatus || selectedType || selectedYear || selectedDepartment;
+
+  // Stats
+  const stats = useMemo(() => {
+    const active = projects.filter((p) => p.status === "Actif" || p.status === "En cours").length;
+    const done = projects.filter((p) => p.status === "Done").length;
+    const blocked = projects.filter((p) => p.status === "Bloqué" || p.status === "Flag").length;
+    return { total: projects.length, active, done, blocked };
+  }, [projects]);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -128,10 +149,10 @@ export default function ContactsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Contacts</h1>
+            <h1 className="text-3xl font-bold text-foreground">Projets</h1>
             <p className="text-muted-foreground mt-1">
-              {filteredContacts.length} contact{filteredContacts.length !== 1 ? "s" : ""}{" "}
-              {hasActiveFilters && `sur ${contacts.length}`}
+              {filteredProjects.length} projet{filteredProjects.length !== 1 ? "s" : ""}{" "}
+              {hasActiveFilters && `sur ${projects.length}`}
             </p>
           </div>
 
@@ -142,8 +163,28 @@ export default function ContactsPage() {
             </button>
             <button className="flex items-center gap-2 px-4 py-2 text-sm bg-primary text-white hover:bg-primary/90 rounded-lg transition-colors">
               <Plus className="w-4 h-4" />
-              Nouveau contact
+              Nouveau projet
             </button>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="glass-card rounded-xl p-4">
+            <p className="text-sm text-muted-foreground">Total</p>
+            <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+          </div>
+          <div className="glass-card rounded-xl p-4">
+            <p className="text-sm text-muted-foreground">En cours</p>
+            <p className="text-2xl font-bold text-green-400">{stats.active}</p>
+          </div>
+          <div className="glass-card rounded-xl p-4">
+            <p className="text-sm text-muted-foreground">Terminés</p>
+            <p className="text-2xl font-bold text-emerald-400">{stats.done}</p>
+          </div>
+          <div className="glass-card rounded-xl p-4">
+            <p className="text-sm text-muted-foreground">Bloqués</p>
+            <p className="text-2xl font-bold text-red-400">{stats.blocked}</p>
           </div>
         </div>
 
@@ -155,7 +196,7 @@ export default function ContactsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Rechercher un contact..."
+                placeholder="Rechercher un projet..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-muted border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -175,7 +216,7 @@ export default function ContactsPage() {
               Filtres
               {hasActiveFilters && (
                 <span className="w-5 h-5 rounded-full bg-primary text-white text-xs flex items-center justify-center">
-                  {[selectedRegion, selectedField, selectedCircle].filter(Boolean).length}
+                  {[selectedStatus, selectedType, selectedYear, selectedDepartment].filter(Boolean).length}
                 </span>
               )}
             </button>
@@ -207,52 +248,69 @@ export default function ContactsPage() {
 
           {/* Expanded Filters */}
           {showFilters && (
-            <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border">
-              {/* Region Filter */}
+            <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border flex-wrap">
+              {/* Status Filter */}
               <div className="relative">
                 <select
-                  value={selectedRegion}
-                  onChange={(e) => setSelectedRegion(e.target.value)}
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
                   className="appearance-none pl-3 pr-8 py-2 bg-muted border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
-                  <option value="">Toutes les régions</option>
-                  {regions.map((region) => (
-                    <option key={region} value={region}>
-                      {region}
+                  <option value="">Tous les statuts</option>
+                  {statuses.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
                     </option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               </div>
 
-              {/* Employment Field Filter */}
+              {/* Type Filter */}
               <div className="relative">
                 <select
-                  value={selectedField}
-                  onChange={(e) => setSelectedField(e.target.value)}
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value)}
                   className="appearance-none pl-3 pr-8 py-2 bg-muted border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
-                  <option value="">Tous les domaines</option>
-                  {employmentFields.map((field) => (
-                    <option key={field} value={field}>
-                      {field}
+                  <option value="">Tous les types</option>
+                  {projectTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
                     </option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               </div>
 
-              {/* Circles Filter */}
+              {/* Year Filter */}
               <div className="relative">
                 <select
-                  value={selectedCircle}
-                  onChange={(e) => setSelectedCircle(e.target.value)}
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
                   className="appearance-none pl-3 pr-8 py-2 bg-muted border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
                 >
-                  <option value="">Tous les cercles</option>
-                  {circles.map((circle) => (
-                    <option key={circle} value={circle}>
-                      {circle}
+                  <option value="">Toutes les années</option>
+                  {years.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              </div>
+
+              {/* Department Filter */}
+              <div className="relative">
+                <select
+                  value={selectedDepartment}
+                  onChange={(e) => setSelectedDepartment(e.target.value)}
+                  className="appearance-none pl-3 pr-8 py-2 bg-muted border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  <option value="">Tous les départements</option>
+                  {departments.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
                     </option>
                   ))}
                 </select>
@@ -273,27 +331,27 @@ export default function ContactsPage() {
           )}
         </div>
 
-        {/* Contacts Grid/List */}
+        {/* Projects Grid/List */}
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
-        ) : filteredContacts.length === 0 ? (
+        ) : filteredProjects.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center">
-            <Users className="w-12 h-12 text-muted-foreground mb-4" />
+            <FolderKanban className="w-12 h-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium text-foreground">
-              Aucun contact trouvé
+              Aucun projet trouvé
             </h3>
             <p className="text-muted-foreground mt-1">
               {hasActiveFilters
                 ? "Essayez de modifier vos filtres"
-                : "Commencez par ajouter un contact"}
+                : "Commencez par ajouter un projet"}
             </p>
           </div>
         ) : viewMode === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredContacts.map((contact) => (
-              <ContactCard key={contact.id} contact={contact} />
+            {filteredProjects.map((project) => (
+              <ProjectCard key={project.id} project={project} />
             ))}
           </div>
         ) : (
@@ -302,107 +360,62 @@ export default function ContactsPage() {
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">
-                    Nom
+                    Projet
                   </th>
                   <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">
-                    Entreprise
+                    Client
                   </th>
                   <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">
-                    Poste
+                    Statut
                   </th>
                   <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">
-                    Région
+                    Type
                   </th>
                   <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">
-                    Domaine
+                    Lead
                   </th>
                   <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">
-                    Contact
+                    Année
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {filteredContacts.map((contact) => (
+                {filteredProjects.map((project) => (
                   <tr
-                    key={contact.id}
+                    key={project.id}
                     className="border-b border-border hover:bg-muted/50 transition-colors cursor-pointer"
                   >
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                          <span className="text-xs font-medium text-primary">
-                            {contact.fullName
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .toUpperCase()
-                              .slice(0, 2)}
-                          </span>
-                        </div>
-                        <span className="font-medium text-foreground">
-                          {contact.fullName}
-                        </span>
-                      </div>
+                      <span className="font-medium text-foreground">
+                        {project.name}
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">
-                      {contact.company || "-"}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">
-                      {contact.position || "-"}
+                      {project.client || "-"}
                     </td>
                     <td className="px-4 py-3">
-                      {contact.region && (
-                        <span className="px-2 py-1 text-xs rounded-full bg-primary/10 text-primary">
-                          {contact.region}
+                      {project.status && (
+                        <span className={`px-2 py-1 text-xs rounded-full ${
+                          project.status === "Actif" || project.status === "En cours"
+                            ? "bg-green-500/20 text-green-400"
+                            : project.status === "Done"
+                            ? "bg-emerald-500/20 text-emerald-400"
+                            : project.status === "Bloqué"
+                            ? "bg-red-500/20 text-red-400"
+                            : "bg-gray-500/20 text-gray-400"
+                        }`}>
+                          {project.status}
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
-                      {contact.employmentField && (
-                        <span className="px-2 py-1 text-xs rounded-full bg-accent/10 text-accent">
-                          {contact.employmentField}
-                        </span>
-                      )}
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                      {project.projectType || "-"}
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        {contact.email && (
-                          <a
-                            href={`mailto:${contact.email.trim()}`}
-                            className="text-muted-foreground hover:text-primary"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                              />
-                            </svg>
-                          </a>
-                        )}
-                        {contact.linkedinUrl && (
-                          <a
-                            href={contact.linkedinUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-muted-foreground hover:text-[#0077B5]"
-                          >
-                            <svg
-                              className="w-4 h-4"
-                              fill="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                            </svg>
-                          </a>
-                        )}
-                      </div>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                      {project.lead || "-"}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                      {project.year || "-"}
                     </td>
                   </tr>
                 ))}

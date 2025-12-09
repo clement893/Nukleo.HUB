@@ -75,3 +75,40 @@ model Contact {
   @@index([employmentField])
   @@index([company])
 }
+
+model Project {
+  id              String    @id @default(cuid())
+  name            String
+  client          String?
+  team            String?
+  status          String?
+  stage           String?
+  billing         String?
+  lead            String?
+  clientComm      String?
+  contactName     String?
+  contactMethod   String?
+  hourlyRate      Float?
+  proposalUrl     String?
+  budget          String?
+  driveUrl        String?
+  asanaUrl        String?
+  slackUrl        String?
+  timeline        String?
+  projectType     String?
+  year            String?
+  description     String?   @db.Text
+  brief           String?   @db.Text
+  testimonial     String?
+  portfolio       String?
+  report          String?
+  communication   String?
+  departments     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status])
+  @@index([projectType])
+  @@index([client])
+  @@index([year])
+}

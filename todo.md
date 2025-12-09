@@ -36,3 +36,14 @@
 - [x] Recherche par nom, entreprise, poste
 - [ ] Fiche contact détaillée
 - [x] Import des données CSV
+
+## Page Projets
+- [x] Schéma de base de données pour les projets
+- [x] API REST pour les projets (GET, POST, PATCH, DELETE)
+- [x] Page projets avec liste et vue grille
+- [x] Filtres par statut, type, département, année
+- [x] Recherche par nom, client
+- [x] Import des données CSV (115 projets)
+
+## Corrections
+- [x] Corriger l'import Sidebar dans la page contacts
