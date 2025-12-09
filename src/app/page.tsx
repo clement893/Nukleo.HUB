@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
+import AIChatWidget from "@/components/AIChatWidget";
 import {
   KPICards,
   PipelineChart,
@@ -101,6 +102,9 @@ export default function Home() {
           </div>
         </div>
       </main>
+      
+      {/* Chat IA flottant */}
+      <AIChatWidget />
     </div>
   );
 }

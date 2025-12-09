@@ -288,3 +288,21 @@
 - [x] Module Communication Client
 - [x] Navigation dans la sidebar
 - [x] Pousser vers GitHub
+
+
+## Onboarding Employés
+- [x] Schéma DB pour les étapes d'onboarding (OnboardingStep)
+- [x] Schéma DB pour les politiques internes (Policy)
+- [x] Schéma DB pour le suivi de progression (OnboardingProgress)
+- [x] APIs CRUD pour l'onboarding
+- [x] Page d'onboarding avec étapes personnalisées par rôle
+- [x] Présentation de la plateforme (tour guidé)
+- [x] Affichage et validation des politiques internes
+- [x] Page admin pour gérer les étapes et politiques
+- [x] Pousser vers GitHub
+
+## Chat IA
+- [x] API pour le chat IA avec contexte Nukleo
+- [x] Interface de chat flottante
+- [x] Recherche dans les politiques et documentation
+- [x] Pousser vers GitHub

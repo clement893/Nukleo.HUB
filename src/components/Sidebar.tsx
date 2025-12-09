@@ -21,6 +21,7 @@ import {
   Sparkles,
   Receipt,
   Megaphone,
+  GraduationCap,
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 
@@ -67,6 +68,7 @@ const navigation: NavItem[] = [
   { name: "Agenda", href: "/agenda", icon: Calendar },
   { name: "Facturation", href: "/billing", icon: Receipt },
   { name: "Hub Communication", href: "/communication", icon: Megaphone },
+  { name: "Admin Onboarding", href: "/admin/onboarding", icon: GraduationCap },
 ];
 
 export default function Sidebar() {

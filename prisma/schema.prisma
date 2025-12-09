@@ -164,8 +164,16 @@ model Employee {
   capacityHoursPerWeek  Int       @default(35) // Capacité en heures par semaine
   currentTaskId         String?   @unique // Only one current task per employee
   currentTask           Task?     @relation("CurrentTask", fields: [currentTaskId], references: [id])
+  onboardingCompleted   Boolean   @default(false)
+  onboardingStartedAt   DateTime?
+  onboardingCompletedAt DateTime?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+
+  // Relations onboarding
+  onboardingProgress    OnboardingProgress[]
+  policyAcknowledgments PolicyAcknowledgment[]
+  chatMessages          ChatMessage[]
 
   @@index([department])
 }
@@ -580,4 +588,77 @@ model ClientTask {
   @@index([clientId])
   @@index([status])
   @@index([dueDate])
+}
+
+
+// ==================== ONBOARDING ====================
+
+model OnboardingStep {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String   @db.Text
+  content     String   @db.Text
+  type        String   @default("info") // info, video, quiz, policy, tour
+  order       Int
+  role        String?  // null = all roles, or specific role (Lab, Bureau, Studio, Admin)
+  isRequired  Boolean  @default(true)
+  duration    Int      @default(5) // estimated minutes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  progress    OnboardingProgress[]
+}
+
+model Policy {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String   @db.Text
+  category    String   // general, security, hr, conduct, remote
+  version     String   @default("1.0")
+  isActive    Boolean  @default(true)
+  requiresAck Boolean  @default(true) // requires acknowledgment
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  acknowledgments PolicyAcknowledgment[]
+}
+
+model PolicyAcknowledgment {
+  id         Int      @id @default(autoincrement())
+  employeeId String
+  policyId   Int
+  acknowledgedAt DateTime @default(now())
+  ipAddress  String?
+  
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  policy     Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  
+  @@unique([employeeId, policyId])
+}
+
+model OnboardingProgress {
+  id          Int      @id @default(autoincrement())
+  employeeId  String
+  stepId      Int
+  status      String   @default("pending") // pending, in_progress, completed, skipped
+  completedAt DateTime?
+  score       Int?     // for quiz steps
+  
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  step        OnboardingStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  
+  @@unique([employeeId, stepId])
+}
+
+// Chat AI conversation history
+model ChatMessage {
+  id         Int      @id @default(autoincrement())
+  employeeId String
+  role       String   // user, assistant
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+  
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  @@index([employeeId])
 }
