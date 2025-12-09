@@ -46,10 +46,7 @@ export async function GET(request: NextRequest) {
         // Contacts liés à cette entreprise
         const contacts = await prisma.contact.findMany({
           where: {
-            OR: [
-              { companyId: company.id },
-              { company: { contains: company.name, mode: "insensitive" } },
-            ],
+            company: { contains: company.name, mode: "insensitive" },
           },
           select: {
             id: true,
@@ -77,10 +74,7 @@ export async function GET(request: NextRequest) {
         // Opportunités liées
         const opportunities = await prisma.opportunity.findMany({
           where: {
-            OR: [
-              { companyId: company.id },
-              { company: { contains: company.name, mode: "insensitive" } },
-            ],
+            company: { contains: company.name, mode: "insensitive" },
           },
           select: {
             id: true,
