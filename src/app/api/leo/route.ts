@@ -90,9 +90,9 @@ async function getNukleoContext() {
         company: true,
         stage: true,
         contact: true,
-        probability: true,
-        expectedCloseDate: true,
-        description: true,
+        region: true,
+        segment: true,
+        projectType: true,
       },
     }),
     prisma.communicationClient.findMany({
@@ -197,7 +197,7 @@ ${context.employees.map(e => `- **${e.name}** | Rôle: ${e.role || 'Non défini'
 ${context.projects.map(p => `- **${p.name}** | Client: ${p.client || 'N/A'} | Status: ${p.status || 'En cours'} | Type: ${p.projectType || 'N/A'} | Lead: ${p.lead || 'N/A'} | Budget: ${p.budget ? p.budget + '$' : 'N/A'} | Taux horaire: ${p.hourlyRate ? p.hourlyRate + '$/h' : 'N/A'}`).join('\n')}
 
 ### 💼 OPPORTUNITÉS COMMERCIALES (${context.opportunities.length})
-${context.opportunities.map(o => `- **${o.name}** | Entreprise: ${o.company || 'N/A'} | Contact: ${o.contact || 'N/A'} | Stage: ${o.stage} | Valeur: ${o.value ? o.value + '$' : 'N/A'} | Probabilité: ${o.probability ? o.probability + '%' : 'N/A'}`).join('\n')}
+${context.opportunities.map(o => `- **${o.name}** | Entreprise: ${o.company || 'N/A'} | Contact: ${o.contact || 'N/A'} | Stage: ${o.stage} | Valeur: ${o.value ? o.value + '$' : 'N/A'} | Région: ${o.region || 'N/A'} | Type: ${o.projectType || 'N/A'}`).join('\n')}
 
 ### 📞 TOUS LES CONTACTS (${context.contacts.length})
 ${context.contacts.map(c => `- **${c.fullName}** | Entreprise: ${c.company || 'N/A'} | Poste: ${c.position || 'N/A'} | Email: ${c.email || 'N/A'} | Téléphone: ${c.phone || 'N/A'} | Région: ${c.region || 'N/A'} | Domaine: ${c.employmentField || 'N/A'} | LinkedIn: ${c.linkedinUrl || 'N/A'} | Tags: ${c.tags || 'Aucun'}`).join('\n')}
