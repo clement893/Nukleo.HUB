@@ -154,3 +154,9 @@
 - [x] Affichage des milestones dans la page projet
 - [x] Création/modification de milestones
 - [x] Progression visuelle des milestones
+
+## Gestion des tâches dans la page projet
+- [x] Modale de détails des tâches
+- [x] Formulaire de création de tâche depuis la page projet
+- [x] Bouton "Envoyer vers Équipes" (ajoute la tâche dans le Shelf du département)
+- [x] Sélection du département cible

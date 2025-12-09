@@ -26,6 +26,9 @@ import {
   PlayCircle,
   MoreVertical,
   GripVertical,
+  Send,
+  X,
+  Eye,
 } from "lucide-react";
 
 interface Project {
@@ -61,9 +64,18 @@ interface Task {
   title: string;
   description?: string;
   zone: string;
+  department?: string;
   priority?: string;
   dueDate?: string;
+  projectId?: string;
 }
+
+const DEPARTMENTS = ["Lab", "Bureau", "Studio"];
+const PRIORITIES = [
+  { value: "low", label: "Basse", color: "bg-green-500/10 text-green-500" },
+  { value: "medium", label: "Moyenne", color: "bg-yellow-500/10 text-yellow-500" },
+  { value: "high", label: "Haute", color: "bg-red-500/10 text-red-500" },
+];
 
 interface Milestone {
   id: string;
@@ -129,6 +141,11 @@ export default function ProjectDetailPage() {
   const [newNote, setNewNote] = useState("");
   const [showMilestoneForm, setShowMilestoneForm] = useState(false);
   const [newMilestone, setNewMilestone] = useState({ title: "", description: "", dueDate: "" });
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [newTask, setNewTask] = useState({ title: "", description: "", priority: "medium", dueDate: "", department: "Lab" });
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [showTaskDetail, setShowTaskDetail] = useState(false);
+  const [sendingToTeam, setSendingToTeam] = useState<string | null>(null);
 
   useEffect(() => {
     if (params.id) {
@@ -272,6 +289,68 @@ export default function ProjectDetailPage() {
       }
     } catch (error) {
       console.error("Error deleting project:", error);
+    }
+  };
+
+  const handleAddTask = async () => {
+    if (!newTask.title.trim()) return;
+    try {
+      const response = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newTask,
+          projectId: params.id,
+          zone: "shelf",
+        }),
+      });
+      if (response.ok) {
+        const task = await response.json();
+        setTasks([...tasks, task]);
+        setNewTask({ title: "", description: "", priority: "medium", dueDate: "", department: "Lab" });
+        setShowTaskForm(false);
+      }
+    } catch (error) {
+      console.error("Error adding task:", error);
+    }
+  };
+
+  const handleSendToTeam = async (taskId: string, department: string) => {
+    setSendingToTeam(taskId);
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          zone: "shelf",
+          department: department,
+        }),
+      });
+      if (response.ok) {
+        const updatedTask = await response.json();
+        setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
+        alert(`Tâche envoyée dans le Shelf de ${department} !`);
+      }
+    } catch (error) {
+      console.error("Error sending task to team:", error);
+    } finally {
+      setSendingToTeam(null);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm("Supprimer cette tâche ?")) return;
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        setTasks(tasks.filter(t => t.id !== taskId));
+        setShowTaskDetail(false);
+        setSelectedTask(null);
+      }
+    } catch (error) {
+      console.error("Error deleting task:", error);
     }
   };
 
@@ -722,24 +801,112 @@ export default function ProjectDetailPage() {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-foreground">Tâches ({tasks.length})</h3>
-                <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+                <button 
+                  onClick={() => setShowTaskForm(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                >
                   <Plus className="w-4 h-4" />
                   Ajouter une tâche
                 </button>
               </div>
+
+              {/* Formulaire d'ajout de tâche */}
+              {showTaskForm && (
+                <div className="mb-6 p-4 bg-muted/50 rounded-lg border border-border">
+                  <h4 className="font-medium text-foreground mb-4">Nouvelle tâche</h4>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm text-muted-foreground mb-1">Titre *</label>
+                      <input
+                        type="text"
+                        value={newTask.title}
+                        onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        placeholder="Ex: Créer les maquettes"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-muted-foreground mb-1">Département</label>
+                      <select
+                        value={newTask.department}
+                        onChange={(e) => setNewTask({ ...newTask, department: e.target.value })}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      >
+                        {DEPARTMENTS.map((dept) => (
+                          <option key={dept} value={dept}>{dept}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-muted-foreground mb-1">Priorité</label>
+                      <select
+                        value={newTask.priority}
+                        onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      >
+                        {PRIORITIES.map((p) => (
+                          <option key={p.value} value={p.value}>{p.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-muted-foreground mb-1">Date limite</label>
+                      <input
+                        type="date"
+                        value={newTask.dueDate}
+                        onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm text-muted-foreground mb-1">Description</label>
+                    <textarea
+                      value={newTask.description}
+                      onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                      rows={2}
+                      placeholder="Description de la tâche..."
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => setShowTaskForm(false)}
+                      className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={handleAddTask}
+                      disabled={!newTask.title.trim()}
+                      className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                    >
+                      Créer
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {tasks.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">Aucune tâche pour ce projet</p>
+                <div className="text-center py-12">
+                  <CheckSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Aucune tâche pour ce projet</p>
+                  <p className="text-sm text-muted-foreground mt-1">Ajoutez des tâches et envoyez-les aux équipes</p>
+                </div>
               ) : (
                 <div className="space-y-3">
                   {tasks.map((task) => (
                     <div
                       key={task.id}
-                      className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
+                      className="flex items-center justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors group"
                     >
-                      <div className="flex items-center gap-3">
+                      <div 
+                        className="flex items-center gap-3 flex-1 cursor-pointer"
+                        onClick={() => { setSelectedTask(task); setShowTaskDetail(true); }}
+                      >
                         <CheckSquare className="w-5 h-5 text-muted-foreground" />
                         <div>
-                          <p className="font-medium text-foreground">{task.title}</p>
+                          <p className="font-medium text-foreground group-hover:text-primary transition-colors">{task.title}</p>
                           {task.description && (
                             <p className="text-sm text-muted-foreground line-clamp-1">{task.description}</p>
                           )}
@@ -753,11 +920,57 @@ export default function ProjectDetailPage() {
                           </div>
                         )}
                         <span className={`px-2 py-1 text-xs rounded-full ${getPriorityColor(task.priority)}`}>
-                          {task.priority || "Normal"}
+                          {task.priority === "high" ? "Haute" : task.priority === "low" ? "Basse" : "Moyenne"}
                         </span>
+                        {task.department && (
+                          <span className="px-2 py-1 text-xs rounded-full bg-blue-500/10 text-blue-500">
+                            {task.department}
+                          </span>
+                        )}
                         <span className="px-2 py-1 text-xs rounded-full bg-gray-500/10 text-gray-500">
                           {task.zone}
                         </span>
+                        
+                        {/* Boutons d'action */}
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => { setSelectedTask(task); setShowTaskDetail(true); }}
+                            className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-colors"
+                            title="Voir détails"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <div className="relative group/send">
+                            <button
+                              className="p-1.5 text-muted-foreground hover:text-green-500 hover:bg-green-500/10 rounded transition-colors"
+                              title="Envoyer vers Équipes"
+                            >
+                              <Send className="w-4 h-4" />
+                            </button>
+                            <div className="absolute right-0 top-full mt-1 bg-popover border border-border rounded-lg shadow-lg opacity-0 invisible group-hover/send:opacity-100 group-hover/send:visible transition-all z-10">
+                              <div className="p-2 min-w-[120px]">
+                                <p className="text-xs text-muted-foreground px-2 py-1">Envoyer vers</p>
+                                {DEPARTMENTS.map((dept) => (
+                                  <button
+                                    key={dept}
+                                    onClick={() => handleSendToTeam(task.id, dept)}
+                                    disabled={sendingToTeam === task.id}
+                                    className="w-full text-left px-2 py-1.5 text-sm text-foreground hover:bg-muted rounded transition-colors"
+                                  >
+                                    {dept}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteTask(task.id)}
+                            className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -892,6 +1105,104 @@ export default function ProjectDetailPage() {
           )}
         </div>
       </main>
+
+      {/* Modale de détail de tâche */}
+      {showTaskDetail && selectedTask && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h3 className="text-lg font-semibold text-foreground">Détails de la tâche</h3>
+              <button
+                onClick={() => { setShowTaskDetail(false); setSelectedTask(null); }}
+                className="p-1 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="text-xs text-muted-foreground uppercase tracking-wide">Titre</label>
+                <p className="text-lg font-medium text-foreground">{selectedTask.title}</p>
+              </div>
+              
+              {selectedTask.description && (
+                <div>
+                  <label className="text-xs text-muted-foreground uppercase tracking-wide">Description</label>
+                  <p className="text-foreground whitespace-pre-wrap">{selectedTask.description}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-muted-foreground uppercase tracking-wide">Priorité</label>
+                  <p className={`inline-block px-2 py-1 text-sm rounded-full ${getPriorityColor(selectedTask.priority)}`}>
+                    {selectedTask.priority === "high" ? "Haute" : selectedTask.priority === "low" ? "Basse" : "Moyenne"}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-xs text-muted-foreground uppercase tracking-wide">Zone</label>
+                  <p className="text-foreground capitalize">{selectedTask.zone}</p>
+                </div>
+                {selectedTask.department && (
+                  <div>
+                    <label className="text-xs text-muted-foreground uppercase tracking-wide">Département</label>
+                    <p className="text-foreground">{selectedTask.department}</p>
+                  </div>
+                )}
+                {selectedTask.dueDate && (
+                  <div>
+                    <label className="text-xs text-muted-foreground uppercase tracking-wide">Date limite</label>
+                    <p className="text-foreground">
+                      {new Date(selectedTask.dueDate).toLocaleDateString("fr-FR", { 
+                        day: "numeric", 
+                        month: "long", 
+                        year: "numeric" 
+                      })}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="pt-4 border-t border-border">
+                <label className="text-xs text-muted-foreground uppercase tracking-wide mb-2 block">Envoyer vers Équipes</label>
+                <div className="flex gap-2">
+                  {DEPARTMENTS.map((dept) => (
+                    <button
+                      key={dept}
+                      onClick={() => {
+                        handleSendToTeam(selectedTask.id, dept);
+                        setShowTaskDetail(false);
+                        setSelectedTask(null);
+                      }}
+                      disabled={sendingToTeam === selectedTask.id}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-muted hover:bg-primary hover:text-primary-foreground rounded-lg transition-colors"
+                    >
+                      <Send className="w-4 h-4" />
+                      {dept}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 p-4 border-t border-border">
+              <button
+                onClick={() => handleDeleteTask(selectedTask.id)}
+                className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                Supprimer
+              </button>
+              <button
+                onClick={() => { setShowTaskDetail(false); setSelectedTask(null); }}
+                className="px-4 py-2 bg-muted text-foreground rounded-lg hover:bg-muted/80 transition-colors"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
