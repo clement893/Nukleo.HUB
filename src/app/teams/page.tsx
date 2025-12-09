@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Sidebar from "@/components/Sidebar";
 import {
   Plus,
@@ -22,6 +23,10 @@ import {
   FolderOpen,
   Shield,
   Linkedin,
+  Play,
+  Pause,
+  Square,
+  Timer,
 } from "lucide-react";
 
 interface Employee {
@@ -235,6 +240,94 @@ export default function TeamsPage() {
     }
   };
 
+  // Time tracking state
+  const [runningTimers, setRunningTimers] = useState<Record<string, { entryId: string; startTime: Date; taskId: string }>>({});
+  const [timerSeconds, setTimerSeconds] = useState<Record<string, number>>({});
+
+  // Charger les timers en cours au démarrage
+  useEffect(() => {
+    const loadRunningTimers = async () => {
+      for (const emp of employees) {
+        try {
+          const res = await fetch(`/api/time-entries?employeeId=${emp.id}&status=running`);
+          const entries = await res.json();
+          if (entries.length > 0) {
+            const entry = entries[0];
+            setRunningTimers(prev => ({
+              ...prev,
+              [emp.id]: { entryId: entry.id, startTime: new Date(entry.startTime), taskId: entry.taskId }
+            }));
+          }
+        } catch (error) {
+          console.error("Error loading timers:", error);
+        }
+      }
+    };
+    if (employees.length > 0) loadRunningTimers();
+  }, [employees]);
+
+  // Mettre à jour les secondes du timer
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newSeconds: Record<string, number> = {};
+      Object.entries(runningTimers).forEach(([empId, timer]) => {
+        newSeconds[empId] = Math.floor((Date.now() - timer.startTime.getTime()) / 1000);
+      });
+      setTimerSeconds(newSeconds);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [runningTimers]);
+
+  const formatTime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const handleStartTimer = async (employeeId: string, taskId: string, projectId: string | null) => {
+    try {
+      const res = await fetch("/api/time-entries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ employeeId, taskId, projectId }),
+      });
+      if (res.ok) {
+        const entry = await res.json();
+        setRunningTimers(prev => ({
+          ...prev,
+          [employeeId]: { entryId: entry.id, startTime: new Date(entry.startTime), taskId }
+        }));
+      }
+    } catch (error) {
+      console.error("Error starting timer:", error);
+    }
+  };
+
+  const handleStopTimer = async (employeeId: string) => {
+    const timer = runningTimers[employeeId];
+    if (!timer) return;
+    try {
+      await fetch("/api/time-entries", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: timer.entryId, action: "stop" }),
+      });
+      setRunningTimers(prev => {
+        const newTimers = { ...prev };
+        delete newTimers[employeeId];
+        return newTimers;
+      });
+      setTimerSeconds(prev => {
+        const newSeconds = { ...prev };
+        delete newSeconds[employeeId];
+        return newSeconds;
+      });
+    } catch (error) {
+      console.error("Error stopping timer:", error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -404,7 +497,7 @@ export default function TeamsPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold text-foreground truncate">{employee.name}</span>
+                              <Link href={`/teams/employees/${employee.id}`} className="font-semibold text-foreground truncate hover:text-primary transition-colors" onClick={(e) => e.stopPropagation()}>{employee.name}</Link>
                               {employee.linkedinUrl && (
                                 <a href={employee.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 transition-colors flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                                   <Linkedin className="h-4 w-4" />
@@ -442,6 +535,34 @@ export default function TeamsPage() {
                                       <Clock className="h-3 w-3" />
                                       {new Date(currentTask.dueDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
                                     </span>
+                                  )}
+                                </div>
+                                {/* Timer controls */}
+                                <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border/50">
+                                  {runningTimers[employee.id]?.taskId === currentTask.id ? (
+                                    <>
+                                      <div className="flex items-center gap-1 text-emerald-500 font-mono text-sm">
+                                        <Timer className="h-3 w-3 animate-pulse" />
+                                        {formatTime(timerSeconds[employee.id] || 0)}
+                                      </div>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleStopTimer(employee.id); }}
+                                        className="ml-auto p-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+                                        title="Arrêter le timer"
+                                      >
+                                        <Square className="h-3 w-3" />
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleStartTimer(employee.id, currentTask.id, currentTask.projectId); }}
+                                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-emerald-500 transition-colors"
+                                      disabled={!!runningTimers[employee.id]}
+                                      title={runningTimers[employee.id] ? "Un timer est déjà en cours" : "Démarrer le timer"}
+                                    >
+                                      <Play className="h-3 w-3" />
+                                      Timer
+                                    </button>
                                   )}
                                 </div>
                               </div>

@@ -246,3 +246,12 @@
 - [x] Générateur de devis basé sur les phases sélectionnées
 - [x] Liaison template transformation aux projets existants
 - [x] Pousser vers GitHub
+
+
+## Time Tracking
+- [x] Schéma DB pour les entrées de temps (TimeEntry)
+- [x] API CRUD pour le time tracking
+- [x] Bouton start/stop sur les tâches
+- [x] Page employé avec logs de temps
+- [x] Statistiques de temps par employé
+- [x] Pousser vers GitHub

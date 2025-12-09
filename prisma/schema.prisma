@@ -374,3 +374,26 @@ model Quote {
   @@index([projectId])
   @@index([status])
 }
+
+
+// Entrées de temps pour le time tracking
+model TimeEntry {
+  id          String    @id @default(cuid())
+  employeeId  String
+  taskId      String?
+  projectId   String?
+  description String?
+  startTime   DateTime
+  endTime     DateTime?
+  duration    Int?      // Durée en minutes
+  billable    Boolean   @default(true)
+  status      String    @default("running") // running, completed, paused
+  notes       String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([employeeId])
+  @@index([taskId])
+  @@index([projectId])
+  @@index([startTime])
+}
