@@ -78,3 +78,7 @@
 - [x] Graphique de répartition par étape avec montants
 - [x] Liste des opportunités récentes
 - [x] Actualisation en temps réel (auto-refresh 30s)
+
+## Page d'accueil - Vraies données
+- [x] API pour les données de la page d'accueil (KPI, activité, contacts, échéances)
+- [x] Mise à jour de la page d'accueil avec les vraies données de la base
