@@ -1,7 +1,15 @@
-// S3 Storage helper for file uploads
+// AWS S3 Storage helper for file uploads
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 
-const FORGE_API_URL = process.env.BUILT_IN_FORGE_API_URL || "";
-const FORGE_API_KEY = process.env.BUILT_IN_FORGE_API_KEY || "";
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || "us-east-2",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+  },
+});
+
+const BUCKET_NAME = process.env.AWS_S3_BUCKET || "nukleo-hub-photos";
 
 interface StorageResult {
   key: string;
@@ -20,69 +28,42 @@ export async function storagePut(
   data: Buffer | Uint8Array | string,
   contentType?: string
 ): Promise<StorageResult> {
-  // Convert data to base64
-  let base64Data: string;
-  if (typeof data === "string") {
-    base64Data = Buffer.from(data).toString("base64");
-  } else {
-    base64Data = Buffer.from(data).toString("base64");
-  }
-
-  const response = await fetch(`${FORGE_API_URL}/storage/put`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${FORGE_API_KEY}`,
-    },
-    body: JSON.stringify({
-      key,
-      data: base64Data,
-      contentType: contentType || "application/octet-stream",
-    }),
+  const command = new PutObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: key,
+    Body: data instanceof Buffer ? data : Buffer.from(data),
+    ContentType: contentType || "application/octet-stream",
   });
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Storage upload failed: ${error}`);
-  }
+  await s3Client.send(command);
 
-  const result = await response.json();
+  // Construct the public URL
+  const url = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION || "us-east-2"}.amazonaws.com/${key}`;
+
   return {
-    key: result.key || key,
-    url: result.url,
+    key,
+    url,
   };
 }
 
 /**
- * Get a presigned URL for a file in S3
+ * Delete a file from S3 storage
  * @param key - The file key/path in S3
- * @param expiresIn - Expiration time in seconds (default: 3600)
- * @returns The storage result with key and presigned URL
  */
-export async function storageGet(
-  key: string,
-  expiresIn?: number
-): Promise<StorageResult> {
-  const response = await fetch(`${FORGE_API_URL}/storage/get`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${FORGE_API_KEY}`,
-    },
-    body: JSON.stringify({
-      key,
-      expiresIn: expiresIn || 3600,
-    }),
+export async function storageDelete(key: string): Promise<void> {
+  const command = new DeleteObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: key,
   });
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Storage get failed: ${error}`);
-  }
+  await s3Client.send(command);
+}
 
-  const result = await response.json();
-  return {
-    key: result.key || key,
-    url: result.url,
-  };
+/**
+ * Get the public URL for a file in S3
+ * @param key - The file key/path in S3
+ * @returns The public URL
+ */
+export function getPublicUrl(key: string): string {
+  return `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION || "us-east-2"}.amazonaws.com/${key}`;
 }

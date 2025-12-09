@@ -227,3 +227,6 @@
 - [x] Ajouter composant d'upload dans le formulaire employé
 - [x] Afficher les photos sur les cartes employés
 - [x] Afficher les photos dans la page Charge de travail
+
+## Bugs
+- [x] La photo ne s'affiche pas quand on l'ajoute à un employé (configuré AWS S3)
