@@ -242,9 +242,13 @@ model Event {
 model Document {
   id            String    @id @default(cuid())
   name          String
-  url           String
-  type          String?   // pdf, doc, xls, image, etc.
+  url           String?
+  type          String?   // file, link, drive, figma, notion, github, pdf, doc, xls, image, etc.
   size          Int?      // taille en bytes
+  fileKey       String?   // Clé S3 pour les fichiers uploadés
+  mimeType      String?   // Type MIME pour les fichiers
+  description   String?   @db.Text
+  category      String?   // design, dev, docs, contracts, assets, general, etc.
   
   // Entité liée (une seule à la fois)
   companyId     String?
@@ -256,10 +260,14 @@ model Document {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  taskDocuments TaskDocument[]
+
   @@index([companyId])
   @@index([contactId])
   @@index([projectId])
   @@index([opportunityId])
+  @@index([type])
+  @@index([category])
 }
 
 // Historique des activités
@@ -664,28 +672,6 @@ model ChatMessage {
 }
 
 
-// Documents et liens pour les projets
-model Document {
-  id          String    @id @default(cuid())
-  projectId   String
-  name        String
-  type        String    // file, link, drive, figma, notion, github, etc.
-  url         String?   // URL pour les liens ou URL S3 pour les fichiers
-  fileKey     String?   // Clé S3 pour les fichiers uploadés
-  mimeType    String?   // Type MIME pour les fichiers
-  size        Int?      // Taille en bytes
-  description String?   @db.Text
-  category    String?   // design, dev, docs, contracts, assets, etc.
-  uploadedBy  String?   // ID de l'employé qui a uploadé
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  taskDocuments TaskDocument[]
-
-  @@index([projectId])
-  @@index([type])
-  @@index([category])
-}
 
 // Relation entre documents et tâches
 model TaskDocument {
