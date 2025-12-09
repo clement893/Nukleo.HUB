@@ -14,7 +14,6 @@ import {
   Calendar,
   Search,
   Settings,
-  LogOut,
   ChevronDown,
   Command,
 } from "lucide-react";
@@ -34,28 +33,25 @@ const navigation: NavItem[] = [
     icon: TrendingUp,
     children: [
       { name: "Pipeline", href: "/commercial/pipeline" },
-      { name: "Opportunités", href: "/commercial/opportunities" },
-      { name: "Tableau de bord", href: "/commercial/dashboard" },
     ],
   },
-  { name: "Clients", href: "/clients", icon: Building2 },
-  { name: "Contacts", href: "/contacts", icon: Users },
   {
-    name: "Projets",
-    href: "/projects",
-    icon: FolderKanban,
+    name: "Réseau",
+    href: "/reseau",
+    icon: Users,
     children: [
-      { name: "Pipeline", href: "/projects/pipeline" },
-      { name: "Liste", href: "/projects/list" },
+      { name: "Contacts", href: "/reseau/contacts" },
+      { name: "Entreprises", href: "/reseau/entreprises" },
     ],
   },
+  { name: "Projets", href: "/projects", icon: FolderKanban },
   { name: "Équipes", href: "/teams", icon: UsersRound },
   { name: "Agenda", href: "/agenda", icon: Calendar },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const [expandedItems, setExpandedItems] = useState<string[]>(["Commercial", "Projets"]);
+  const [expandedItems, setExpandedItems] = useState<string[]>(["Commercial", "Réseau"]);
 
   const toggleExpand = (name: string) => {
     setExpandedItems((prev) =>
