@@ -26,13 +26,10 @@ export async function GET(request: NextRequest) {
     // Pour chaque entreprise, récupérer les projets, contacts et portail
     const clientsWithDetails = await Promise.all(
       companies.map(async (company) => {
-        // Projets liés à cette entreprise
+        // Projets liés à cette entreprise (via le champ client qui contient le nom)
         const projects = await prisma.project.findMany({
           where: {
-            OR: [
-              { clientId: company.id },
-              { client: { contains: company.name, mode: "insensitive" } },
-            ],
+            client: { contains: company.name, mode: "insensitive" },
           },
           select: {
             id: true,
