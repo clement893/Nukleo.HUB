@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialiser OpenAI seulement si la clé est disponible
+function getOpenAIClient() {
+  if (!process.env.OPENAI_API_KEY) {
+    return null;
+  }
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 // Récupérer le contexte complet de Nukleo
 async function getNukleoContext() {
@@ -173,8 +179,11 @@ export async function POST(request: NextRequest) {
     // Récupérer le contexte Nukleo
     const context = await getNukleoContext();
 
+    // Obtenir le client OpenAI
+    const openai = getOpenAIClient();
+
     // Si pas de clé OpenAI, utiliser des réponses intelligentes basées sur les données
-    if (!process.env.OPENAI_API_KEY) {
+    if (!openai) {
       const fallbackResponse = generateFallbackResponse(message, context);
       return NextResponse.json({
         response: fallbackResponse,
