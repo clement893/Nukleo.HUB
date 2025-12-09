@@ -495,7 +495,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                       const StatusIcon = statusInfo.icon;
                       return (
                         <div key={task.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
-                          <StatusIcon className="h-4 w-4" style={{ color: statusInfo.color }} />
+                          <div style={{ color: statusInfo.color }}><StatusIcon className="h-4 w-4" /></div>
                           <span className="flex-1 text-sm text-foreground">{task.title}</span>
                           <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: `${PRIORITY_COLORS[task.priority]}20`, color: PRIORITY_COLORS[task.priority] }}>
                             {task.priority}
