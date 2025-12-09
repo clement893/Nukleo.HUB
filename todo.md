@@ -230,3 +230,10 @@
 
 ## Bugs
 - [x] La photo ne s'affiche pas quand on l'ajoute à un employé (configuré AWS S3)
+
+
+## Flow Transformation Numérique
+- [x] Créer la page /transformation avec le template de flow
+- [x] Définir les phases du flow (Diagnostic, Stratégie, Design, Dev, IA, Formation, Déploiement, Suivi)
+- [x] Ajouter la navigation dans la sidebar
+- [x] Pousser vers GitHub

@@ -18,6 +18,7 @@ import {
   Command,
   Sun,
   Moon,
+  Sparkles,
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 
@@ -50,6 +51,7 @@ const navigation: NavItem[] = [
     ],
   },
   { name: "Projets", href: "/projects", icon: FolderKanban },
+  { name: "Transformation", href: "/transformation", icon: Sparkles },
   {
     name: "Équipes",
     href: "/teams",
