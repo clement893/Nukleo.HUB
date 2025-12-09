@@ -71,3 +71,10 @@
 - [x] API route pour récupérer les favicons via Google Favicon API
 - [x] Script pour mettre à jour les logos des entreprises depuis leurs sites web (218 logos mis à jour)
 - [x] Affichage des favicons comme logos d'entreprises
+
+## Tableau de bord Commercial
+- [x] API pour les statistiques (total opportunités, pipeline, montant gagné, taux conversion)
+- [x] 4 cartes de statistiques principales
+- [x] Graphique de répartition par étape avec montants
+- [x] Liste des opportunités récentes
+- [x] Actualisation en temps réel (auto-refresh 30s)

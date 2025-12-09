@@ -32,6 +32,7 @@ const navigation: NavItem[] = [
     href: "/commercial",
     icon: TrendingUp,
     children: [
+      { name: "Tableau de bord", href: "/commercial/dashboard" },
       { name: "Pipeline", href: "/commercial/pipeline" },
     ],
   },
