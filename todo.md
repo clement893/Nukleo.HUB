@@ -170,3 +170,14 @@
 
 ## Bugs
 - [x] Bouton "Créer" dans le formulaire de création de tâche ne fonctionne pas (API GET manquait le filtre projectId)
+
+## Mode clair/sombre
+- [x] Créer ThemeProvider avec contexte React
+- [x] Ajouter bouton de toggle dans la sidebar
+- [x] Définir les variables CSS pour les deux modes
+- [x] Persister le choix dans localStorage
+
+## Timeline dans les projets
+- [x] Améliorer l'onglet Historique avec une vraie timeline visuelle
+- [x] Afficher les événements chronologiquement
+- [x] Icônes et couleurs par type d'événement

@@ -13,6 +13,7 @@ import {
   MessageSquare,
   History,
   Edit,
+  Edit2,
   Trash2,
   Plus,
   ExternalLink,
@@ -1156,30 +1157,69 @@ export default function ProjectDetailPage() {
 
           {activeTab === "history" && (
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">Historique</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-6">Timeline du projet</h3>
               {activities.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">Aucune activité enregistrée</p>
+                <div className="text-center py-12">
+                  <History className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Aucune activité enregistrée</p>
+                  <p className="text-sm text-muted-foreground mt-1">Les événements apparaîtront ici</p>
+                </div>
               ) : (
-                <div className="space-y-4">
-                  {activities.map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <History className="w-4 h-4 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-foreground">{activity.description || activity.action}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {activity.userName} • {new Date(activity.createdAt).toLocaleDateString("fr-FR", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                <div className="relative">
+                  {/* Timeline line */}
+                  <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-border" />
+                  
+                  <div className="space-y-6">
+                    {activities.map((activity, index) => {
+                      const getActivityIcon = (action: string) => {
+                        if (action.includes("créé") || action.includes("ajout")) return { icon: Plus, color: "bg-green-500" };
+                        if (action.includes("modifié") || action.includes("mis à jour")) return { icon: Edit2, color: "bg-blue-500" };
+                        if (action.includes("supprimé")) return { icon: Trash2, color: "bg-red-500" };
+                        if (action.includes("terminé") || action.includes("complété")) return { icon: CheckCircle2, color: "bg-green-500" };
+                        if (action.includes("assigné")) return { icon: Users, color: "bg-purple-500" };
+                        if (action.includes("commentaire") || action.includes("note")) return { icon: MessageSquare, color: "bg-yellow-500" };
+                        return { icon: History, color: "bg-primary" };
+                      };
+                      const { icon: ActivityIcon, color } = getActivityIcon(activity.action || activity.description || "");
+                      const isFirst = index === 0;
+                      
+                      return (
+                        <div key={activity.id} className="relative flex items-start gap-4 pl-0">
+                          {/* Timeline dot */}
+                          <div className={`relative z-10 flex items-center justify-center w-12 h-12 rounded-full ${color} shadow-lg ${isFirst ? 'ring-4 ring-primary/20' : ''}`}>
+                            <ActivityIcon className="w-5 h-5 text-white" />
+                          </div>
+                          
+                          {/* Content card */}
+                          <div className={`flex-1 p-4 rounded-lg border border-border ${isFirst ? 'bg-primary/5 border-primary/20' : 'bg-muted/30'}`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-foreground">
+                                {activity.userName || "Système"}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(activity.createdAt).toLocaleDateString("fr-FR", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                })}
+                                {" à "}
+                                {new Date(activity.createdAt).toLocaleTimeString("fr-FR", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </span>
+                            </div>
+                            <p className="text-foreground">{activity.description || activity.action}</p>
+                            {activity.metadata && (
+                              <div className="mt-2 text-xs text-muted-foreground bg-muted/50 rounded px-2 py-1 inline-block">
+                                {typeof activity.metadata === 'string' ? activity.metadata : JSON.stringify(activity.metadata)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>

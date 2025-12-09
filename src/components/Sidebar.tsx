@@ -16,7 +16,10 @@ import {
   Settings,
   ChevronDown,
   Command,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface NavItem {
   name: string;
@@ -53,6 +56,7 @@ const navigation: NavItem[] = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>(["Commercial", "Réseau"]);
+  const { theme, toggleTheme } = useTheme();
 
   const toggleExpand = (name: string) => {
     setExpandedItems((prev) =>
@@ -161,6 +165,13 @@ export default function Sidebar() {
               <p className="text-sm font-medium text-foreground truncate">Admin</p>
               <p className="text-xs text-muted-foreground truncate">admin@nukleo.io</p>
             </div>
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+              title={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
             <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
               <Settings className="h-4 w-4" />
             </button>
