@@ -17,6 +17,8 @@ import {
   UserCheck,
   UserX,
   MoreVertical,
+  Camera,
+  Loader2,
 } from "lucide-react";
 
 interface Employee {
@@ -24,6 +26,7 @@ interface Employee {
   name: string;
   email?: string;
   phone?: string;
+  photoUrl?: string;
   role?: string;
   department: string;
   capacityHoursPerWeek?: number;
@@ -50,6 +53,9 @@ export default function EmployeesPage() {
   const [departmentFilter, setDepartmentFilter] = useState<string>("all");
   const [showForm, setShowForm] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -81,6 +87,9 @@ export default function EmployeesPage() {
     if (!formData.name.trim()) return;
 
     try {
+      let employeeId: string;
+      let savedEmployee: Employee;
+
       if (editingEmployee) {
         // Update existing employee
         const response = await fetch(`/api/employees/${editingEmployee.id}`, {
@@ -89,8 +98,10 @@ export default function EmployeesPage() {
           body: JSON.stringify(formData),
         });
         if (response.ok) {
-          const updatedEmployee = await response.json();
-          setEmployees(employees.map(e => e.id === editingEmployee.id ? updatedEmployee : e));
+          savedEmployee = await response.json();
+          employeeId = editingEmployee.id;
+        } else {
+          throw new Error("Failed to update employee");
         }
       } else {
         // Create new employee
@@ -100,13 +111,42 @@ export default function EmployeesPage() {
           body: JSON.stringify(formData),
         });
         if (response.ok) {
-          const newEmployee = await response.json();
-          setEmployees([...employees, newEmployee]);
+          savedEmployee = await response.json();
+          employeeId = savedEmployee.id;
+        } else {
+          throw new Error("Failed to create employee");
         }
       }
+
+      // Upload photo if selected
+      if (photoFile) {
+        setUploadingPhoto(true);
+        const photoFormData = new FormData();
+        photoFormData.append("photo", photoFile);
+        
+        const photoResponse = await fetch(`/api/employees/${employeeId}/photo`, {
+          method: "POST",
+          body: photoFormData,
+        });
+        
+        if (photoResponse.ok) {
+          const { photoUrl } = await photoResponse.json();
+          savedEmployee = { ...savedEmployee, photoUrl };
+        }
+        setUploadingPhoto(false);
+      }
+
+      // Update employees list
+      if (editingEmployee) {
+        setEmployees(employees.map(e => e.id === employeeId ? savedEmployee : e));
+      } else {
+        setEmployees([...employees, savedEmployee]);
+      }
+
       resetForm();
     } catch (error) {
       console.error("Error saving employee:", error);
+      setUploadingPhoto(false);
     }
   };
 
@@ -135,6 +175,8 @@ export default function EmployeesPage() {
       department: employee.department,
       capacityHoursPerWeek: employee.capacityHoursPerWeek || 35,
     });
+    setPhotoPreview(employee.photoUrl || null);
+    setPhotoFile(null);
     setShowForm(true);
   };
 
@@ -149,6 +191,20 @@ export default function EmployeesPage() {
       department: "Lab",
       capacityHoursPerWeek: 35,
     });
+    setPhotoPreview(null);
+    setPhotoFile(null);
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const filteredEmployees = employees.filter(employee => {
@@ -322,9 +378,17 @@ export default function EmployeesPage() {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="relative">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-primary font-semibold">
-                          {getInitials(employee.name)}
-                        </div>
+                        {employee.photoUrl ? (
+                          <img 
+                            src={employee.photoUrl} 
+                            alt={employee.name}
+                            className="w-12 h-12 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-primary font-semibold">
+                            {getInitials(employee.name)}
+                          </div>
+                        )}
                         <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-card ${
                           isAvailable ? 'bg-green-500' : 'bg-orange-500'
                         }`} />
@@ -412,6 +476,29 @@ export default function EmployeesPage() {
               </button>
             </div>
             <div className="p-4 space-y-4">
+              {/* Photo Upload */}
+              <div className="flex justify-center">
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full bg-muted border-2 border-dashed border-border flex items-center justify-center overflow-hidden">
+                    {photoPreview ? (
+                      <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <Camera className="w-8 h-8 text-muted-foreground" />
+                    )}
+                  </div>
+                  <label className="absolute bottom-0 right-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors">
+                    <Camera className="w-4 h-4 text-primary-foreground" />
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      onChange={handlePhotoChange}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+              <p className="text-center text-xs text-muted-foreground">Cliquez pour ajouter une photo</p>
+              
               <div>
                 <label className="block text-sm text-muted-foreground mb-1">Nom *</label>
                 <input

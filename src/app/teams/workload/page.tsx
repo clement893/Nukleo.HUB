@@ -39,6 +39,7 @@ interface WorkloadData {
     name: string;
     department: string;
     role: string;
+    photoUrl?: string;
     capacityHoursPerWeek: number;
     currentTask: string | null;
     isAvailable: boolean;
@@ -349,9 +350,17 @@ export default function WorkloadPage() {
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
                           <div className="relative">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-primary text-xs font-semibold">
-                              {emp.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
-                            </div>
+                            {emp.photoUrl ? (
+                              <img 
+                                src={emp.photoUrl} 
+                                alt={emp.name}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-primary text-xs font-semibold">
+                                {emp.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
+                              </div>
+                            )}
                             <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card ${
                               emp.isAvailable ? 'bg-green-500' : 'bg-orange-500'
                             }`} />

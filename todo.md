@@ -220,3 +220,10 @@
 - [x] Mettre à jour le formulaire employé
 - [x] Mettre à jour le formulaire tâche
 - [x] Recalculer la charge en heures au lieu de points
+
+## Photos des employés
+- [x] Ajouter champ photoUrl au schéma Employee (déjà existant)
+- [x] Créer API d'upload de photos
+- [x] Ajouter composant d'upload dans le formulaire employé
+- [x] Afficher les photos sur les cartes employés
+- [x] Afficher les photos dans la page Charge de travail

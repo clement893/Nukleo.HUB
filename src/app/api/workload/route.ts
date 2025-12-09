@@ -156,6 +156,7 @@ export async function GET(request: NextRequest) {
         name: emp.name,
         department: emp.department,
         role: emp.role,
+        photoUrl: emp.photoUrl,
         capacityHoursPerWeek: capacityPerWeek,
         currentTask: emp.currentTask?.title || null,
         isAvailable: !emp.currentTaskId,
