@@ -306,3 +306,12 @@
 - [x] Interface de chat flottante
 - [x] Recherche dans les politiques et documentation
 - [x] Pousser vers GitHub
+
+
+## Leo - Assistant IA Nukleo
+- [x] API pour Leo avec accès à toutes les données (projets, contacts, employés, tâches)
+- [x] Page dédiée avec interface de chat complète
+- [x] Contexte enrichi avec toutes les données Nukleo
+- [x] Suggestions intelligentes et actions rapides
+- [x] Navigation dans la sidebar
+- [x] Pousser vers GitHub
