@@ -109,6 +109,7 @@ interface ActivityLog {
   description?: string;
   createdAt: string;
   userName?: string;
+  metadata?: string | Record<string, unknown>;
 }
 
 const TABS = [
