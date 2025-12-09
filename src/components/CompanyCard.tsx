@@ -1,6 +1,7 @@
 "use client";
 
 import { Company } from "@/types/company";
+import { useState } from "react";
 import {
   Building2,
   Globe,
@@ -20,6 +21,8 @@ interface CompanyCardProps {
 }
 
 export default function CompanyCard({ company, onClick }: CompanyCardProps) {
+  const [imageError, setImageError] = useState(false);
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -29,6 +32,8 @@ export default function CompanyCard({ company, onClick }: CompanyCardProps) {
       .slice(0, 2);
   };
 
+  const showFallback = !company.logoUrl || imageError;
+
   return (
     <div
       onClick={() => onClick?.(company)}
@@ -36,18 +41,19 @@ export default function CompanyCard({ company, onClick }: CompanyCardProps) {
     >
       {/* Header with logo and name */}
       <div className="flex items-start gap-4 mb-4">
-        {company.logoUrl ? (
-          <img
-            src={company.logoUrl}
-            alt={company.name}
-            className="w-14 h-14 rounded-lg object-cover bg-muted"
-          />
-        ) : (
-          <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center">
+        {showFallback ? (
+          <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
             <span className="text-lg font-semibold text-primary">
               {getInitials(company.name)}
             </span>
           </div>
+        ) : (
+          <img
+            src={company.logoUrl!}
+            alt={company.name}
+            className="w-14 h-14 rounded-lg object-cover bg-muted flex-shrink-0"
+            onError={() => setImageError(true)}
+          />
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
