@@ -27,6 +27,7 @@ import {
   Pause,
   Square,
   Timer,
+  Paperclip,
 } from "lucide-react";
 
 interface Employee {
@@ -645,6 +646,19 @@ export default function TeamsPage() {
                               <div className="text-sm font-medium text-foreground truncate">{task.title}</div>
                               {task.project && <div className="text-xs text-muted-foreground truncate flex items-center gap-1"><FolderOpen className="h-3 w-3" />{task.project.name}</div>}
                             </div>
+                            <button
+                              onClick={() => {
+                                if (task.project?.id) {
+                                  window.open(`/projects/${task.project.id}/documents?taskId=${task.id}`, '_blank');
+                                } else {
+                                  alert('Cette tâche doit être associée à un projet pour attacher des documents.');
+                                }
+                              }}
+                              className="p-1.5 rounded text-muted-foreground hover:text-violet-500 hover:bg-violet-500/10 opacity-0 group-hover:opacity-100 transition-all"
+                              title="Attacher un document"
+                            >
+                              <Paperclip className="h-3 w-3" />
+                            </button>
                             <button onClick={() => handleDeleteTask(task.id)} className="p-1.5 rounded text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all">
                               <X className="h-3 w-3" />
                             </button>

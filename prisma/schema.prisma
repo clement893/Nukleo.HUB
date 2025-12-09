@@ -662,3 +662,42 @@ model ChatMessage {
   
   @@index([employeeId])
 }
+
+
+// Documents et liens pour les projets
+model Document {
+  id          String    @id @default(cuid())
+  projectId   String
+  name        String
+  type        String    // file, link, drive, figma, notion, github, etc.
+  url         String?   // URL pour les liens ou URL S3 pour les fichiers
+  fileKey     String?   // Clé S3 pour les fichiers uploadés
+  mimeType    String?   // Type MIME pour les fichiers
+  size        Int?      // Taille en bytes
+  description String?   @db.Text
+  category    String?   // design, dev, docs, contracts, assets, etc.
+  uploadedBy  String?   // ID de l'employé qui a uploadé
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  taskDocuments TaskDocument[]
+
+  @@index([projectId])
+  @@index([type])
+  @@index([category])
+}
+
+// Relation entre documents et tâches
+model TaskDocument {
+  id          String    @id @default(cuid())
+  taskId      String
+  documentId  String
+  addedBy     String?   // ID de l'employé qui a attaché le document
+  createdAt   DateTime  @default(now())
+
+  document    Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, documentId])
+  @@index([taskId])
+  @@index([documentId])
+}

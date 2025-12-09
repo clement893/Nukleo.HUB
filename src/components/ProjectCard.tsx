@@ -10,7 +10,9 @@ import {
   FolderKanban,
   DollarSign,
   Clock,
+  FolderOpen,
 } from "lucide-react";
+import Link from "next/link";
 
 interface ProjectCardProps {
   project: Project;
@@ -154,6 +156,14 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
             <span className="hidden sm:inline">Slack</span>
           </a>
         )}
+        <Link
+          href={`/projects/${project.id}/documents`}
+          onClick={(e) => e.stopPropagation()}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-violet-500 transition-colors"
+        >
+          <FolderOpen className="w-4 h-4" />
+          <span className="hidden sm:inline">Documents</span>
+        </Link>
         {project.proposalUrl && (
           <a
             href={project.proposalUrl}

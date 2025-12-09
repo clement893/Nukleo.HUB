@@ -315,3 +315,14 @@
 - [x] Suggestions intelligentes et actions rapides
 - [x] Navigation dans la sidebar
 - [x] Pousser vers GitHub
+
+
+## Gestion Documentaire
+- [x] Schéma DB pour les documents (Document)
+- [x] Schéma DB pour les liens document-tâche (TaskDocument)
+- [x] API CRUD pour les documents
+- [x] Hub de documents dans les projets
+- [x] Attachement de documents aux tâches
+- [x] Synchronisation automatique tâche -> projet
+- [x] Upload de fichiers vers S3
+- [x] Pousser vers GitHub
