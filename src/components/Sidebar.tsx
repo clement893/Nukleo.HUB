@@ -57,6 +57,7 @@ const navigation: NavItem[] = [
     children: [
       { name: "Tableau de bord", href: "/teams" },
       { name: "Employés", href: "/teams/employees" },
+      { name: "Charge de travail", href: "/teams/workload" },
     ],
   },
   { name: "Agenda", href: "/agenda", icon: Calendar },

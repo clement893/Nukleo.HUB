@@ -203,3 +203,10 @@
 - [x] Formulaire d'ajout/modification d'employé
 - [x] Attribution aux départements (Lab, Bureau, Studio)
 - [x] Ajouter le lien dans la navigation
+
+## Module calcul de charge
+- [x] API pour calculer la charge par employé et département
+- [x] Page de visualisation de la charge à venir
+- [x] Graphiques de répartition par département
+- [x] Timeline de charge par semaine/mois
+- [x] Indicateurs de surcharge/sous-charge
