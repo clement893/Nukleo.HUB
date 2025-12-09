@@ -50,7 +50,15 @@ const navigation: NavItem[] = [
     ],
   },
   { name: "Projets", href: "/projects", icon: FolderKanban },
-  { name: "Équipes", href: "/teams", icon: UsersRound },
+  {
+    name: "Équipes",
+    href: "/teams",
+    icon: UsersRound,
+    children: [
+      { name: "Tableau de bord", href: "/teams" },
+      { name: "Employés", href: "/teams/employees" },
+    ],
+  },
   { name: "Agenda", href: "/agenda", icon: Calendar },
 ];
 

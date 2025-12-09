@@ -193,3 +193,13 @@
 - [x] Ajouter onglet Timeline dans les tabs
 - [x] Frise chronologique avec tâches et milestones par date
 - [x] Affichage visuel des deadlines et progression
+
+## Bugs
+- [ ] Bouton Enregistrer ne fonctionne pas dans le formulaire de modification de tâche
+
+## Page gestion des employés
+- [x] Créer la page /teams/employees
+- [x] Liste des employés avec filtres par département
+- [x] Formulaire d'ajout/modification d'employé
+- [x] Attribution aux départements (Lab, Bureau, Studio)
+- [x] Ajouter le lien dans la navigation
