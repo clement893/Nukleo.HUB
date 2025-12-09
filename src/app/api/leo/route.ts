@@ -50,8 +50,8 @@ async function getNukleoContext() {
         phone: true,
         region: true,
         employmentField: true,
-        notes: true,
         linkedinUrl: true,
+        tags: true,
       },
     }),
     prisma.employee.findMany({
@@ -200,7 +200,7 @@ ${context.projects.map(p => `- **${p.name}** | Client: ${p.client || 'N/A'} | St
 ${context.opportunities.map(o => `- **${o.name}** | Entreprise: ${o.company || 'N/A'} | Contact: ${o.contact || 'N/A'} | Stage: ${o.stage} | Valeur: ${o.value ? o.value + '$' : 'N/A'} | Probabilité: ${o.probability ? o.probability + '%' : 'N/A'}`).join('\n')}
 
 ### 📞 TOUS LES CONTACTS (${context.contacts.length})
-${context.contacts.map(c => `- **${c.fullName}** | Entreprise: ${c.company || 'N/A'} | Poste: ${c.position || 'N/A'} | Email: ${c.email || 'N/A'} | Téléphone: ${c.phone || 'N/A'} | Région: ${c.region || 'N/A'} | Domaine: ${c.employmentField || 'N/A'} | LinkedIn: ${c.linkedinUrl || 'N/A'} | Notes: ${c.notes || 'Aucune'}`).join('\n')}
+${context.contacts.map(c => `- **${c.fullName}** | Entreprise: ${c.company || 'N/A'} | Poste: ${c.position || 'N/A'} | Email: ${c.email || 'N/A'} | Téléphone: ${c.phone || 'N/A'} | Région: ${c.region || 'N/A'} | Domaine: ${c.employmentField || 'N/A'} | LinkedIn: ${c.linkedinUrl || 'N/A'} | Tags: ${c.tags || 'Aucun'}`).join('\n')}
 
 ### 🏢 ENTREPRISES (${context.companies.length})
 ${context.companies.map(c => `- **${c.name}** | Industrie: ${c.industry || 'N/A'} | Région: ${c.region || 'N/A'} | Taille: ${c.size || 'N/A'} | Site web: ${c.website || 'N/A'}`).join('\n')}
@@ -346,7 +346,7 @@ function generateFallbackResponse(
           response += `- 🌍 Région: ${c.region || 'N/A'}\n`;
           response += `- 📝 Domaine: ${c.employmentField || 'N/A'}\n`;
           if (c.linkedinUrl) response += `- 🔗 LinkedIn: ${c.linkedinUrl}\n`;
-          if (c.notes) response += `- 📋 Notes: ${c.notes}\n`;
+          if (c.tags) response += `- 🏷️ Tags: ${c.tags}\n`;
         });
       }
 
