@@ -5,6 +5,9 @@ export async function GET() {
   try {
     const opportunities = await prisma.opportunity.findMany({
       orderBy: { updatedAt: "desc" },
+      include: {
+        linkedContact: true,
+      },
     });
     return NextResponse.json(opportunities);
   } catch (error) {
@@ -21,6 +24,9 @@ export async function POST(request: Request) {
     const data = await request.json();
     const opportunity = await prisma.opportunity.create({
       data,
+      include: {
+        linkedContact: true,
+      },
     });
     return NextResponse.json(opportunity);
   } catch (error) {

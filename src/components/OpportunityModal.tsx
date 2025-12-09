@@ -2,17 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { Opportunity, PIPELINE_STAGES, REGIONS, SEGMENTS } from "@/types/opportunity";
+import { Contact } from "@/types/contact";
+import ContactSelector from "./ContactSelector";
 import {
   X,
   Building2,
   DollarSign,
-  User,
   MapPin,
   Calendar,
   FileText,
   Tag,
   Save,
   Trash2,
+  Link2,
 } from "lucide-react";
 
 interface OpportunityModalProps {
@@ -57,6 +59,15 @@ export default function OpportunityModal({
     setFormData((prev) => ({
       ...prev,
       [name]: value === "" ? null : parseFloat(value),
+    }));
+  };
+
+  const handleContactSelect = (contact: Contact | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      contactId: contact?.id || null,
+      contact: contact?.fullName || prev.contact,
+      linkedContact: contact,
     }));
   };
 
@@ -105,7 +116,7 @@ export default function OpportunityModal({
       {/* Modal */}
       <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-background border border-border rounded-xl shadow-2xl m-4">
         {/* Header */}
-        <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-border bg-background/95 backdrop-blur-sm">
+        <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-border bg-background/95 backdrop-blur-sm z-10">
           <h2 className="text-xl font-semibold text-foreground">
             Modifier l&apos;opportunité
           </h2>
@@ -170,34 +181,32 @@ export default function OpportunityModal({
             </div>
           </div>
 
-          {/* Entreprise et Contact */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                <Building2 className="inline w-4 h-4 mr-1" />
-                Entreprise
-              </label>
-              <input
-                type="text"
-                name="company"
-                value={formData.company || ""}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-              />
+          {/* Contact lié (nouveau sélecteur) */}
+          <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <Link2 className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Liaison avec un contact</span>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                <User className="inline w-4 h-4 mr-1" />
-                Contact
-              </label>
-              <input
-                type="text"
-                name="contact"
-                value={formData.contact || ""}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-              />
-            </div>
+            <ContactSelector
+              selectedContactId={formData.contactId || null}
+              selectedContactName={formData.contact || null}
+              onSelect={handleContactSelect}
+            />
+          </div>
+
+          {/* Entreprise */}
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              <Building2 className="inline w-4 h-4 mr-1" />
+              Entreprise
+            </label>
+            <input
+              type="text"
+              name="company"
+              value={formData.company || ""}
+              onChange={handleChange}
+              className="w-full px-4 py-2.5 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
           </div>
 
           {/* Région et Segment */}

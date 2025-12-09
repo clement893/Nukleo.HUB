@@ -52,3 +52,8 @@
 - [x] Modale de modification d'opportunité au clic sur une carte
 - [x] Formulaire avec tous les champs de l'opportunité
 - [x] Sauvegarde et mise à jour en temps réel
+
+## Liaison Contact-Opportunité
+- [x] Sélecteur de contact avec recherche dans la modale opportunité
+- [x] Relation contact-opportunité dans le schéma de base de données
+- [x] Affichage du contact lié dans les cartes Kanban

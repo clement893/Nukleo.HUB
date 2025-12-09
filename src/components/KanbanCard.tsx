@@ -1,7 +1,7 @@
 "use client";
 
 import { Opportunity } from "@/types/opportunity";
-import { Building2, DollarSign, MapPin, User } from "lucide-react";
+import { Building2, DollarSign, MapPin, User, Link2 } from "lucide-react";
 
 interface KanbanCardProps {
   opportunity: Opportunity;
@@ -25,6 +25,9 @@ export default function KanbanCard({ opportunity, onDragStart, onClick }: Kanban
     if (e.defaultPrevented) return;
     onClick(opportunity);
   };
+
+  const linkedContact = opportunity.linkedContact;
+  const displayContact = linkedContact?.fullName || opportunity.contact;
 
   return (
     <div
@@ -52,10 +55,33 @@ export default function KanbanCard({ opportunity, onDragStart, onClick }: Kanban
           </div>
         )}
         
-        {opportunity.contact && (
+        {/* Contact lié avec indicateur visuel */}
+        {displayContact && (
           <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
-            <User className="h-3 w-3" />
-            <span className="truncate">{opportunity.contact}</span>
+            {linkedContact ? (
+              <>
+                {linkedContact.photoUrl ? (
+                  <img
+                    src={linkedContact.photoUrl}
+                    alt={linkedContact.fullName}
+                    className="w-4 h-4 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span className="text-[8px] font-medium text-primary">
+                      {linkedContact.fullName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+                <span className="truncate text-primary">{linkedContact.fullName}</span>
+                <Link2 className="h-2.5 w-2.5 text-primary" />
+              </>
+            ) : (
+              <>
+                <User className="h-3 w-3" />
+                <span className="truncate">{displayContact}</span>
+              </>
+            )}
           </div>
         )}
         

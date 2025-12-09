@@ -1,3 +1,5 @@
+import { Contact } from "./contact";
+
 export interface Opportunity {
   id: string;
   name: string;
@@ -6,6 +8,8 @@ export interface Opportunity {
   referredBy: string | null;
   leadSourceType: string | null;
   contact: string | null;
+  contactId: string | null;
+  linkedContact?: Contact | null;
   completedAt: Date | null;
   stage: string;
   proposal: string | null;

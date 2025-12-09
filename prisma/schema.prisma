@@ -26,6 +26,8 @@ model Opportunity {
   referredBy      String?
   leadSourceType  String?
   contact         String?
+  contactId       String?
+  linkedContact   Contact?  @relation(fields: [contactId], references: [id])
   completedAt     DateTime?
   stage           String    @default("00 - Idées de contact")
   proposal        String?   @db.Text
@@ -42,6 +44,7 @@ model Opportunity {
   @@index([stage])
   @@index([region])
   @@index([segment])
+  @@index([contactId])
 }
 
 model Contact {
@@ -70,6 +73,8 @@ model Contact {
   language          String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+  
+  opportunities     Opportunity[]
 
   @@index([region])
   @@index([employmentField])
