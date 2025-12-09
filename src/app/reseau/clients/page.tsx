@@ -24,7 +24,7 @@ import {
 
 interface Contact {
   id: string;
-  name: string;
+  fullName: string;
   email: string | null;
   phone: string | null;
   position: string | null;
@@ -352,17 +352,17 @@ export default function ClientsPage() {
                             {contact.photoUrl ? (
                               <img
                                 src={contact.photoUrl}
-                                alt={contact.name}
+                                alt={contact.fullName}
                                 className="w-5 h-5 rounded-full object-cover"
                               />
                             ) : (
                               <div className="w-5 h-5 rounded-full bg-violet-500/30 flex items-center justify-center">
                                 <span className="text-xs text-violet-400">
-                                  {contact.name.charAt(0)}
+                                  {contact.fullName.charAt(0)}
                                 </span>
                               </div>
                             )}
-                            <span className="text-xs text-gray-300">{contact.name}</span>
+                            <span className="text-xs text-gray-300">{contact.fullName}</span>
                           </Link>
                         ))}
                         {client.contacts.length > 4 && (
