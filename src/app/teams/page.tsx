@@ -3,25 +3,24 @@
 import { useState, useEffect } from "react";
 import Sidebar from "@/components/Sidebar";
 import {
+  Plus,
+  X,
+  Users,
   Beaker,
   Building2,
   Palette,
-  Plus,
-  User,
-  GripVertical,
   Clock,
+  AlertTriangle,
   Package,
   Archive,
   Send,
-  X,
+  GripVertical,
+  Sparkles,
+  TrendingUp,
+  Zap,
+  User,
   FolderOpen,
 } from "lucide-react";
-
-interface Project {
-  id: string;
-  name: string;
-  client: string | null;
-}
 
 interface Employee {
   id: string;
@@ -40,50 +39,60 @@ interface Task {
   zone: string;
   department: string;
   projectId: string | null;
-  project: Project | null;
+  project: { id: string; name: string } | null;
   priority: string | null;
   dueDate: string | null;
   assignedEmployee: { id: string; name: string; photoUrl: string | null } | null;
 }
 
+interface Project {
+  id: string;
+  name: string;
+  client: string | null;
+}
+
+interface DepartmentStats {
+  total: number;
+  occupied: number;
+  available: number;
+  tasksReady: number;
+  tasksPending: number;
+  tasksBlocked: number;
+}
+
 const DEPARTMENTS = [
-  { id: "Lab", name: "Lab", icon: Beaker, color: "bg-purple-500" },
-  { id: "Bureau", name: "Bureau", icon: Building2, color: "bg-blue-500" },
-  { id: "Studio", name: "Studio", icon: Palette, color: "bg-pink-500" },
+  { id: "Lab", name: "Lab", icon: Beaker, color: "#8b5cf6", bgColor: "bg-violet-500/10", borderColor: "border-violet-500/30", textColor: "text-violet-400" },
+  { id: "Bureau", name: "Bureau", icon: Building2, color: "#3b82f6", bgColor: "bg-blue-500/10", borderColor: "border-blue-500/30", textColor: "text-blue-400" },
+  { id: "Studio", name: "Studio", icon: Palette, color: "#ec4899", bgColor: "bg-pink-500/10", borderColor: "border-pink-500/30", textColor: "text-pink-400" },
 ];
 
 const ZONES = [
-  { id: "current", name: "Current", icon: Clock, description: "Tâche en cours" },
-  { id: "shelf", name: "Shelf", icon: Package, description: "Projets qui arrivent" },
-  { id: "storage", name: "Storage", icon: Archive, description: "En attente client" },
-  { id: "dock", name: "Dock", icon: Send, description: "Prêt à envoyer" },
+  { id: "shelf", name: "Shelf", description: "En attente", icon: Package, color: "#f59e0b" },
+  { id: "current", name: "Current", description: "En cours", icon: Zap, color: "#10b981" },
+  { id: "storage", name: "Storage", description: "Bloqué", icon: Archive, color: "#ef4444" },
+  { id: "dock", name: "Dock", description: "Prêt", icon: Send, color: "#6366f1" },
+];
+
+const PRIORITIES = [
+  { id: "high", name: "Urgent", color: "#ef4444", bgColor: "bg-red-500/20" },
+  { id: "medium", name: "Normal", color: "#f59e0b", bgColor: "bg-amber-500/20" },
+  { id: "low", name: "Cool", color: "#10b981", bgColor: "bg-emerald-500/20" },
 ];
 
 export default function TeamsPage() {
-  const [activeDepartment, setActiveDepartment] = useState("Lab");
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeDepartment, setActiveDepartment] = useState("Lab");
   const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [dragOverEmployee, setDragOverEmployee] = useState<string | null>(null);
+  const [dragOverZone, setDragOverZone] = useState<string | null>(null);
 
-  // New employee form
-  const [newEmployee, setNewEmployee] = useState({
-    name: "",
-    email: "",
-    role: "",
-  });
-
-  // New task form
-  const [newTask, setNewTask] = useState({
-    title: "",
-    description: "",
-    projectId: "",
-    priority: "medium",
-  });
+  const [newEmployee, setNewEmployee] = useState({ name: "", email: "", role: "" });
+  const [newTask, setNewTask] = useState({ title: "", description: "", projectId: "", priority: "medium", dueDate: "" });
 
   useEffect(() => {
     fetchData();
@@ -97,13 +106,7 @@ export default function TeamsPage() {
         fetch(`/api/tasks?department=${activeDepartment}`),
         fetch("/api/projects"),
       ]);
-
-      const [empData, taskData, projData] = await Promise.all([
-        empRes.json(),
-        taskRes.json(),
-        projRes.json(),
-      ]);
-
+      const [empData, taskData, projData] = await Promise.all([empRes.json(), taskRes.json(), projRes.json()]);
       setEmployees(empData);
       setTasks(taskData);
       setProjects(projData);
@@ -113,19 +116,34 @@ export default function TeamsPage() {
     setLoading(false);
   };
 
+  const getDepartmentStats = (deptId: string): DepartmentStats => {
+    const deptEmployees = employees.filter((e) => e.department === deptId);
+    const deptTasks = tasks.filter((t) => t.department === deptId);
+    const occupied = deptEmployees.filter((e) => e.currentTask !== null).length;
+    return {
+      total: deptEmployees.length,
+      occupied,
+      available: deptEmployees.length - occupied,
+      tasksReady: deptTasks.filter((t) => t.zone === "dock").length,
+      tasksPending: deptTasks.filter((t) => t.zone === "shelf").length,
+      tasksBlocked: deptTasks.filter((t) => t.zone === "storage").length,
+    };
+  };
+
+  const getZoneTasks = (zone: string) => tasks.filter((t) => t.zone === zone);
+  const getPriorityInfo = (priority: string | null) => PRIORITIES.find((p) => p.id === priority) || PRIORITIES[1];
+  const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+  const activeDept = DEPARTMENTS.find((d) => d.id === activeDepartment)!;
+  const stats = getDepartmentStats(activeDepartment);
+
   const handleAddEmployee = async () => {
     if (!newEmployee.name) return;
-
     try {
       const res = await fetch("/api/employees", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...newEmployee,
-          department: activeDepartment,
-        }),
+        body: JSON.stringify({ ...newEmployee, department: activeDepartment }),
       });
-
       if (res.ok) {
         setShowAddEmployee(false);
         setNewEmployee({ name: "", email: "", role: "" });
@@ -138,21 +156,15 @@ export default function TeamsPage() {
 
   const handleAddTask = async () => {
     if (!newTask.title) return;
-
     try {
       const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...newTask,
-          department: activeDepartment,
-          zone: "shelf",
-        }),
+        body: JSON.stringify({ ...newTask, department: activeDepartment, zone: "shelf", dueDate: newTask.dueDate || null }),
       });
-
       if (res.ok) {
         setShowAddTask(false);
-        setNewTask({ title: "", description: "", projectId: "", priority: "medium" });
+        setNewTask({ title: "", description: "", projectId: "", priority: "medium", dueDate: "" });
         fetchData();
       }
     } catch (error) {
@@ -160,40 +172,47 @@ export default function TeamsPage() {
     }
   };
 
-  const handleDragStart = (task: Task) => {
-    setDraggedTask(task);
-  };
+  const handleDragStart = (task: Task) => setDraggedTask(task);
+  const handleDragEnd = () => { setDraggedTask(null); setDragOverEmployee(null); setDragOverZone(null); };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = async (zone: string, employeeId?: string) => {
+  const handleDropOnEmployee = async (employeeId: string) => {
     if (!draggedTask) return;
-
+    const employee = employees.find((e) => e.id === employeeId);
+    if (employee?.currentTask && employee.currentTask.id !== draggedTask.id) {
+      alert("Cet employé a déjà une tâche en cours !");
+      handleDragEnd();
+      return;
+    }
     try {
-      const body: Record<string, string | undefined> = { zone };
-      if (zone === "current" && employeeId) {
-        body.employeeId = employeeId;
-      }
-
       await fetch(`/api/tasks/${draggedTask.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ employeeId, zone: "current" }),
       });
+      fetchData();
+    } catch (error) {
+      console.error("Error assigning task:", error);
+    }
+    handleDragEnd();
+  };
 
+  const handleDropOnZone = async (zone: string) => {
+    if (!draggedTask) return;
+    try {
+      await fetch(`/api/tasks/${draggedTask.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ zone, employeeId: zone === "current" ? draggedTask.assignedEmployee?.id : null }),
+      });
       fetchData();
     } catch (error) {
       console.error("Error moving task:", error);
     }
-
-    setDraggedTask(null);
+    handleDragEnd();
   };
 
   const handleDeleteEmployee = async (id: string) => {
     if (!confirm("Supprimer cet employé ?")) return;
-
     try {
       await fetch(`/api/employees/${id}`, { method: "DELETE" });
       fetchData();
@@ -204,7 +223,6 @@ export default function TeamsPage() {
 
   const handleDeleteTask = async (id: string) => {
     if (!confirm("Supprimer cette tâche ?")) return;
-
     try {
       await fetch(`/api/tasks/${id}`, { method: "DELETE" });
       fetchData();
@@ -213,295 +231,331 @@ export default function TeamsPage() {
     }
   };
 
-  const getTasksByZone = (zone: string) => {
-    return tasks.filter((t) => t.zone === zone);
-  };
-
-  const currentDept = DEPARTMENTS.find((d) => d.id === activeDepartment);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Sidebar />
+        <main className="pl-64 flex items-center justify-center h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
-
       <main className="pl-64">
         {/* Header */}
         <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-sm">
           <div className="flex h-16 items-center justify-between px-8">
             <div>
               <h1 className="text-xl font-semibold text-foreground">Équipes</h1>
-              <p className="text-sm text-muted-foreground">
-                Gestion des projets par département
-              </p>
+              <p className="text-sm text-muted-foreground">Gestion des projets par département</p>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowAddEmployee(true)}
-                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
-              >
-                <User className="h-4 w-4" />
-                Ajouter employé
+            <div className="flex items-center gap-2">
+              <button onClick={() => setShowAddEmployee(true)} className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors">
+                <User className="h-4 w-4" />Ajouter employé
               </button>
-              <button
-                onClick={() => setShowAddTask(true)}
-                className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-sm font-medium text-white hover:bg-secondary/90"
-              >
-                <Plus className="h-4 w-4" />
-                Ajouter tâche
+              <button onClick={() => setShowAddTask(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">
+                <Plus className="h-4 w-4" />Ajouter tâche
               </button>
             </div>
           </div>
         </header>
 
-        {/* Department Tabs */}
-        <div className="border-b border-border px-8">
-          <div className="flex gap-1">
+        <div className="p-8">
+          {/* Department Tabs with Stats */}
+          <div className="flex gap-3 mb-6">
             {DEPARTMENTS.map((dept) => {
+              const deptStats = getDepartmentStats(dept.id);
               const Icon = dept.icon;
+              const isActive = activeDepartment === dept.id;
               return (
                 <button
                   key={dept.id}
                   onClick={() => setActiveDepartment(dept.id)}
-                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${
-                    activeDepartment === dept.id
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  className={`flex items-center gap-4 px-6 py-4 rounded-xl border-2 transition-all duration-200 ${
+                    isActive
+                      ? `${dept.bgColor} ${dept.borderColor} shadow-lg scale-[1.02]`
+                      : "border-border hover:border-border/80 bg-card hover:bg-muted/50"
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
-                  {dept.name}
+                  <div className={`p-2 rounded-lg ${isActive ? dept.bgColor : "bg-muted"}`}>
+                    <Icon className={`h-5 w-5 ${isActive ? dept.textColor : "text-muted-foreground"}`} />
+                  </div>
+                  <div className="text-left">
+                    <div className={`font-semibold ${isActive ? dept.textColor : "text-foreground"}`}>{dept.name}</div>
+                    <div className="text-xs text-muted-foreground">{deptStats.total} membres • {deptStats.occupied} occupés</div>
+                  </div>
                 </button>
               );
             })}
           </div>
-        </div>
 
-        {/* Content */}
-        <div className="p-8">
-          {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          {/* Stats Bar */}
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            <div className={`${activeDept.bgColor} border ${activeDept.borderColor} rounded-xl p-4 transition-all`}>
+              <div className="flex items-center gap-2 mb-2">
+                <Users className={`h-4 w-4 ${activeDept.textColor}`} />
+                <span className="text-sm text-muted-foreground">Capacité</span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className={`text-2xl font-bold ${activeDept.textColor}`}>{stats.occupied}/{stats.total}</span>
+                <span className="text-sm text-muted-foreground">occupés</span>
+              </div>
+              <div className="mt-2 h-2 bg-background/50 rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${(stats.occupied / Math.max(stats.total, 1)) * 100}%`, backgroundColor: activeDept.color }} />
+              </div>
             </div>
-          ) : (
-            <div className="space-y-8">
-              {/* Employees with Current Tasks */}
-              <section>
-                <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-primary" />
-                  Current - Tâches en cours
-                </h2>
-                <div
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-                  onDragOver={handleDragOver}
-                >
-                  {employees.map((employee) => (
-                    <div
-                      key={employee.id}
-                      className="glass-card rounded-xl p-4"
-                      onDrop={() => handleDrop("current", employee.id)}
-                      onDragOver={handleDragOver}
-                    >
-                      <div className="flex items-center gap-3 mb-3">
-                        {employee.photoUrl ? (
-                          <img
-                            src={employee.photoUrl}
-                            alt={employee.name}
-                            className="h-10 w-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className={`h-10 w-10 rounded-full ${currentDept?.color} flex items-center justify-center`}>
-                            <span className="text-white text-sm font-medium">
-                              {employee.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-                            </span>
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium text-foreground truncate">{employee.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{employee.role || "Membre"}</p>
-                        </div>
-                        <button
-                          onClick={() => handleDeleteEmployee(employee.id)}
-                          className="text-muted-foreground hover:text-red-500 p-1"
-                        >
+            <div className="glass-card rounded-xl p-4 border border-emerald-500/30 bg-emerald-500/10">
+              <div className="flex items-center gap-2 mb-2">
+                <TrendingUp className="h-4 w-4 text-emerald-400" />
+                <span className="text-sm text-muted-foreground">Prêts à livrer</span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-emerald-400">{stats.tasksReady}</span>
+                <span className="text-sm text-muted-foreground">tâches</span>
+              </div>
+            </div>
+            <div className="glass-card rounded-xl p-4 border border-amber-500/30 bg-amber-500/10">
+              <div className="flex items-center gap-2 mb-2">
+                <Package className="h-4 w-4 text-amber-400" />
+                <span className="text-sm text-muted-foreground">En attente</span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-amber-400">{stats.tasksPending}</span>
+                <span className="text-sm text-muted-foreground">tâches</span>
+              </div>
+            </div>
+            <div className="glass-card rounded-xl p-4 border border-red-500/30 bg-red-500/10">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="h-4 w-4 text-red-400" />
+                <span className="text-sm text-muted-foreground">Bloqués</span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-bold text-red-400">{stats.tasksBlocked}</span>
+                <span className="text-sm text-muted-foreground">tâches</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content: Employee-centric view */}
+          <div className="glass-card rounded-xl border border-border overflow-hidden mb-6">
+            <div className={`px-6 py-4 border-b border-border ${activeDept.bgColor}`}>
+              <div className="flex items-center gap-2">
+                <Zap className={`h-5 w-5 ${activeDept.textColor}`} />
+                <h2 className={`font-semibold ${activeDept.textColor}`}>Tâches en cours</h2>
+                <span className="text-sm text-muted-foreground ml-2">— Qui travaille sur quoi ?</span>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {employees.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="mb-4">Aucun employé dans ce département</p>
+                  <button onClick={() => setShowAddEmployee(true)} className={`px-4 py-2 rounded-lg ${activeDept.bgColor} ${activeDept.textColor} hover:opacity-80 transition-opacity`}>
+                    Ajouter un employé
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {employees.map((employee) => {
+                    const currentTask = employee.currentTask;
+                    const isAvailable = !currentTask;
+                    const isDragOver = dragOverEmployee === employee.id;
+
+                    return (
+                      <div
+                        key={employee.id}
+                        onDragOver={(e) => { e.preventDefault(); setDragOverEmployee(employee.id); }}
+                        onDragLeave={() => setDragOverEmployee(null)}
+                        onDrop={() => handleDropOnEmployee(employee.id)}
+                        className={`group relative rounded-xl border-2 p-4 transition-all duration-200 ${
+                          isDragOver
+                            ? `${activeDept.borderColor} ${activeDept.bgColor} scale-105 shadow-xl`
+                            : isAvailable
+                            ? "border-emerald-500/30 bg-emerald-500/5 hover:border-emerald-500/50"
+                            : "border-border bg-card hover:border-border/80"
+                        }`}
+                      >
+                        {/* Delete button */}
+                        <button onClick={() => handleDeleteEmployee(employee.id)} className="absolute top-2 right-2 p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all">
                           <X className="h-4 w-4" />
                         </button>
-                      </div>
 
-                      {/* Current Task */}
-                      {employee.currentTask ? (
-                        <div
-                          draggable
-                          onDragStart={() => handleDragStart(employee.currentTask!)}
-                          className="bg-primary/10 border border-primary/20 rounded-lg p-3 cursor-grab active:cursor-grabbing"
-                        >
-                          <div className="flex items-start gap-2">
-                            <GripVertical className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-foreground truncate">
-                                {employee.currentTask.title}
-                              </p>
-                              {employee.currentTask.project && (
-                                <p className="text-xs text-muted-foreground truncate flex items-center gap-1 mt-1">
-                                  <FolderOpen className="h-3 w-3" />
-                                  {employee.currentTask.project.name}
-                                </p>
-                              )}
+                        {/* Employee header */}
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className={`relative w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg ${isAvailable ? "ring-2 ring-emerald-500 ring-offset-2 ring-offset-background" : ""}`} style={{ backgroundColor: activeDept.color }}>
+                            {employee.photoUrl ? (
+                              <img src={employee.photoUrl} alt={employee.name} className="w-full h-full rounded-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                            ) : (
+                              getInitials(employee.name)
+                            )}
+                            {/* Status indicator */}
+                            <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-background transition-colors ${isAvailable ? "bg-emerald-500" : "bg-amber-500"}`}>
+                              {isAvailable && <Sparkles className="h-2 w-2 text-white absolute top-0.5 left-0.5" />}
                             </div>
                           </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-foreground truncate">{employee.name}</div>
+                            <div className="text-sm text-muted-foreground truncate">{employee.role || "Membre"}</div>
+                          </div>
                         </div>
-                      ) : (
-                        <div className="border-2 border-dashed border-border rounded-lg p-4 text-center text-sm text-muted-foreground">
-                          Glissez une tâche ici
-                        </div>
-                      )}
-                    </div>
-                  ))}
 
-                  {employees.length === 0 && (
-                    <div className="col-span-full text-center py-8 text-muted-foreground">
-                      Aucun employé dans ce département
+                        {/* Current task or available */}
+                        {currentTask ? (
+                          <div
+                            draggable
+                            onDragStart={() => handleDragStart(currentTask)}
+                            onDragEnd={handleDragEnd}
+                            className="group/task relative rounded-lg p-3 cursor-grab active:cursor-grabbing transition-all hover:shadow-md"
+                            style={{ backgroundColor: `${getPriorityInfo(currentTask.priority).color}15`, borderLeft: `4px solid ${getPriorityInfo(currentTask.priority).color}` }}
+                          >
+                            <div className="flex items-start gap-2">
+                              <GripVertical className="h-4 w-4 text-muted-foreground opacity-0 group-hover/task:opacity-100 transition-opacity flex-shrink-0 mt-0.5" />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-foreground truncate pr-6">{currentTask.title}</div>
+                                {currentTask.project && (
+                                  <div className="text-xs text-muted-foreground mt-1 truncate flex items-center gap-1">
+                                    <FolderOpen className="h-3 w-3" /> {currentTask.project.name}
+                                  </div>
+                                )}
+                                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${getPriorityInfo(currentTask.priority).bgColor}`} style={{ color: getPriorityInfo(currentTask.priority).color }}>
+                                    {getPriorityInfo(currentTask.priority).name}
+                                  </span>
+                                  {currentTask.dueDate && (
+                                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                      <Clock className="h-3 w-3" />
+                                      {new Date(currentTask.dueDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <button onClick={() => handleDeleteTask(currentTask.id)} className="absolute top-2 right-2 p-1 rounded text-muted-foreground hover:text-red-500 opacity-0 group-hover/task:opacity-100 transition-opacity">
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className={`rounded-lg border-2 border-dashed p-4 text-center transition-all ${isDragOver ? `${activeDept.borderColor} ${activeDept.bgColor}` : "border-emerald-500/30 hover:border-emerald-500/50"}`}>
+                            <Sparkles className="h-6 w-6 mx-auto mb-2 text-emerald-500" />
+                            <div className="text-sm font-medium text-emerald-500">Disponible</div>
+                            <div className="text-xs text-muted-foreground mt-1">Glissez une tâche ici</div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {/* Add employee card */}
+                  <button
+                    onClick={() => setShowAddEmployee(true)}
+                    className="rounded-xl border-2 border-dashed border-border p-4 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-all min-h-[180px]"
+                  >
+                    <div className="w-12 h-12 rounded-full border-2 border-dashed border-current flex items-center justify-center">
+                      <Plus className="h-6 w-6" />
                     </div>
-                  )}
+                    <span className="text-sm font-medium">Ajouter un membre</span>
+                  </button>
                 </div>
-              </section>
+              )}
+            </div>
+          </div>
 
-              {/* Other Zones */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {ZONES.filter((z) => z.id !== "current").map((zone) => {
-                  const Icon = zone.icon;
-                  const zoneTasks = getTasksByZone(zone.id);
+          {/* Flow Bar: Other zones */}
+          <div className="grid grid-cols-3 gap-4">
+            {ZONES.filter((z) => z.id !== "current").map((zone) => {
+              const zoneTasks = getZoneTasks(zone.id);
+              const isDragOver = dragOverZone === zone.id;
+              const ZoneIcon = zone.icon;
 
-                  return (
-                    <section
-                      key={zone.id}
-                      className="glass-card rounded-xl p-4"
-                      onDragOver={handleDragOver}
-                      onDrop={() => handleDrop(zone.id)}
-                    >
-                      <h3 className="text-md font-semibold text-foreground mb-1 flex items-center gap-2">
-                        <Icon className="h-4 w-4 text-muted-foreground" />
-                        {zone.name}
-                      </h3>
-                      <p className="text-xs text-muted-foreground mb-4">{zone.description}</p>
-
-                      <div className="space-y-2 min-h-[100px]">
+              return (
+                <div
+                  key={zone.id}
+                  onDragOver={(e) => { e.preventDefault(); setDragOverZone(zone.id); }}
+                  onDragLeave={() => setDragOverZone(null)}
+                  onDrop={() => handleDropOnZone(zone.id)}
+                  className={`glass-card rounded-xl border transition-all duration-200 ${isDragOver ? "border-primary shadow-xl scale-[1.02]" : "border-border hover:border-border/80"}`}
+                >
+                  <div className="px-4 py-3 border-b border-border flex items-center justify-between" style={{ backgroundColor: `${zone.color}10` }}>
+                    <div className="flex items-center gap-2">
+                      <ZoneIcon className="h-4 w-4" style={{ color: zone.color }} />
+                      <span className="font-medium text-foreground">{zone.name}</span>
+                      <span className="text-xs text-muted-foreground">— {zone.description}</span>
+                    </div>
+                    <span className="text-sm font-bold px-2.5 py-1 rounded-full" style={{ backgroundColor: `${zone.color}20`, color: zone.color }}>
+                      {zoneTasks.length}
+                    </span>
+                  </div>
+                  <div className="p-3 max-h-[250px] overflow-y-auto">
+                    {zoneTasks.length === 0 ? (
+                      <div className={`text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg transition-all ${isDragOver ? "border-primary bg-primary/5" : "border-border"}`}>
+                        <ZoneIcon className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                        <div className="text-sm">Zone vide</div>
+                        <div className="text-xs mt-1">Glissez une tâche ici</div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
                         {zoneTasks.map((task) => (
                           <div
                             key={task.id}
                             draggable
                             onDragStart={() => handleDragStart(task)}
-                            className={`bg-muted/50 border border-border rounded-lg p-3 cursor-grab active:cursor-grabbing hover:border-primary/30 transition-colors ${
-                              draggedTask?.id === task.id ? "opacity-50" : ""
-                            }`}
+                            onDragEnd={handleDragEnd}
+                            className={`group flex items-center gap-2 p-3 rounded-lg cursor-grab active:cursor-grabbing transition-all hover:shadow-md ${draggedTask?.id === task.id ? "opacity-50 scale-95" : "bg-muted/50 hover:bg-muted"}`}
                           >
-                            <div className="flex items-start gap-2">
-                              <GripVertical className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-foreground truncate">
-                                  {task.title}
-                                </p>
-                                {task.project && (
-                                  <p className="text-xs text-muted-foreground truncate flex items-center gap-1 mt-1">
-                                    <FolderOpen className="h-3 w-3" />
-                                    {task.project.name}
-                                  </p>
-                                )}
-                                <div className="flex items-center gap-2 mt-2">
-                                  <span
-                                    className={`text-xs px-2 py-0.5 rounded-full ${
-                                      task.priority === "high"
-                                        ? "bg-red-500/20 text-red-400"
-                                        : task.priority === "medium"
-                                        ? "bg-amber-500/20 text-amber-400"
-                                        : "bg-green-500/20 text-green-400"
-                                    }`}
-                                  >
-                                    {task.priority}
-                                  </span>
-                                </div>
-                              </div>
-                              <button
-                                onClick={() => handleDeleteTask(task.id)}
-                                className="text-muted-foreground hover:text-red-500 p-1"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
+                            <GripVertical className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity" />
+                            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: getPriorityInfo(task.priority).color }} />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium text-foreground truncate">{task.title}</div>
+                              {task.project && <div className="text-xs text-muted-foreground truncate flex items-center gap-1"><FolderOpen className="h-3 w-3" />{task.project.name}</div>}
                             </div>
+                            <button onClick={() => handleDeleteTask(task.id)} className="p-1.5 rounded text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all">
+                              <X className="h-3 w-3" />
+                            </button>
                           </div>
                         ))}
-
-                        {zoneTasks.length === 0 && (
-                          <div className="border-2 border-dashed border-border rounded-lg p-4 text-center text-sm text-muted-foreground">
-                            Zone vide
-                          </div>
-                        )}
                       </div>
-                    </section>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </main>
 
       {/* Add Employee Modal */}
       {showAddEmployee && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
-              Ajouter un employé - {activeDepartment}
-            </h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Nouvel employé</h2>
+                <p className="text-sm text-muted-foreground">Département {activeDepartment}</p>
+              </div>
+              <button onClick={() => setShowAddEmployee(false)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><X className="h-5 w-5" /></button>
+            </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">
-                  Nom *
-                </label>
-                <input
-                  type="text"
-                  value={newEmployee.name}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground"
-                  placeholder="Nom complet"
-                />
+                <label className="block text-sm font-medium text-foreground mb-2">Nom complet *</label>
+                <input type="text" value={newEmployee.name} onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })} className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="Jean Dupont" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={newEmployee.email}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground"
-                  placeholder="email@exemple.com"
-                />
+                <label className="block text-sm font-medium text-foreground mb-2">Email</label>
+                <input type="email" value={newEmployee.email} onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })} className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="jean@example.com" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">
-                  Rôle
-                </label>
-                <input
-                  type="text"
-                  value={newEmployee.role}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground"
-                  placeholder="Designer, Développeur, etc."
-                />
+                <label className="block text-sm font-medium text-foreground mb-2">Rôle</label>
+                <input type="text" value={newEmployee.role} onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })} className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="Designer, Développeur, etc." />
               </div>
             </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                onClick={() => setShowAddEmployee(false)}
-                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={handleAddEmployee}
-                className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary/90"
-              >
-                Ajouter
-              </button>
+            <div className="flex justify-end gap-3 mt-8">
+              <button onClick={() => setShowAddEmployee(false)} className="px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Annuler</button>
+              <button onClick={handleAddEmployee} disabled={!newEmployee.name} className="px-5 py-2.5 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Créer l'employé</button>
             </div>
           </div>
         </div>
@@ -509,81 +563,47 @@ export default function TeamsPage() {
 
       {/* Add Task Modal */}
       {showAddTask && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md">
-            <h2 className="text-lg font-semibold text-foreground mb-4">
-              Ajouter une tâche - {activeDepartment}
-            </h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-card border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Nouvelle tâche</h2>
+                <p className="text-sm text-muted-foreground">Sera ajoutée dans Shelf</p>
+              </div>
+              <button onClick={() => setShowAddTask(false)} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"><X className="h-5 w-5" /></button>
+            </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">
-                  Titre *
-                </label>
-                <input
-                  type="text"
-                  value={newTask.title}
-                  onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground"
-                  placeholder="Titre de la tâche"
-                />
+                <label className="block text-sm font-medium text-foreground mb-2">Titre *</label>
+                <input type="text" value={newTask.title} onChange={(e) => setNewTask({ ...newTask, title: e.target.value })} className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground focus:border-primary focus:ring-1 focus:ring-primary transition-colors" placeholder="Titre de la tâche" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={newTask.description}
-                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground resize-none"
-                  rows={3}
-                  placeholder="Description de la tâche"
-                />
+                <label className="block text-sm font-medium text-foreground mb-2">Description</label>
+                <textarea value={newTask.description} onChange={(e) => setNewTask({ ...newTask, description: e.target.value })} className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground resize-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors" rows={2} placeholder="Description optionnelle" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Priorité</label>
+                  <select value={newTask.priority} onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })} className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
+                    {PRIORITIES.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Échéance</label>
+                  <input type="date" value={newTask.dueDate} onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })} className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground focus:border-primary focus:ring-1 focus:ring-primary transition-colors" />
+                </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">
-                  Projet lié
-                </label>
-                <select
-                  value={newTask.projectId}
-                  onChange={(e) => setNewTask({ ...newTask, projectId: e.target.value })}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground"
-                >
+                <label className="block text-sm font-medium text-foreground mb-2">Projet (optionnel)</label>
+                <select value={newTask.projectId} onChange={(e) => setNewTask({ ...newTask, projectId: e.target.value })} className="w-full rounded-lg border border-border bg-background px-4 py-2.5 text-foreground focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
                   <option value="">Aucun projet</option>
-                  {projects.map((project) => (
-                    <option key={project.id} value={project.id}>
-                      {project.name} {project.client ? `(${project.client})` : ""}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">
-                  Priorité
-                </label>
-                <select
-                  value={newTask.priority}
-                  onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground"
-                >
-                  <option value="low">Basse</option>
-                  <option value="medium">Moyenne</option>
-                  <option value="high">Haute</option>
+                  {projects.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
                 </select>
               </div>
             </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                onClick={() => setShowAddTask(false)}
-                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                Annuler
-              </button>
-              <button
-                onClick={handleAddTask}
-                className="px-4 py-2 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary/90"
-              >
-                Ajouter
-              </button>
+            <div className="flex justify-end gap-3 mt-8">
+              <button onClick={() => setShowAddTask(false)} className="px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Annuler</button>
+              <button onClick={handleAddTask} disabled={!newTask.title} className="px-5 py-2.5 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">Créer la tâche</button>
             </div>
           </div>
         </div>

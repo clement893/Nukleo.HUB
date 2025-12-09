@@ -106,3 +106,11 @@
 ## Calendrier - Vues additionnelles
 - [x] Vue Semaine avec grille horaire
 - [x] Vue Jour avec créneaux horaires détaillés
+
+## Refonte page Équipes - UX/UI
+- [ ] Hiérarchie visuelle : Current dominant (50%), autres zones en panneau
+- [ ] Employé au centre : colonnes par employé avec leur tâche
+- [ ] Flux de production : barre visuelle Shelf → Current → Dock
+- [ ] Indicateurs de santé : capacité, vélocité, alertes par département
+- [ ] Micro-interactions : animations drag & drop, feedback visuel
+- [ ] Avatars améliorés : photos/avatars stylisés avec statut
