@@ -92,3 +92,13 @@
 - [x] Tâches liées aux projets existants
 - [x] Drag & drop entre les zones
 - [x] Modales d'ajout/modification employés et tâches
+
+## Module Événements et Calendrier
+- [x] Schéma de base de données pour les événements
+- [x] API REST pour les événements (GET, POST, PATCH, DELETE)
+- [x] Vue calendrier mensuelle
+- [x] Vue calendrier hebdomadaire (vue liste)
+- [x] Vue liste des événements
+- [x] Types d'événements (réunion, échéance, rappel, appel, autre)
+- [x] Modale d'ajout/modification d'événement
+- [x] Liaison avec contacts, opportunités, projets (préparé dans le schéma)

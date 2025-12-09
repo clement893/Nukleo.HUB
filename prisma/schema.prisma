@@ -187,3 +187,36 @@ model Task {
   @@index([department])
   @@index([projectId])
 }
+
+
+// Events and Calendar
+model Event {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?   @db.Text
+  type          String    @default("meeting") // meeting, deadline, reminder, call, other
+  startDate     DateTime
+  endDate       DateTime?
+  allDay        Boolean   @default(false)
+  location      String?
+  color         String?   @default("#6366f1")
+  
+  // Linked entities
+  contactId     String?
+  opportunityId String?
+  projectId     String?
+  companyId     String?
+  
+  // Reminders
+  reminder      Boolean   @default(false)
+  reminderTime  Int?      // minutes before event
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([startDate])
+  @@index([type])
+  @@index([contactId])
+  @@index([opportunityId])
+  @@index([projectId])
+}
