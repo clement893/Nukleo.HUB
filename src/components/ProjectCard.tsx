@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Project } from "@/types/project";
 import {
   Building2,
@@ -29,14 +30,24 @@ const statusColors: Record<string, string> = {
 };
 
 export function ProjectCard({ project, onClick }: ProjectCardProps) {
+  const router = useRouter();
+  
   const getStatusColor = (status: string | null) => {
     if (!status) return "bg-gray-500/20 text-gray-400";
     return statusColors[status] || "bg-gray-500/20 text-gray-400";
   };
 
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      router.push(`/projets/${project.id}`);
+    }
+  };
+
   return (
     <div
-      onClick={onClick}
+      onClick={handleClick}
       className="glass-card rounded-xl p-5 transition-all hover:border-primary/30 hover:shadow-lg cursor-pointer group"
     >
       {/* Header */}

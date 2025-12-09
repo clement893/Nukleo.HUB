@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import {
   ArrowLeft,
-  Briefcase,
   Building2,
   Calendar,
   DollarSign,
@@ -21,6 +20,12 @@ import {
   Clock,
   Link as LinkIcon,
   User,
+  Target,
+  CheckCircle2,
+  Circle,
+  PlayCircle,
+  MoreVertical,
+  GripVertical,
 } from "lucide-react";
 
 interface Project {
@@ -51,14 +56,6 @@ interface Project {
   updatedAt: string;
 }
 
-interface Contact {
-  id: string;
-  fullName: string;
-  position?: string;
-  email?: string;
-  photoUrl?: string;
-}
-
 interface Task {
   id: string;
   title: string;
@@ -66,6 +63,16 @@ interface Task {
   zone: string;
   priority?: string;
   dueDate?: string;
+}
+
+interface Milestone {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  dueDate?: string;
+  completedAt?: string;
+  order: number;
 }
 
 interface Note {
@@ -84,35 +91,44 @@ interface ActivityLog {
 }
 
 const TABS = [
-  { id: "details", label: "Détails", icon: FileText },
+  { id: "overview", label: "Vue d'ensemble", icon: Target },
+  { id: "milestones", label: "Milestones", icon: CheckSquare },
+  { id: "tasks", label: "Tâches", icon: FileText },
   { id: "team", label: "Équipe", icon: Users },
-  { id: "tasks", label: "Tâches", icon: CheckSquare },
   { id: "discussion", label: "Discussion", icon: MessageSquare },
   { id: "history", label: "Historique", icon: History },
 ];
 
 const STATUS_COLORS: Record<string, string> = {
-  "Planification": "bg-blue-500/10 text-blue-500",
-  "Production": "bg-yellow-500/10 text-yellow-500",
-  "Révision interne": "bg-purple-500/10 text-purple-500",
-  "Validation client": "bg-orange-500/10 text-orange-500",
-  "Ajustements": "bg-pink-500/10 text-pink-500",
-  "Livré": "bg-green-500/10 text-green-500",
-  "Facturé": "bg-emerald-500/10 text-emerald-500",
-  "Clôturé": "bg-gray-500/10 text-gray-500",
+  "Planification": "bg-blue-500/10 text-blue-500 border-blue-500/30",
+  "Production": "bg-yellow-500/10 text-yellow-500 border-yellow-500/30",
+  "Révision interne": "bg-purple-500/10 text-purple-500 border-purple-500/30",
+  "Validation client": "bg-orange-500/10 text-orange-500 border-orange-500/30",
+  "Ajustements": "bg-pink-500/10 text-pink-500 border-pink-500/30",
+  "Livré": "bg-green-500/10 text-green-500 border-green-500/30",
+  "Facturé": "bg-emerald-500/10 text-emerald-500 border-emerald-500/30",
+  "Clôturé": "bg-gray-500/10 text-gray-500 border-gray-500/30",
+};
+
+const MILESTONE_STATUS_ICONS: Record<string, React.ReactNode> = {
+  pending: <Circle className="w-5 h-5 text-muted-foreground" />,
+  in_progress: <PlayCircle className="w-5 h-5 text-yellow-500" />,
+  completed: <CheckCircle2 className="w-5 h-5 text-green-500" />,
 };
 
 export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
-  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("details");
+  const [activeTab, setActiveTab] = useState("overview");
   const [newNote, setNewNote] = useState("");
+  const [showMilestoneForm, setShowMilestoneForm] = useState(false);
+  const [newMilestone, setNewMilestone] = useState({ title: "", description: "", dueDate: "" });
 
   useEffect(() => {
     if (params.id) {
@@ -137,6 +153,13 @@ export default function ProjectDetailPage() {
 
   const fetchRelatedData = async () => {
     try {
+      // Fetch milestones
+      const milestonesResponse = await fetch(`/api/milestones?projectId=${params.id}`);
+      if (milestonesResponse.ok) {
+        const milestonesData = await milestonesResponse.json();
+        setMilestones(milestonesData);
+      }
+
       // Fetch tasks for this project
       const tasksResponse = await fetch(`/api/tasks?projectId=${params.id}`);
       if (tasksResponse.ok) {
@@ -185,6 +208,59 @@ export default function ProjectDetailPage() {
     }
   };
 
+  const handleAddMilestone = async () => {
+    if (!newMilestone.title.trim()) return;
+    try {
+      const response = await fetch("/api/milestones", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newMilestone,
+          projectId: params.id,
+          order: milestones.length,
+        }),
+      });
+      if (response.ok) {
+        const milestone = await response.json();
+        setMilestones([...milestones, milestone]);
+        setNewMilestone({ title: "", description: "", dueDate: "" });
+        setShowMilestoneForm(false);
+      }
+    } catch (error) {
+      console.error("Error adding milestone:", error);
+    }
+  };
+
+  const handleUpdateMilestoneStatus = async (milestoneId: string, newStatus: string) => {
+    try {
+      const response = await fetch(`/api/milestones/${milestoneId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (response.ok) {
+        const updated = await response.json();
+        setMilestones(milestones.map(m => m.id === milestoneId ? updated : m));
+      }
+    } catch (error) {
+      console.error("Error updating milestone:", error);
+    }
+  };
+
+  const handleDeleteMilestone = async (milestoneId: string) => {
+    if (!confirm("Supprimer ce milestone ?")) return;
+    try {
+      const response = await fetch(`/api/milestones/${milestoneId}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        setMilestones(milestones.filter(m => m.id !== milestoneId));
+      }
+    } catch (error) {
+      console.error("Error deleting milestone:", error);
+    }
+  };
+
   const handleDeleteProject = async () => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer ce projet ?")) return;
     try {
@@ -220,6 +296,9 @@ export default function ProjectDetailPage() {
         return "bg-gray-500/10 text-gray-500";
     }
   };
+
+  const completedMilestones = milestones.filter(m => m.status === "completed").length;
+  const progressPercent = milestones.length > 0 ? Math.round((completedMilestones / milestones.length) * 100) : 0;
 
   if (loading) {
     return (
@@ -270,7 +349,7 @@ export default function ProjectDetailPage() {
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-foreground">{project.name}</h1>
               {project.status && (
-                <span className={`px-3 py-1 text-sm rounded-full ${STATUS_COLORS[project.status] || "bg-gray-500/10 text-gray-500"}`}>
+                <span className={`px-3 py-1 text-sm rounded-full border ${STATUS_COLORS[project.status] || "bg-gray-500/10 text-gray-500 border-gray-500/30"}`}>
                   {project.status}
                 </span>
               )}
@@ -293,6 +372,21 @@ export default function ProjectDetailPage() {
               Supprimer
             </button>
           </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="glass-card rounded-xl p-4 mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-foreground">Progression du projet</span>
+            <span className="text-sm text-muted-foreground">{completedMilestones}/{milestones.length} milestones</span>
+          </div>
+          <div className="h-3 bg-muted rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-primary to-green-500 rounded-full transition-all duration-500"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">{progressPercent}% complété</p>
         </div>
 
         {/* Summary Cards */}
@@ -333,11 +427,11 @@ export default function ProjectDetailPage() {
           <div className="glass-card rounded-xl p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-yellow-500/10 rounded-lg">
-                <Users className="w-5 h-5 text-yellow-500" />
+                <Target className="w-5 h-5 text-yellow-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Équipe</p>
-                <p className="font-semibold text-foreground truncate">{project.team || "N/A"}</p>
+                <p className="text-sm text-muted-foreground">Milestones</p>
+                <p className="font-semibold text-foreground">{milestones.length}</p>
               </div>
             </div>
           </div>
@@ -377,7 +471,7 @@ export default function ProjectDetailPage() {
 
         {/* Tab Content */}
         <div className="glass-card rounded-xl p-6">
-          {activeTab === "details" && (
+          {activeTab === "overview" && (
             <div className="space-y-6">
               {/* Description & Brief */}
               <div className="grid grid-cols-2 gap-6">
@@ -480,47 +574,147 @@ export default function ProjectDetailPage() {
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   )}
+                  {!project.driveUrl && !project.asanaUrl && !project.slackUrl && !project.proposalUrl && (
+                    <p className="text-muted-foreground">Aucun lien externe</p>
+                  )}
                 </div>
               </div>
             </div>
           )}
 
-          {activeTab === "team" && (
+          {activeTab === "milestones" && (
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">Équipe projet</h3>
-              <div className="space-y-4">
-                {project.lead && (
-                  <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                      <User className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">{project.lead}</p>
-                      <p className="text-sm text-muted-foreground">Responsable de projet</p>
-                    </div>
-                  </div>
-                )}
-                {project.team && (
-                  <div className="p-4 bg-muted/50 rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-2">Membres de l'équipe</p>
-                    <p className="text-foreground">{project.team}</p>
-                  </div>
-                )}
-                {project.contactName && (
-                  <div className="flex items-center gap-4 p-4 bg-blue-500/5 rounded-lg border border-blue-500/20">
-                    <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
-                      <Building2 className="w-6 h-6 text-blue-500" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">{project.contactName}</p>
-                      <p className="text-sm text-muted-foreground">Contact client</p>
-                      {project.contactMethod && (
-                        <p className="text-xs text-muted-foreground">{project.contactMethod}</p>
-                      )}
-                    </div>
-                  </div>
-                )}
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">Milestones</h3>
+                  <p className="text-sm text-muted-foreground">Les grandes étapes du projet</p>
+                </div>
+                <button
+                  onClick={() => setShowMilestoneForm(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Ajouter un milestone
+                </button>
               </div>
+
+              {/* Add Milestone Form */}
+              {showMilestoneForm && (
+                <div className="mb-6 p-4 bg-muted/50 rounded-lg border border-border">
+                  <h4 className="font-medium text-foreground mb-4">Nouveau milestone</h4>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm text-muted-foreground mb-1">Titre *</label>
+                      <input
+                        type="text"
+                        value={newMilestone.title}
+                        onChange={(e) => setNewMilestone({ ...newMilestone, title: e.target.value })}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        placeholder="Ex: Livraison maquettes"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-muted-foreground mb-1">Date limite</label>
+                      <input
+                        type="date"
+                        value={newMilestone.dueDate}
+                        onChange={(e) => setNewMilestone({ ...newMilestone, dueDate: e.target.value })}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm text-muted-foreground mb-1">Description</label>
+                    <textarea
+                      value={newMilestone.description}
+                      onChange={(e) => setNewMilestone({ ...newMilestone, description: e.target.value })}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                      rows={2}
+                      placeholder="Description du milestone..."
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => setShowMilestoneForm(false)}
+                      className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={handleAddMilestone}
+                      disabled={!newMilestone.title.trim()}
+                      className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                    >
+                      Créer
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Milestones List */}
+              {milestones.length === 0 ? (
+                <div className="text-center py-12">
+                  <Target className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Aucun milestone pour ce projet</p>
+                  <p className="text-sm text-muted-foreground mt-1">Ajoutez des milestones pour suivre les grandes étapes</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {milestones.map((milestone, index) => (
+                    <div
+                      key={milestone.id}
+                      className={`flex items-start gap-4 p-4 rounded-lg border transition-all ${
+                        milestone.status === "completed"
+                          ? "bg-green-500/5 border-green-500/20"
+                          : milestone.status === "in_progress"
+                          ? "bg-yellow-500/5 border-yellow-500/20"
+                          : "bg-muted/50 border-border"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
+                        <button
+                          onClick={() => {
+                            const nextStatus = milestone.status === "pending" ? "in_progress" : milestone.status === "in_progress" ? "completed" : "pending";
+                            handleUpdateMilestoneStatus(milestone.id, nextStatus);
+                          }}
+                          className="hover:scale-110 transition-transform"
+                        >
+                          {MILESTONE_STATUS_ICONS[milestone.status]}
+                        </button>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground font-mono">#{index + 1}</span>
+                          <h4 className={`font-medium ${milestone.status === "completed" ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                            {milestone.title}
+                          </h4>
+                        </div>
+                        {milestone.description && (
+                          <p className="text-sm text-muted-foreground mt-1">{milestone.description}</p>
+                        )}
+                        {milestone.dueDate && (
+                          <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(milestone.dueDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                            {milestone.completedAt && (
+                              <span className="ml-2 text-green-500">
+                                ✓ Complété le {new Date(milestone.completedAt).toLocaleDateString("fr-FR")}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleDeleteMilestone(milestone.id)}
+                        className="p-1 text-muted-foreground hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -569,6 +763,45 @@ export default function ProjectDetailPage() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === "team" && (
+            <div>
+              <h3 className="text-lg font-semibold text-foreground mb-4">Équipe projet</h3>
+              <div className="space-y-4">
+                {project.lead && (
+                  <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-lg">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <User className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">{project.lead}</p>
+                      <p className="text-sm text-muted-foreground">Responsable de projet</p>
+                    </div>
+                  </div>
+                )}
+                {project.team && (
+                  <div className="p-4 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-2">Membres de l'équipe</p>
+                    <p className="text-foreground">{project.team}</p>
+                  </div>
+                )}
+                {project.contactName && (
+                  <div className="flex items-center gap-4 p-4 bg-blue-500/5 rounded-lg border border-blue-500/20">
+                    <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                      <Building2 className="w-6 h-6 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">{project.contactName}</p>
+                      <p className="text-sm text-muted-foreground">Contact client</p>
+                      {project.contactMethod && (
+                        <p className="text-xs text-muted-foreground">{project.contactMethod}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

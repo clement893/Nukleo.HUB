@@ -113,6 +113,7 @@ model Project {
   updatedAt       DateTime  @updatedAt
 
   tasks           Task[]
+  milestones      Milestone[]
 
   @@index([status])
   @@index([projectType])
@@ -260,6 +261,24 @@ model ActivityLog {
 
   @@index([entityType, entityId])
   @@index([createdAt])
+}
+
+// Milestones (grandes tâches de projet)
+model Milestone {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?   @db.Text
+  status        String    @default("pending") // pending, in_progress, completed
+  dueDate       DateTime?
+  completedAt   DateTime?
+  order         Int       @default(0)
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([projectId])
+  @@index([status])
 }
 
 // Notes et commentaires

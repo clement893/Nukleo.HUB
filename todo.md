@@ -148,3 +148,9 @@
 - [x] Bouton de conversion dans la fiche opportunité
 - [x] Transfert automatique des informations
 - [x] Lien maintenu entre opportunité et projet
+
+## Page détaillée Projet améliorée
+- [x] Schéma et API pour les milestones (grandes tâches)
+- [x] Affichage des milestones dans la page projet
+- [x] Création/modification de milestones
+- [x] Progression visuelle des milestones
