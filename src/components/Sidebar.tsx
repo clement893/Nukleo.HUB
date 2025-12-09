@@ -23,6 +23,7 @@ import {
   Megaphone,
   GraduationCap,
   Brain,
+  Ticket,
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 
@@ -71,6 +72,7 @@ const navigation: NavItem[] = [
   { name: "Hub Communication", href: "/communication", icon: Megaphone },
   { name: "Admin Onboarding", href: "/admin/onboarding", icon: GraduationCap },
   { name: "Leo IA", href: "/leo", icon: Brain },
+  { name: "Tickets", href: "/tickets", icon: Ticket },
 ];
 
 export default function Sidebar() {

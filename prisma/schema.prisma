@@ -687,3 +687,65 @@ model TaskDocument {
   @@index([taskId])
   @@index([documentId])
 }
+
+
+// ============================================
+// SYSTÈME DE TICKETS & PORTAIL CLIENT
+// ============================================
+
+// Portail Client - URL unique pour chaque client
+model ClientPortal {
+  id          String   @id @default(cuid())
+  token       String   @unique @default(cuid())
+  clientName  String
+  clientEmail String?
+  companyId   String?
+  isActive    Boolean  @default(true)
+  welcomeMessage String? @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tickets     Ticket[]
+
+  @@index([token])
+  @@index([companyId])
+}
+
+// Tickets soumis par les clients
+model Ticket {
+  id            String        @id @default(cuid())
+  portalId      String
+  portal        ClientPortal  @relation(fields: [portalId], references: [id], onDelete: Cascade)
+  projectId     String?
+  subject       String
+  description   String        @db.Text
+  category      String?       // bug, feature, question, support
+  priority      String        @default("medium") // low, medium, high, urgent
+  status        String        @default("open") // open, in_progress, waiting, resolved, closed
+  submittedBy   String?       // Nom du soumetteur
+  submittedEmail String?      // Email du soumetteur
+  assignedToId  String?
+  resolvedAt    DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  responses     TicketResponse[]
+
+  @@index([portalId])
+  @@index([projectId])
+  @@index([status])
+  @@index([priority])
+}
+
+// Réponses aux tickets
+model TicketResponse {
+  id          String   @id @default(cuid())
+  ticketId    String
+  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  content     String   @db.Text
+  isInternal  Boolean  @default(false) // Note interne ou réponse visible au client
+  authorType  String   // client, employee
+  authorName  String?
+  authorId    String?  // employeeId si authorType = employee
+  createdAt   DateTime @default(now())
+
+  @@index([ticketId])
+}

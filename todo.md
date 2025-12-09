@@ -326,3 +326,17 @@
 - [x] Synchronisation automatique tâche -> projet
 - [x] Upload de fichiers vers S3
 - [x] Pousser vers GitHub
+
+
+## Système de Tickets & Portail Client
+- [x] Schéma DB pour les portails clients (ClientPortal avec token unique)
+- [x] Schéma DB pour les tickets (Ticket)
+- [x] API pour le portail client (accès public avec token)
+- [x] API CRUD pour les tickets
+- [x] Page portail client public (/portal/[token])
+- [x] Affichage des projets du client
+- [x] Formulaire de soumission de ticket
+- [x] Historique des tickets et réponses
+- [x] Page admin de gestion des tickets
+- [x] Génération d'URL unique par client
+- [x] Pousser vers GitHub
