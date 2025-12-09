@@ -523,7 +523,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                       const Icon = PLATFORM_ICONS[account.platform] || Share2;
                       return (
                         <div key={account.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
-                          <Icon className="h-4 w-4" style={{ color: PLATFORM_COLORS[account.platform] }} />
+                          <div style={{ color: PLATFORM_COLORS[account.platform] }}><Icon className="h-4 w-4" /></div>
                           <span className="flex-1 text-sm text-foreground">{account.accountName}</span>
                           {account.followers && (
                             <span className="text-xs text-muted-foreground">{account.followers.toLocaleString()}</span>
@@ -561,7 +561,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg" style={{ backgroundColor: `${PLATFORM_COLORS[account.platform]}20` }}>
-                              <Icon className="h-5 w-5" style={{ color: PLATFORM_COLORS[account.platform] }} />
+                              <div style={{ color: PLATFORM_COLORS[account.platform] }}><Icon className="h-5 w-5" /></div>
                             </div>
                             <div>
                               <p className="font-medium text-foreground">{account.accountName}</p>
@@ -615,7 +615,7 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-3">
                             <div className="p-2 rounded-lg" style={{ backgroundColor: `${typeInfo.color}20` }}>
-                              <Megaphone className="h-5 w-5" style={{ color: typeInfo.color }} />
+                              <div style={{ color: typeInfo.color }}><Megaphone className="h-5 w-5" /></div>
                             </div>
                             <div>
                               <p className="font-medium text-foreground">{campaign.name}</p>
