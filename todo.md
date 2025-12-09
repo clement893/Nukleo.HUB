@@ -57,3 +57,12 @@
 - [x] Sélecteur de contact avec recherche dans la modale opportunité
 - [x] Relation contact-opportunité dans le schéma de base de données
 - [x] Affichage du contact lié dans les cartes Kanban
+
+## Page Entreprises
+- [x] Schéma de base de données pour les entreprises
+- [x] API REST pour les entreprises (GET, POST, PATCH, DELETE)
+- [x] Page entreprises avec vue grille et liste
+- [x] Filtres par type, industrie, région
+- [x] Recherche par nom, site web
+- [x] Affichage des informations clés (logo, description, contacts, réseaux sociaux)
+- [x] Import des données CSV (244 entreprises importées)

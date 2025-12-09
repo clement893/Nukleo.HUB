@@ -117,3 +117,33 @@ model Project {
   @@index([client])
   @@index([year])
 }
+
+model Company {
+  id                String    @id @default(cuid())
+  name              String
+  logoUrl           String?
+  website           String?
+  address           String?
+  phone             String?
+  type              String?
+  mainContactName   String?
+  mainContactEmail  String?
+  description       String?   @db.Text
+  industry          String?
+  insight           String?   @db.Text
+  engagements       String?   @db.Text
+  linkedinUrl       String?
+  facebookUrl       String?
+  instagramUrl      String?
+  agencyPartners    String?
+  referralPartners  String?
+  isClient          Boolean   @default(false)
+  testimonials      String?
+  events            String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([type])
+  @@index([industry])
+  @@index([isClient])
+}
