@@ -50,13 +50,13 @@ export async function GET(request: NextRequest) {
           },
           select: {
             id: true,
-            name: true,
+            fullName: true,
             email: true,
             phone: true,
             position: true,
             photoUrl: true,
           },
-          orderBy: { name: "asc" },
+          orderBy: { fullName: "asc" },
           take: 20,
         });
 
