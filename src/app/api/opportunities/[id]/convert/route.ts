@@ -4,11 +4,13 @@ import { prisma } from "@/lib/prisma";
 // POST /api/opportunities/[id]/convert
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params;
+    
     const opportunity = await prisma.opportunity.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         linkedContact: true,
       },
@@ -47,7 +49,7 @@ export async function POST(
 
     // Update opportunity with link to project
     await prisma.opportunity.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         stage: "10 - Converti en projet",
       },
@@ -59,7 +61,7 @@ export async function POST(
         action: "converted_to_project",
         description: `Opportunité convertie en projet "${project.name}"`,
         entityType: "opportunity",
-        entityId: params.id,
+        entityId: id,
         userName: "Admin",
         newValue: project.id,
       },
@@ -73,7 +75,7 @@ export async function POST(
         entityType: "project",
         entityId: project.id,
         userName: "Admin",
-        oldValue: params.id,
+        oldValue: id,
       },
     });
 

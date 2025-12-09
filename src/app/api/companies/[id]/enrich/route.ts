@@ -4,11 +4,13 @@ import { prisma } from "@/lib/prisma";
 // POST /api/companies/[id]/enrich
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params;
+    
     const company = await prisma.company.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!company) {
@@ -95,7 +97,7 @@ export async function POST(
 
     // Update company with enriched data
     const updatedCompany = await prisma.company.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         logoUrl: logoUrl || company.logoUrl,
         description: descriptionMatch?.[1] || company.description,
@@ -110,7 +112,7 @@ export async function POST(
         action: "enriched",
         description: "Organisation enrichie automatiquement",
         entityType: "company",
-        entityId: params.id,
+        entityId: id,
         userName: "Système",
       },
     });
