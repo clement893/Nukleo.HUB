@@ -113,8 +113,9 @@ async function getNukleoContext() {
         name: true,
         industry: true,
         website: true,
-        region: true,
-        size: true,
+        type: true,
+        isClient: true,
+        description: true,
       },
     }),
     prisma.policy.findMany({
@@ -203,7 +204,7 @@ ${context.opportunities.map(o => `- **${o.name}** | Entreprise: ${o.company || '
 ${context.contacts.map(c => `- **${c.fullName}** | Entreprise: ${c.company || 'N/A'} | Poste: ${c.position || 'N/A'} | Email: ${c.email || 'N/A'} | Téléphone: ${c.phone || 'N/A'} | Région: ${c.region || 'N/A'} | Domaine: ${c.employmentField || 'N/A'} | LinkedIn: ${c.linkedinUrl || 'N/A'} | Tags: ${c.tags || 'Aucun'}`).join('\n')}
 
 ### 🏢 ENTREPRISES (${context.companies.length})
-${context.companies.map(c => `- **${c.name}** | Industrie: ${c.industry || 'N/A'} | Région: ${c.region || 'N/A'} | Taille: ${c.size || 'N/A'} | Site web: ${c.website || 'N/A'}`).join('\n')}
+${context.companies.map(c => `- **${c.name}** | Industrie: ${c.industry || 'N/A'} | Type: ${c.type || 'N/A'} | Client: ${c.isClient ? 'Oui' : 'Non'} | Site web: ${c.website || 'N/A'}`).join('\n')}
 
 ### 📋 TÂCHES EN COURS (${context.tasks.length})
 ${context.tasks.map(t => `- **${t.title}** | Projet: ${t.project?.name || 'Sans projet'} | Zone: ${t.zone} | Département: ${t.department} | Priorité: ${t.priority} | Assigné à: ${t.assignedEmployee?.name || 'Non assigné'} | Échéance: ${t.dueDate ? new Date(t.dueDate).toLocaleDateString('fr-CA') : 'N/A'}`).join('\n')}
