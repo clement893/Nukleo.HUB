@@ -497,7 +497,7 @@ export default function TeamsPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <Link href={`/teams/employees/${employee.id}`} className="font-semibold text-foreground truncate hover:text-primary transition-colors" onClick={(e) => e.stopPropagation()}>{employee.name}</Link>
+                              <Link href={`/teams/employees/${employee.id}`} className="font-semibold text-foreground truncate hover:text-primary hover:underline transition-colors relative z-10 cursor-pointer" onClick={(e) => e.stopPropagation()} draggable={false}>{employee.name}</Link>
                               {employee.linkedinUrl && (
                                 <a href={employee.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 transition-colors flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                                   <Linkedin className="h-4 w-4" />

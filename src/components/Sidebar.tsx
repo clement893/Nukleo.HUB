@@ -20,6 +20,7 @@ import {
   Moon,
   Sparkles,
   Receipt,
+  Megaphone,
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 
@@ -65,6 +66,7 @@ const navigation: NavItem[] = [
   },
   { name: "Agenda", href: "/agenda", icon: Calendar },
   { name: "Facturation", href: "/billing", icon: Receipt },
+  { name: "Hub Communication", href: "/communication", icon: Megaphone },
 ];
 
 export default function Sidebar() {

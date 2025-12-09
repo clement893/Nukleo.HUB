@@ -266,3 +266,25 @@
 - [x] Export PDF des rapports
 - [x] Navigation dans la sidebar
 - [x] Pousser vers GitHub
+
+
+## Correctifs
+- [x] Fix: clic sur le nom des employés pour accéder au profil
+
+## Hub Communication Numérique
+- [x] Schéma DB pour les clients communication (CommunicationClient)
+- [x] Schéma DB pour les médias sociaux (SocialMediaAccount)
+- [x] Schéma DB pour les infolettres (Newsletter)
+- [x] Schéma DB pour les campagnes (Campaign)
+- [x] Schéma DB pour les accès/liens (ClientAccess)
+- [x] Schéma DB pour les communications client (ClientMessage)
+- [x] APIs CRUD pour tous les modules
+- [x] Page principale du Hub Communication
+- [x] Module Médias Sociaux
+- [x] Module Infolettres
+- [x] Module Campagnes Numériques
+- [x] Module Accès & Liens
+- [x] Module Tâches Client
+- [x] Module Communication Client
+- [x] Navigation dans la sidebar
+- [x] Pousser vers GitHub
