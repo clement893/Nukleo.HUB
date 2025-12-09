@@ -19,6 +19,7 @@ import {
   Sun,
   Moon,
   Sparkles,
+  Receipt,
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 
@@ -63,6 +64,7 @@ const navigation: NavItem[] = [
     ],
   },
   { name: "Agenda", href: "/agenda", icon: Calendar },
+  { name: "Facturation", href: "/billing", icon: Receipt },
 ];
 
 export default function Sidebar() {

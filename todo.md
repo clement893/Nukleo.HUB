@@ -255,3 +255,14 @@
 - [x] Page employé avec logs de temps
 - [x] Statistiques de temps par employé
 - [x] Pousser vers GitHub
+
+
+## Rapports de Facturation
+- [x] API pour générer les rapports de facturation mensuels
+- [x] Page de rapports avec filtres (mois, projet, employé)
+- [x] Vue par projet avec détail des heures par employé
+- [x] Vue par employé avec détail des heures par projet
+- [x] Export CSV des rapports
+- [x] Export PDF des rapports
+- [x] Navigation dans la sidebar
+- [x] Pousser vers GitHub
