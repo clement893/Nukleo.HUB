@@ -20,6 +20,8 @@ import {
   Zap,
   User,
   FolderOpen,
+  Shield,
+  Linkedin,
 } from "lucide-react";
 
 interface Employee {
@@ -27,6 +29,7 @@ interface Employee {
   name: string;
   email: string | null;
   photoUrl: string | null;
+  linkedinUrl: string | null;
   role: string | null;
   department: string;
   currentTask: Task | null;
@@ -64,6 +67,7 @@ const DEPARTMENTS = [
   { id: "Lab", name: "Lab", icon: Beaker, color: "#8b5cf6", bgColor: "bg-violet-500/10", borderColor: "border-violet-500/30", textColor: "text-violet-400" },
   { id: "Bureau", name: "Bureau", icon: Building2, color: "#3b82f6", bgColor: "bg-blue-500/10", borderColor: "border-blue-500/30", textColor: "text-blue-400" },
   { id: "Studio", name: "Studio", icon: Palette, color: "#ec4899", bgColor: "bg-pink-500/10", borderColor: "border-pink-500/30", textColor: "text-pink-400" },
+  { id: "Admin", name: "Admin", icon: Shield, color: "#9333ea", bgColor: "bg-purple-500/10", borderColor: "border-purple-500/30", textColor: "text-purple-400" },
 ];
 
 const ZONES = [
@@ -399,7 +403,14 @@ export default function TeamsPage() {
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-foreground truncate">{employee.name}</div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-foreground truncate">{employee.name}</span>
+                              {employee.linkedinUrl && (
+                                <a href={employee.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 transition-colors flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                  <Linkedin className="h-4 w-4" />
+                                </a>
+                              )}
+                            </div>
                             <div className="text-sm text-muted-foreground truncate">{employee.role || "Membre"}</div>
                           </div>
                         </div>
