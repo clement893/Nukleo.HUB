@@ -37,7 +37,7 @@ export default function CompanyCard({ company, onClick }: CompanyCardProps) {
   return (
     <div
       onClick={() => onClick?.(company)}
-      className="group glass-card rounded-xl p-5 cursor-pointer hover:border-primary/30 hover:shadow-lg transition-all"
+      className="group glass-card rounded-xl p-5 cursor-pointer hover:border-primary/30 hover:shadow-lg transition-all min-w-0 overflow-hidden"
     >
       {/* Header with logo and name */}
       <div className="flex items-start gap-4 mb-4">

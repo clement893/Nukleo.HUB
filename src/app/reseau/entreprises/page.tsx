@@ -116,7 +116,7 @@ export default function EntreprisesPage() {
     <div className="flex min-h-screen bg-background">
       <Sidebar />
 
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 ml-64 p-8 overflow-x-hidden max-w-[calc(100vw-16rem)]">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Entreprises</h1>

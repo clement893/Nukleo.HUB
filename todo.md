@@ -107,8 +107,11 @@
 - [x] Vue Semaine avec grille horaire
 - [x] Vue Jour avec créneaux horaires détaillés
 
+## Bugs
+- [x] Page Entreprises : débordement horizontal (ne respecte pas l'écran)
+
 ## Refonte page Équipes - UX/UI
-- [ ] Hiérarchie visuelle : Current dominant (50%), autres zones en panneau
+- [x] Hiérarchie visuelle : Current dominant (50%), autres zones en panneau
 - [ ] Employé au centre : colonnes par employé avec leur tâche
 - [ ] Flux de production : barre visuelle Shelf → Current → Dock
 - [ ] Indicateurs de santé : capacité, vélocité, alertes par département
