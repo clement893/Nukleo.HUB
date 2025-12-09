@@ -102,3 +102,7 @@
 - [x] Types d'événements (réunion, échéance, rappel, appel, autre)
 - [x] Modale d'ajout/modification d'événement
 - [x] Liaison avec contacts, opportunités, projets (préparé dans le schéma)
+
+## Calendrier - Vues additionnelles
+- [x] Vue Semaine avec grille horaire
+- [x] Vue Jour avec créneaux horaires détaillés
