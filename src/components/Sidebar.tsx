@@ -52,6 +52,7 @@ const navigation: NavItem[] = [
     children: [
       { name: "Contacts", href: "/reseau/contacts" },
       { name: "Entreprises", href: "/reseau/entreprises" },
+      { name: "Clients", href: "/reseau/clients" },
       { name: "Témoignages", href: "/reseau/temoignages" },
     ],
   },

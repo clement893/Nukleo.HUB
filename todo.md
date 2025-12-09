@@ -340,3 +340,13 @@
 - [x] Page admin de gestion des tickets
 - [x] Génération d'URL unique par client
 - [x] Pousser vers GitHub
+
+
+## Page Clients (Réseau)
+- [x] Lier ClientPortal aux entreprises (companyId)
+- [x] API pour récupérer les clients avec entreprise, projets, contacts
+- [x] Page /reseau/clients avec liste des clients
+- [x] Fiche client avec entreprise, projets associés, contacts liés
+- [x] Liaison avec le portail client existant
+- [x] Navigation dans le menu Réseau
+- [x] Pousser vers GitHub
