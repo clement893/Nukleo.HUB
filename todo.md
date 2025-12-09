@@ -237,3 +237,12 @@
 - [x] Définir les phases du flow (Diagnostic, Stratégie, Design, Dev, IA, Formation, Déploiement, Suivi)
 - [x] Ajouter la navigation dans la sidebar
 - [x] Pousser vers GitHub
+
+
+## Enrichissement Module Transformation
+- [x] Schéma DB pour les phases de projet (ProjectPhase)
+- [x] API CRUD pour les phases de projet
+- [x] Interface de personnalisation des phases par projet
+- [x] Générateur de devis basé sur les phases sélectionnées
+- [x] Liaison template transformation aux projets existants
+- [x] Pousser vers GitHub

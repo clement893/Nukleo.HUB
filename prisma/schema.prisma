@@ -323,3 +323,54 @@ model Testimonial {
   @@index([status])
   @@index([featured])
 }
+
+
+// Phases de projet pour la transformation numérique
+model ProjectPhase {
+  id              String    @id @default(cuid())
+  projectId       String
+  phaseTemplateId String    // diagnostic, strategie, design, developpement, ia, formation, deploiement, suivi
+  name            String
+  description     String?
+  status          String    @default("pending") // pending, in_progress, completed, skipped
+  progress        Int       @default(0) // 0-100
+  order           Int       @default(0)
+  startDate       DateTime?
+  endDate         DateTime?
+  estimatedHours  Int?
+  actualHours     Int?
+  hourlyRate      Float?    @default(150)
+  notes           String?   @db.Text
+  deliverables    String?   @db.Text // JSON array of deliverables
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+}
+
+// Devis générés
+model Quote {
+  id              String    @id @default(cuid())
+  projectId       String?
+  clientName      String
+  clientEmail     String?
+  clientCompany   String?
+  title           String
+  description     String?   @db.Text
+  status          String    @default("draft") // draft, sent, accepted, rejected, expired
+  validUntil      DateTime?
+  subtotal        Float     @default(0)
+  taxRate         Float     @default(0.15) // 15% TPS+TVQ
+  taxAmount       Float     @default(0)
+  total           Float     @default(0)
+  currency        String    @default("CAD")
+  phases          String?   @db.Text // JSON array of selected phases with pricing
+  notes           String?   @db.Text
+  terms           String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+}
