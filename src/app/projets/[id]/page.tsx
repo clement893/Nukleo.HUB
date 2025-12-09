@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import Sidebar from "@/components/Sidebar";
 import {
   ArrowLeft,
@@ -33,6 +34,7 @@ import {
   Eye,
   Flag,
   Milestone as MilestoneIcon,
+  FolderOpen,
 } from "lucide-react";
 
 interface Project {
@@ -721,9 +723,13 @@ export default function ProjectDetailPage() {
                       <ExternalLink className="w-3 h-3" />
                     </a>
                   )}
-                  {!project.driveUrl && !project.asanaUrl && !project.slackUrl && !project.proposalUrl && (
-                    <p className="text-muted-foreground">Aucun lien externe</p>
-                  )}
+                  <Link
+                    href={`/projects/${project.id}/documents`}
+                    className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg text-white transition-colors"
+                  >
+                    <FolderOpen className="w-4 h-4" />
+                    Documents
+                  </Link>
                 </div>
               </div>
             </div>
