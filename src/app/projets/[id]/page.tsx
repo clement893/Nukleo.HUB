@@ -65,8 +65,10 @@ interface Task {
   description?: string;
   zone: string;
   department?: string;
+  status?: string;
   priority?: string;
   dueDate?: string;
+  completedAt?: string;
   projectId?: string;
 }
 
@@ -75,6 +77,12 @@ const PRIORITIES = [
   { value: "low", label: "Basse", color: "bg-green-500/10 text-green-500" },
   { value: "medium", label: "Moyenne", color: "bg-yellow-500/10 text-yellow-500" },
   { value: "high", label: "Haute", color: "bg-red-500/10 text-red-500" },
+];
+
+const TASK_STATUSES = [
+  { value: "todo", label: "À faire", color: "bg-gray-500/10 text-gray-500", icon: Circle },
+  { value: "in_progress", label: "En cours", color: "bg-blue-500/10 text-blue-500", icon: PlayCircle },
+  { value: "done", label: "Terminé", color: "bg-green-500/10 text-green-500", icon: CheckCircle2 },
 ];
 
 interface Milestone {
@@ -146,6 +154,8 @@ export default function ProjectDetailPage() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [showTaskDetail, setShowTaskDetail] = useState(false);
   const [sendingToTeam, setSendingToTeam] = useState<string | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [showEditForm, setShowEditForm] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -352,6 +362,57 @@ export default function ProjectDetailPage() {
     } catch (error) {
       console.error("Error deleting task:", error);
     }
+  };
+
+  const handleUpdateTaskStatus = async (taskId: string, newStatus: string) => {
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (response.ok) {
+        const updatedTask = await response.json();
+        setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
+        if (selectedTask?.id === taskId) {
+          setSelectedTask(updatedTask);
+        }
+      }
+    } catch (error) {
+      console.error("Error updating task status:", error);
+    }
+  };
+
+  const handleUpdateTask = async () => {
+    if (!editingTask) return;
+    try {
+      const response = await fetch(`/api/tasks/${editingTask.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: editingTask.title,
+          description: editingTask.description,
+          priority: editingTask.priority,
+          department: editingTask.department,
+          dueDate: editingTask.dueDate,
+          status: editingTask.status,
+        }),
+      });
+      if (response.ok) {
+        const updatedTask = await response.json();
+        setTasks(tasks.map(t => t.id === editingTask.id ? updatedTask : t));
+        setShowEditForm(false);
+        setEditingTask(null);
+        setShowTaskDetail(false);
+        setSelectedTask(null);
+      }
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
+  };
+
+  const getStatusInfo = (status?: string) => {
+    return TASK_STATUSES.find(s => s.value === status) || TASK_STATUSES[0];
   };
 
   const getInitials = (name: string) => {
@@ -904,7 +965,23 @@ export default function ProjectDetailPage() {
                         className="flex items-center gap-3 flex-1 cursor-pointer"
                         onClick={() => { setSelectedTask(task); setShowTaskDetail(true); }}
                       >
-                        <CheckSquare className="w-5 h-5 text-muted-foreground" />
+                        {/* Bouton de statut cliquable */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const currentIndex = TASK_STATUSES.findIndex(s => s.value === (task.status || "todo"));
+                            const nextIndex = (currentIndex + 1) % TASK_STATUSES.length;
+                            handleUpdateTaskStatus(task.id, TASK_STATUSES[nextIndex].value);
+                          }}
+                          className="hover:scale-110 transition-transform"
+                          title="Cliquer pour changer le statut"
+                        >
+                          {(() => {
+                            const statusInfo = getStatusInfo(task.status);
+                            const StatusIcon = statusInfo.icon;
+                            return <StatusIcon className={`w-5 h-5 ${statusInfo.color.split(" ")[1]}`} />;
+                          })()}
+                        </button>
                         <div>
                           <p className="font-medium text-foreground group-hover:text-primary transition-colors">{task.title}</p>
                           {task.description && (
@@ -927,6 +1004,10 @@ export default function ProjectDetailPage() {
                             {task.department}
                           </span>
                         )}
+                        {/* Badge de statut */}
+                        <span className={`px-2 py-1 text-xs rounded-full ${getStatusInfo(task.status).color}`}>
+                          {getStatusInfo(task.status).label}
+                        </span>
                         <span className="px-2 py-1 text-xs rounded-full bg-gray-500/10 text-gray-500">
                           {task.zone}
                         </span>
@@ -1134,6 +1215,29 @@ export default function ProjectDetailPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <label className="text-xs text-muted-foreground uppercase tracking-wide">Statut</label>
+                  <div className="flex items-center gap-2 mt-1">
+                    {TASK_STATUSES.map((status) => {
+                      const StatusIcon = status.icon;
+                      const isActive = (selectedTask.status || "todo") === status.value;
+                      return (
+                        <button
+                          key={status.value}
+                          onClick={() => handleUpdateTaskStatus(selectedTask.id, status.value)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-all ${
+                            isActive
+                              ? `${status.color} ring-2 ring-offset-2 ring-offset-background`
+                              : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                          }`}
+                        >
+                          <StatusIcon className="w-4 h-4" />
+                          {status.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
                   <label className="text-xs text-muted-foreground uppercase tracking-wide">Priorité</label>
                   <p className={`inline-block px-2 py-1 text-sm rounded-full ${getPriorityColor(selectedTask.priority)}`}>
                     {selectedTask.priority === "high" ? "Haute" : selectedTask.priority === "low" ? "Basse" : "Moyenne"}
@@ -1194,10 +1298,120 @@ export default function ProjectDetailPage() {
                 Supprimer
               </button>
               <button
+                onClick={() => {
+                  setEditingTask(selectedTask);
+                  setShowEditForm(true);
+                  setShowTaskDetail(false);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                <Edit className="w-4 h-4" />
+                Modifier
+              </button>
+              <button
                 onClick={() => { setShowTaskDetail(false); setSelectedTask(null); }}
                 className="px-4 py-2 bg-muted text-foreground rounded-lg hover:bg-muted/80 transition-colors"
               >
                 Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modale de modification de tâche */}
+      {showEditForm && editingTask && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <h3 className="text-lg font-semibold text-foreground">Modifier la tâche</h3>
+              <button
+                onClick={() => { setShowEditForm(false); setEditingTask(null); }}
+                className="p-1 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm text-muted-foreground mb-1">Titre *</label>
+                <input
+                  type="text"
+                  value={editingTask.title}
+                  onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-muted-foreground mb-1">Description</label>
+                <textarea
+                  value={editingTask.description || ""}
+                  onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                  rows={3}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-muted-foreground mb-1">Statut</label>
+                  <select
+                    value={editingTask.status || "todo"}
+                    onChange={(e) => setEditingTask({ ...editingTask, status: e.target.value })}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    {TASK_STATUSES.map((s) => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-muted-foreground mb-1">Priorité</label>
+                  <select
+                    value={editingTask.priority || "medium"}
+                    onChange={(e) => setEditingTask({ ...editingTask, priority: e.target.value })}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    {PRIORITIES.map((p) => (
+                      <option key={p.value} value={p.value}>{p.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-muted-foreground mb-1">Département</label>
+                  <select
+                    value={editingTask.department || "Lab"}
+                    onChange={(e) => setEditingTask({ ...editingTask, department: e.target.value })}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    {DEPARTMENTS.map((dept) => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-muted-foreground mb-1">Date limite</label>
+                  <input
+                    type="date"
+                    value={editingTask.dueDate ? editingTask.dueDate.split("T")[0] : ""}
+                    onChange={(e) => setEditingTask({ ...editingTask, dueDate: e.target.value })}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 p-4 border-t border-border">
+              <button
+                onClick={() => { setShowEditForm(false); setEditingTask(null); }}
+                className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleUpdateTask}
+                disabled={!editingTask.title.trim()}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              >
+                Enregistrer
               </button>
             </div>
           </div>

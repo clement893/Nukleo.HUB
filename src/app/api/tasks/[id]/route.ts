@@ -36,7 +36,14 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { zone, employeeId, ...otherFields } = body;
+    const { zone, employeeId, status, ...otherFields } = body;
+
+    // Handle status change
+    if (status === "done" && !otherFields.completedAt) {
+      otherFields.completedAt = new Date();
+    } else if (status && status !== "done") {
+      otherFields.completedAt = null;
+    }
 
     // If moving to "current" zone and assigning to employee
     if (zone === "current" && employeeId) {
@@ -97,6 +104,7 @@ export async function PATCH(
       data: {
         ...otherFields,
         ...(zone && { zone }),
+        ...(status && { status }),
       },
       include: {
         project: true,

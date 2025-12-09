@@ -160,3 +160,10 @@
 - [x] Formulaire de création de tâche depuis la page projet
 - [x] Bouton "Envoyer vers Équipes" (ajoute la tâche dans le Shelf du département)
 - [x] Sélection du département cible
+
+## Suivi d'avancement des tâches
+- [x] Champ status (todo, in_progress, done) dans le schéma
+- [x] Affichage du statut avec badge coloré
+- [x] Changement de statut en un clic
+- [x] Formulaire de modification de tâche
+- [ ] Historique des changements de statut

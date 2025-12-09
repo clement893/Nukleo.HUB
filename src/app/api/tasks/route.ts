@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, description, zone, department, projectId, priority, dueDate } = body;
+    const { title, description, zone, department, projectId, priority, dueDate, status } = body;
 
     if (!title || !department) {
       return NextResponse.json(
@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
         description,
         zone: zone || "shelf",
         department,
+        status: status || "todo",
         projectId,
         priority: priority || "medium",
         dueDate: dueDate ? new Date(dueDate) : null,
