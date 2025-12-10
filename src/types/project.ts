@@ -1,3 +1,17 @@
+export interface LinkedCompany {
+  id: string;
+  name: string;
+  logoUrl?: string | null;
+  isClient: boolean;
+}
+
+export interface LinkedContact {
+  id: string;
+  fullName: string;
+  photoUrl?: string | null;
+  position?: string | null;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -28,6 +42,8 @@ export interface Project {
   departments: string | null;
   createdAt: Date;
   updatedAt: Date;
+  company?: LinkedCompany | null;
+  contact?: LinkedContact | null;
 }
 
 export type ProjectCreateInput = Omit<Project, 'id' | 'createdAt' | 'updatedAt'>;

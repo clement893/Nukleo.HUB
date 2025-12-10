@@ -58,11 +58,20 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
           <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
             {project.name}
           </h3>
-          {project.client && (
-            <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-1">
-              <Building2 className="w-3.5 h-3.5 flex-shrink-0" />
-              <span className="truncate">{project.client}</span>
-            </p>
+          {(project.company || project.client) && (
+            <div className="flex items-center gap-2 mt-1">
+              {project.company?.logoUrl ? (
+                <img src={project.company.logoUrl} alt={project.company.name} className="w-5 h-5 rounded object-cover flex-shrink-0" />
+              ) : (
+                <Building2 className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground" />
+              )}
+              <span className="text-sm text-muted-foreground truncate">
+                {project.company?.name || project.client}
+              </span>
+              {project.company?.isClient && (
+                <span className="text-[10px] px-1.5 py-0.5 bg-green-500/20 text-green-500 rounded flex-shrink-0">Client</span>
+              )}
+            </div>
           )}
         </div>
         {project.status && (
@@ -74,9 +83,20 @@ export function ProjectCard({ project, onClick }: ProjectCardProps) {
 
       {/* Info Grid */}
       <div className="grid grid-cols-2 gap-3 mb-4">
+        {/* Contact lié */}
+        {(project.contact || project.contactName) && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            {project.contact?.photoUrl ? (
+              <img src={project.contact.photoUrl} alt={project.contact.fullName} className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
+            ) : (
+              <User className="w-4 h-4 flex-shrink-0" />
+            )}
+            <span className="truncate">{project.contact?.fullName || project.contactName}</span>
+          </div>
+        )}
         {project.lead && (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <User className="w-4 h-4 flex-shrink-0" />
+            <User className="w-4 h-4 flex-shrink-0 text-purple-400" />
             <span className="truncate">{project.lead}</span>
           </div>
         )}
