@@ -75,6 +75,7 @@ model Contact {
   updatedAt         DateTime  @updatedAt
   
   opportunities     Opportunity[]
+  linkedProjects    Project[]
 
   @@index([region])
   @@index([employmentField])
@@ -112,6 +113,12 @@ model Project {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  // Relations
+  companyId       String?
+  company         Company?  @relation(fields: [companyId], references: [id])
+  contactId       String?
+  contact         Contact?  @relation(fields: [contactId], references: [id])
+
   tasks           Task[]
   milestones      Milestone[]
 
@@ -119,6 +126,8 @@ model Project {
   @@index([projectType])
   @@index([client])
   @@index([year])
+  @@index([companyId])
+  @@index([contactId])
 }
 
 model Company {
@@ -145,6 +154,8 @@ model Company {
   events            String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+
+  projects          Project[]
 
   @@index([type])
   @@index([industry])
