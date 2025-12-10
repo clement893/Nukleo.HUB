@@ -24,12 +24,21 @@ import {
   X,
   Calendar,
   DollarSign,
+  Trash2,
+  Link2,
 } from "lucide-react";
+
+interface Company {
+  id: string;
+  name: string;
+  logoUrl: string | null;
+}
 
 interface CommunicationClient {
   id: string;
   name: string;
   company: string | null;
+  companyId: string | null;
   email: string | null;
   phone: string | null;
   website: string | null;
@@ -76,16 +85,29 @@ export default function CommunicationHubPage() {
   const [newClient, setNewClient] = useState({
     name: "",
     company: "",
+    companyId: "",
     email: "",
     phone: "",
     website: "",
     industry: "",
     monthlyBudget: "",
   });
+  const [companies, setCompanies] = useState<Company[]>([]);
 
   useEffect(() => {
     fetchClients();
+    fetchCompanies();
   }, [filterStatus]);
+
+  const fetchCompanies = async () => {
+    try {
+      const res = await fetch("/api/companies?isClient=true");
+      const data = await res.json();
+      setCompanies(data);
+    } catch (error) {
+      console.error("Error fetching companies:", error);
+    }
+  };
 
   const fetchClients = async () => {
     setLoading(true);
@@ -109,12 +131,13 @@ export default function CommunicationHubPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...newClient,
+          companyId: newClient.companyId || null,
           monthlyBudget: newClient.monthlyBudget ? parseInt(newClient.monthlyBudget) : null,
         }),
       });
       if (res.ok) {
         setShowAddModal(false);
-        setNewClient({ name: "", company: "", email: "", phone: "", website: "", industry: "", monthlyBudget: "" });
+        setNewClient({ name: "", company: "", companyId: "", email: "", phone: "", website: "", industry: "", monthlyBudget: "" });
         fetchClients();
       }
     } catch (error) {
@@ -291,6 +314,12 @@ export default function CommunicationHubPage() {
                           {client.company && (
                             <p className="text-sm text-muted-foreground">{client.company}</p>
                           )}
+                          {client.companyId && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <Link2 className="h-3 w-3 text-primary" />
+                              <span className="text-xs text-primary">Lié à un client</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -300,8 +329,9 @@ export default function CommunicationHubPage() {
                         <button
                           onClick={() => handleDeleteClient(client.id)}
                           className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"
+                          title="Supprimer cet espace"
                         >
-                          <X className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </button>
                       </div>
                     </div>
@@ -384,14 +414,36 @@ export default function CommunicationHubPage() {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">Lier à un client existant</label>
+                  <select
+                    value={newClient.companyId}
+                    onChange={(e) => {
+                      const selectedCompany = companies.find(c => c.id === e.target.value);
+                      setNewClient({ 
+                        ...newClient, 
+                        companyId: e.target.value,
+                        company: selectedCompany?.name || newClient.company
+                      });
+                    }}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="">Aucun (espace standalone)</option>
+                    {companies.map((company) => (
+                      <option key={company.id} value={company.id}>{company.name}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-foreground mb-1">Entreprise</label>
+                    <label className="block text-sm font-medium text-foreground mb-1">Entreprise (texte)</label>
                     <input
                       type="text"
                       value={newClient.company}
                       onChange={(e) => setNewClient({ ...newClient, company: e.target.value })}
                       className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder="Nom de l'entreprise"
                     />
                   </div>
                   <div>

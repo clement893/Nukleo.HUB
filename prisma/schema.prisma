@@ -432,12 +432,12 @@ model CommunicationClient {
   description     String?   @db.Text
   status          String    @default("active") // active, paused, completed
   projectId       String?   // Lien optionnel vers un projet existant
+  companyId       String?   // Lien vers une entreprise cliente (Company)
   startDate       DateTime?
   monthlyBudget   Int?      // Budget mensuel en dollars
   notes           String?   @db.Text
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-
   // Relations
   socialAccounts  SocialMediaAccount[]
   newsletters     Newsletter[]
@@ -445,9 +445,9 @@ model CommunicationClient {
   accesses        ClientAccess[]
   messages        ClientMessage[]
   tasks           ClientTask[]
-
   @@index([status])
   @@index([projectId])
+  @@index([companyId])
 }
 
 // Comptes de médias sociaux
