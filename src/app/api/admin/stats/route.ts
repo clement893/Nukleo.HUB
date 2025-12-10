@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
       // Total entrées de temps ce mois
       prisma.timeEntry.count({
         where: {
-          date: { gte: startDate },
+          startTime: { gte: startDate },
         },
       }),
       // Projets récents
@@ -106,9 +106,9 @@ export async function GET(request: NextRequest) {
     // Calculer les heures totales
     const timeEntriesData = await prisma.timeEntry.aggregate({
       where: {
-        date: { gte: startDate },
+        startTime: { gte: startDate },
       },
-      _sum: { hours: true },
+      _sum: { duration: true },
     });
 
     // Revenus estimés (opportunités gagnées)
@@ -172,7 +172,7 @@ export async function GET(request: NextRequest) {
         totalEmployees,
         totalOpportunities,
         recentProjects,
-        totalHours: timeEntriesData._sum.hours || 0,
+        totalHours: (timeEntriesData._sum.duration || 0) / 60, // duration is in minutes, convert to hours
         revenue: revenueData._sum.value || 0,
         pipelineValue: pipelineValue._sum.value || 0,
         openTickets,

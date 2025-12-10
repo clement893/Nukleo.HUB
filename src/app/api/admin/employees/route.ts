@@ -37,13 +37,13 @@ export async function GET(request: NextRequest) {
     const timeEntriesByEmployee = await prisma.timeEntry.groupBy({
       by: ["employeeId"],
       where: {
-        date: { gte: startOfMonth },
+        startTime: { gte: startOfMonth },
       },
-      _sum: { hours: true },
+      _sum: { duration: true },
     });
 
     const timeEntriesMap = new Map(
-      timeEntriesByEmployee.map((te) => [te.employeeId, te._sum.hours || 0])
+      timeEntriesByEmployee.map((te) => [te.employeeId, (te._sum.duration || 0) / 60]) // duration is in minutes, convert to hours
     );
 
     // Ajouter les stats aux employés
