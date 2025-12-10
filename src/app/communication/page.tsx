@@ -26,6 +26,9 @@ import {
   DollarSign,
   Trash2,
   Link2,
+  Tag,
+  Settings,
+  Palette,
 } from "lucide-react";
 
 interface Company {
@@ -34,11 +37,22 @@ interface Company {
   logoUrl: string | null;
 }
 
+interface ClientCategory {
+  id: string;
+  name: string;
+  color: string;
+  icon: string | null;
+  description: string | null;
+  _count: { clients: number };
+}
+
 interface CommunicationClient {
   id: string;
   name: string;
   company: string | null;
   companyId: string | null;
+  categoryId: string | null;
+  category: ClientCategory | null;
   email: string | null;
   phone: string | null;
   website: string | null;
@@ -86,6 +100,7 @@ export default function CommunicationHubPage() {
     name: "",
     company: "",
     companyId: "",
+    categoryId: "",
     email: "",
     phone: "",
     website: "",
@@ -93,11 +108,55 @@ export default function CommunicationHubPage() {
     monthlyBudget: "",
   });
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [categories, setCategories] = useState<ClientCategory[]>([]);
+  const [filterCategory, setFilterCategory] = useState<string>("");
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [newCategory, setNewCategory] = useState({ name: "", color: "#6366f1", description: "" });
 
   useEffect(() => {
     fetchClients();
     fetchCompanies();
-  }, [filterStatus]);
+    fetchCategories();
+  }, [filterStatus, filterCategory]);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("/api/communication/categories");
+      const data = await res.json();
+      setCategories(data);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  const handleAddCategory = async () => {
+    if (!newCategory.name) return;
+    try {
+      const res = await fetch("/api/communication/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newCategory),
+      });
+      if (res.ok) {
+        setShowCategoryModal(false);
+        setNewCategory({ name: "", color: "#6366f1", description: "" });
+        fetchCategories();
+      }
+    } catch (error) {
+      console.error("Error adding category:", error);
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm("Supprimer cette catégorie ? Les clients associés seront déliés.")) return;
+    try {
+      await fetch(`/api/communication/categories/${id}`, { method: "DELETE" });
+      fetchCategories();
+      fetchClients();
+    } catch (error) {
+      console.error("Error deleting category:", error);
+    }
+  };
 
   const fetchCompanies = async () => {
     try {
@@ -132,12 +191,13 @@ export default function CommunicationHubPage() {
         body: JSON.stringify({
           ...newClient,
           companyId: newClient.companyId || null,
+          categoryId: newClient.categoryId || null,
           monthlyBudget: newClient.monthlyBudget ? parseInt(newClient.monthlyBudget) : null,
         }),
       });
       if (res.ok) {
         setShowAddModal(false);
-        setNewClient({ name: "", company: "", companyId: "", email: "", phone: "", website: "", industry: "", monthlyBudget: "" });
+        setNewClient({ name: "", company: "", companyId: "", categoryId: "", email: "", phone: "", website: "", industry: "", monthlyBudget: "" });
         fetchClients();
       }
     } catch (error) {
@@ -155,10 +215,12 @@ export default function CommunicationHubPage() {
     }
   };
 
-  const filteredClients = clients.filter((client) =>
-    client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.company?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredClients = clients.filter((client) => {
+    const matchesSearch = client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.company?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = !filterCategory || client.categoryId === filterCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   const stats = {
     total: clients.length,
@@ -266,6 +328,16 @@ export default function CommunicationHubPage() {
               />
             </div>
             <select
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+              className="rounded-lg border border-border bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="">Toutes les catégories</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name} ({cat._count.clients})</option>
+              ))}
+            </select>
+            <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
               className="rounded-lg border border-border bg-background px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -275,6 +347,13 @@ export default function CommunicationHubPage() {
               <option value="paused">En pause</option>
               <option value="completed">Terminés</option>
             </select>
+            <button
+              onClick={() => setShowCategoryModal(true)}
+              className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-muted transition-colors"
+            >
+              <Tag className="h-4 w-4" />
+              Gérer les catégories
+            </button>
           </div>
 
           {/* Clients grid */}
@@ -323,6 +402,14 @@ export default function CommunicationHubPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
+                        {client.category && (
+                          <span 
+                            className="px-2 py-1 rounded-full text-xs font-medium"
+                            style={{ backgroundColor: `${client.category.color}20`, color: client.category.color }}
+                          >
+                            {client.category.name}
+                          </span>
+                        )}
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.bg} ${statusInfo.text}`}>
                           {statusInfo.label}
                         </span>
@@ -414,25 +501,40 @@ export default function CommunicationHubPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">Lier à un client existant</label>
-                  <select
-                    value={newClient.companyId}
-                    onChange={(e) => {
-                      const selectedCompany = companies.find(c => c.id === e.target.value);
-                      setNewClient({ 
-                        ...newClient, 
-                        companyId: e.target.value,
-                        company: selectedCompany?.name || newClient.company
-                      });
-                    }}
-                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="">Aucun (espace standalone)</option>
-                    {companies.map((company) => (
-                      <option key={company.id} value={company.id}>{company.name}</option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Lier à un client existant</label>
+                    <select
+                      value={newClient.companyId}
+                      onChange={(e) => {
+                        const selectedCompany = companies.find(c => c.id === e.target.value);
+                        setNewClient({ 
+                          ...newClient, 
+                          companyId: e.target.value,
+                          company: selectedCompany?.name || newClient.company
+                        });
+                      }}
+                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="">Aucun (standalone)</option>
+                      {companies.map((company) => (
+                        <option key={company.id} value={company.id}>{company.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">Catégorie</label>
+                    <select
+                      value={newClient.categoryId}
+                      onChange={(e) => setNewClient({ ...newClient, categoryId: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="">Aucune catégorie</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -519,6 +621,102 @@ export default function CommunicationHubPage() {
                 >
                   Créer le client
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Category management modal */}
+        {showCategoryModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-card border border-border rounded-xl p-6 w-full max-w-lg shadow-xl">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold text-foreground">Gérer les catégories</h2>
+                <button onClick={() => setShowCategoryModal(false)} className="p-2 rounded-lg hover:bg-muted transition-colors">
+                  <X className="h-5 w-5 text-muted-foreground" />
+                </button>
+              </div>
+
+              {/* Existing categories */}
+              <div className="space-y-2 mb-6 max-h-48 overflow-y-auto">
+                {categories.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">Aucune catégorie créée</p>
+                ) : (
+                  categories.map((cat) => (
+                    <div key={cat.id} className="flex items-center justify-between p-3 rounded-lg border border-border">
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-4 h-4 rounded-full" 
+                          style={{ backgroundColor: cat.color }}
+                        />
+                        <span className="font-medium text-foreground">{cat.name}</span>
+                        <span className="text-xs text-muted-foreground">({cat._count.clients} clients)</span>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteCategory(cat.id)}
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Add new category */}
+              <div className="border-t border-border pt-4">
+                <h3 className="text-sm font-medium text-foreground mb-3">Nouvelle catégorie</h3>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-4 gap-3">
+                    <div className="col-span-3">
+                      <input
+                        type="text"
+                        placeholder="Nom de la catégorie"
+                        value={newCategory.name}
+                        onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="color"
+                        value={newCategory.color}
+                        onChange={(e) => setNewCategory({ ...newCategory, color: e.target.value })}
+                        className="w-full h-10 rounded-lg border border-border cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Description (optionnel)"
+                    value={newCategory.description}
+                    onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                  <button
+                    onClick={handleAddCategory}
+                    disabled={!newCategory.name}
+                    className="w-full py-2 rounded-lg bg-primary text-sm font-medium text-white hover:bg-primary/90 transition-colors disabled:opacity-50"
+                  >
+                    Ajouter la catégorie
+                  </button>
+                </div>
+              </div>
+
+              {/* Suggested categories */}
+              <div className="border-t border-border pt-4 mt-4">
+                <h3 className="text-sm font-medium text-foreground mb-3">Catégories suggérées</h3>
+                <div className="flex flex-wrap gap-2">
+                  {["Maintenance", "Communication", "Web", "Marketing", "Design", "Développement", "SEO", "Réseaux sociaux"].map((name) => (
+                    <button
+                      key={name}
+                      onClick={() => setNewCategory({ ...newCategory, name })}
+                      className="px-3 py-1.5 rounded-full text-xs font-medium border border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                    >
+                      {name}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

@@ -419,6 +419,22 @@ model TimeEntry {
 // HUB COMMUNICATION NUMÉRIQUE
 // ============================================
 
+// Catégories de clients (maintenance, comm, web, etc.)
+model ClientCategory {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  color       String    @default("#6366f1") // Couleur pour l'affichage
+  icon        String?   // Icône optionnelle (nom lucide-react)
+  description String?
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  clients     CommunicationClient[]
+  
+  @@index([order])
+}
+
 // Client de communication (lié à un projet existant ou standalone)
 model CommunicationClient {
   id              String    @id @default(cuid())
@@ -433,6 +449,8 @@ model CommunicationClient {
   status          String    @default("active") // active, paused, completed
   projectId       String?   // Lien optionnel vers un projet existant
   companyId       String?   // Lien vers une entreprise cliente (Company)
+  categoryId      String?   // Catégorie du client
+  category        ClientCategory? @relation(fields: [categoryId], references: [id])
   startDate       DateTime?
   monthlyBudget   Int?      // Budget mensuel en dollars
   notes           String?   @db.Text
@@ -448,6 +466,7 @@ model CommunicationClient {
   @@index([status])
   @@index([projectId])
   @@index([companyId])
+  @@index([categoryId])
 }
 
 // Comptes de médias sociaux

@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
         newsletters: true,
         campaigns: true,
         accesses: true,
+        category: true,
         tasks: {
           where: { status: { not: "done" } },
         },
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
       description,
       projectId,
       companyId,
+      categoryId,
       startDate,
       monthlyBudget,
       notes,
@@ -83,6 +85,7 @@ export async function POST(request: NextRequest) {
         description,
         projectId,
         companyId,
+        categoryId,
         startDate: startDate ? new Date(startDate) : null,
         monthlyBudget,
         notes,
