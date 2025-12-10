@@ -293,8 +293,11 @@ model Milestone {
   title         String
   description   String?   @db.Text
   status        String    @default("pending") // pending, in_progress, completed
+  startDate     DateTime?
   dueDate       DateTime?
   completedAt   DateTime?
+  progress      Int       @default(0) // 0-100 percentage
+  deliverables  String?   @db.Text // JSON array of deliverables
   order         Int       @default(0)
   projectId     String
   project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -303,6 +306,7 @@ model Milestone {
 
   @@index([projectId])
   @@index([status])
+  @@index([dueDate])
 }
 
 // Notes et commentaires

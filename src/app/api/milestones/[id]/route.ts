@@ -39,7 +39,7 @@ export async function PATCH(
   try {
     const { id } = await context.params;
     const body = await request.json();
-    const { title, description, status, dueDate, order } = body;
+    const { title, description, status, startDate, dueDate, progress, deliverables, order } = body;
 
     const existingMilestone = await prisma.milestone.findUnique({
       where: { id },
@@ -52,18 +52,22 @@ export async function PATCH(
       );
     }
 
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
     if (status !== undefined) {
       updateData.status = status;
       if (status === "completed" && existingMilestone.status !== "completed") {
         updateData.completedAt = new Date();
+        updateData.progress = 100;
       } else if (status !== "completed") {
         updateData.completedAt = null;
       }
     }
+    if (startDate !== undefined) updateData.startDate = startDate ? new Date(startDate) : null;
     if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null;
+    if (progress !== undefined) updateData.progress = progress;
+    if (deliverables !== undefined) updateData.deliverables = deliverables ? JSON.stringify(deliverables) : null;
     if (order !== undefined) updateData.order = order;
 
     const milestone = await prisma.milestone.update({

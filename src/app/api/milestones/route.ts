@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, description, status, dueDate, projectId, order } = body;
+    const { title, description, status, startDate, dueDate, progress, deliverables, projectId, order } = body;
 
     if (!title || !projectId) {
       return NextResponse.json(
@@ -47,7 +47,10 @@ export async function POST(request: NextRequest) {
         title,
         description,
         status: status || "pending",
+        startDate: startDate ? new Date(startDate) : null,
         dueDate: dueDate ? new Date(dueDate) : null,
+        progress: progress || 0,
+        deliverables: deliverables ? JSON.stringify(deliverables) : null,
         projectId,
         order: order || 0,
       },

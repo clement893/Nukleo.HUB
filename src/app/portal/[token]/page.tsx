@@ -42,8 +42,12 @@ interface PortalData {
     milestones: Array<{
       id: string;
       title: string;
+      description: string | null;
       status: string;
+      startDate: string | null;
       dueDate: string | null;
+      progress: number;
+      deliverables: string | null;
     }>;
     _count: { tasks: number; milestones: number };
   }>;
@@ -372,49 +376,126 @@ export default function ClientPortalPage() {
                         <p className="text-gray-300 mb-4">{project.description}</p>
                       )}
 
-                      {/* Milestones */}
+                      {/* Échéancier du projet */}
                       {project.milestones.length > 0 && (
                         <div>
                           <h4 className="text-sm font-semibold text-gray-400 mb-3 flex items-center gap-2">
-                            <Target className="w-4 h-4" />
-                            Jalons du projet
+                            <Calendar className="w-4 h-4" />
+                            Échéancier du projet
                           </h4>
-                          <div className="space-y-2">
-                            {project.milestones.map((milestone) => (
-                              <div
-                                key={milestone.id}
-                                className="flex items-center gap-3 p-2 bg-white/5 rounded-lg"
-                              >
-                                {milestone.status === "completed" ? (
-                                  <CheckCircle2 className="w-5 h-5 text-green-400" />
-                                ) : milestone.status === "in_progress" ? (
-                                  <Clock className="w-5 h-5 text-yellow-400" />
-                                ) : (
-                                  <div className="w-5 h-5 rounded-full border-2 border-gray-500" />
-                                )}
-                                <span
-                                  className={
-                                    milestone.status === "completed"
-                                      ? "text-gray-400 line-through"
-                                      : "text-white"
-                                  }
-                                >
-                                  {milestone.title}
-                                </span>
-                                {milestone.dueDate && (
-                                  <span className="ml-auto text-sm text-gray-500">
-                                    {new Date(milestone.dueDate).toLocaleDateString("fr-CA")}
-                                  </span>
-                                )}
+                          
+                          {/* Progress bar global */}
+                          {(() => {
+                            const completedCount = project.milestones.filter(m => m.status === "completed").length;
+                            const totalProgress = project.milestones.reduce((acc, m) => acc + (m.progress || 0), 0) / project.milestones.length;
+                            return (
+                              <div className="mb-4 p-3 bg-white/5 rounded-lg">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm text-gray-400">Progression globale</span>
+                                  <span className="text-sm font-medium text-white">{Math.round(totalProgress)}%</span>
+                                </div>
+                                <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-gradient-to-r from-violet-500 to-purple-500 transition-all"
+                                    style={{ width: `${totalProgress}%` }}
+                                  />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2">
+                                  {completedCount} / {project.milestones.length} étapes terminées
+                                </p>
                               </div>
-                            ))}
+                            );
+                          })()}
+
+                          {/* Liste des milestones */}
+                          <div className="space-y-3">
+                            {project.milestones.map((milestone) => {
+                              const deliverables = milestone.deliverables ? JSON.parse(milestone.deliverables) : [];
+                              return (
+                                <div
+                                  key={milestone.id}
+                                  className={`p-3 rounded-lg border transition-all ${
+                                    milestone.status === "completed"
+                                      ? "bg-green-500/10 border-green-500/30"
+                                      : milestone.status === "in_progress"
+                                      ? "bg-yellow-500/10 border-yellow-500/30"
+                                      : "bg-white/5 border-white/10"
+                                  }`}
+                                >
+                                  <div className="flex items-start gap-3">
+                                    {milestone.status === "completed" ? (
+                                      <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5" />
+                                    ) : milestone.status === "in_progress" ? (
+                                      <Clock className="w-5 h-5 text-yellow-400 mt-0.5" />
+                                    ) : (
+                                      <div className="w-5 h-5 rounded-full border-2 border-gray-500 mt-0.5" />
+                                    )}
+                                    <div className="flex-1">
+                                      <div className="flex items-center justify-between">
+                                        <span className={milestone.status === "completed" ? "text-gray-400 line-through" : "text-white font-medium"}>
+                                          {milestone.title}
+                                        </span>
+                                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                          milestone.status === "completed" ? "bg-green-500/20 text-green-400" :
+                                          milestone.status === "in_progress" ? "bg-yellow-500/20 text-yellow-400" :
+                                          "bg-gray-500/20 text-gray-400"
+                                        }`}>
+                                          {milestone.status === "completed" ? "Terminé" :
+                                           milestone.status === "in_progress" ? "En cours" : "En attente"}
+                                        </span>
+                                      </div>
+                                      
+                                      {milestone.description && (
+                                        <p className="text-sm text-gray-400 mt-1">{milestone.description}</p>
+                                      )}
+
+                                      {/* Dates */}
+                                      <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                        {milestone.startDate && (
+                                          <span>Début: {new Date(milestone.startDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>
+                                        )}
+                                        {milestone.dueDate && (
+                                          <span>Fin: {new Date(milestone.dueDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>
+                                        )}
+                                      </div>
+
+                                      {/* Progress bar */}
+                                      {milestone.status !== "completed" && milestone.progress > 0 && (
+                                        <div className="mt-2">
+                                          <div className="flex items-center gap-2">
+                                            <div className="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                                              <div 
+                                                className="h-full bg-violet-500 transition-all"
+                                                style={{ width: `${milestone.progress}%` }}
+                                              />
+                                            </div>
+                                            <span className="text-xs text-gray-500">{milestone.progress}%</span>
+                                          </div>
+                                        </div>
+                                      )}
+
+                                      {/* Livrables */}
+                                      {deliverables.length > 0 && (
+                                        <div className="mt-2 flex flex-wrap gap-1">
+                                          {deliverables.map((d: string, i: number) => (
+                                            <span key={i} className="text-xs px-2 py-0.5 bg-violet-500/20 text-violet-300 rounded">
+                                              {d}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
 
                       {project.milestones.length === 0 && (
                         <p className="text-gray-500 text-sm">
-                          Aucun jalon défini pour ce projet.
+                          Aucun échéancier défini pour ce projet.
                         </p>
                       )}
                     </div>

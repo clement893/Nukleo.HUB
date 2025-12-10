@@ -97,8 +97,11 @@ interface Milestone {
   title: string;
   description?: string;
   status: string;
+  startDate?: string;
   dueDate?: string;
   completedAt?: string;
+  progress: number;
+  deliverables?: string;
   order: number;
 }
 
@@ -121,6 +124,7 @@ interface ActivityLog {
 const TABS = [
   { id: "overview", label: "Vue d'ensemble", icon: Target },
   { id: "timeline", label: "Timeline", icon: CalendarDays },
+  { id: "schedule", label: "Échéancier", icon: Calendar },
   { id: "milestones", label: "Milestones", icon: CheckSquare },
   { id: "tasks", label: "Tâches", icon: FileText },
   { id: "team", label: "Équipe", icon: Users },
@@ -157,7 +161,7 @@ export default function ProjectDetailPage() {
   const [activeTab, setActiveTab] = useState("overview");
   const [newNote, setNewNote] = useState("");
   const [showMilestoneForm, setShowMilestoneForm] = useState(false);
-  const [newMilestone, setNewMilestone] = useState({ title: "", description: "", dueDate: "" });
+  const [newMilestone, setNewMilestone] = useState({ title: "", description: "", startDate: "", dueDate: "", deliverables: "" });
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [newTask, setNewTask] = useState({ title: "", description: "", priority: "medium", dueDate: "", department: "Lab", estimatedHours: 2 });
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -247,11 +251,20 @@ export default function ProjectDetailPage() {
   const handleAddMilestone = async () => {
     if (!newMilestone.title.trim()) return;
     try {
+      // Parse deliverables from comma-separated string to array
+      const deliverables = newMilestone.deliverables
+        ? newMilestone.deliverables.split(",").map(d => d.trim()).filter(d => d)
+        : [];
+
       const response = await fetch("/api/milestones", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...newMilestone,
+          title: newMilestone.title,
+          description: newMilestone.description,
+          startDate: newMilestone.startDate || null,
+          dueDate: newMilestone.dueDate || null,
+          deliverables: deliverables.length > 0 ? deliverables : null,
           projectId: params.id,
           order: milestones.length,
         }),
@@ -259,7 +272,7 @@ export default function ProjectDetailPage() {
       if (response.ok) {
         const milestone = await response.json();
         setMilestones([...milestones, milestone]);
-        setNewMilestone({ title: "", description: "", dueDate: "" });
+        setNewMilestone({ title: "", description: "", startDate: "", dueDate: "", deliverables: "" });
         setShowMilestoneForm(false);
       }
     } catch (error) {
@@ -982,6 +995,134 @@ export default function ProjectDetailPage() {
             </div>
           )}
 
+          {activeTab === "schedule" && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">Échéancier du projet</h3>
+                  <p className="text-sm text-muted-foreground">Planifiez et suivez les étapes clés avec dates et livrables</p>
+                </div>
+              </div>
+
+              {/* Gantt-like Schedule View */}
+              <div className="bg-card rounded-xl border border-border overflow-hidden">
+                {/* Header */}
+                <div className="grid grid-cols-12 gap-4 p-4 bg-muted/50 border-b border-border text-sm font-medium text-muted-foreground">
+                  <div className="col-span-3">Étape</div>
+                  <div className="col-span-2">Début</div>
+                  <div className="col-span-2">Fin</div>
+                  <div className="col-span-3">Progression</div>
+                  <div className="col-span-2">Statut</div>
+                </div>
+
+                {/* Milestones */}
+                {milestones.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">Aucune étape dans l'échéancier</p>
+                    <p className="text-sm text-muted-foreground mt-1">Ajoutez des milestones avec des dates pour créer l'échéancier</p>
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {milestones.map((milestone) => {
+                      const deliverables = milestone.deliverables ? JSON.parse(milestone.deliverables) : [];
+                      const startDate = milestone.startDate ? new Date(milestone.startDate) : null;
+                      const endDate = milestone.dueDate ? new Date(milestone.dueDate) : null;
+                      
+                      return (
+                        <div key={milestone.id} className="p-4 hover:bg-muted/30 transition-colors">
+                          <div className="grid grid-cols-12 gap-4 items-center">
+                            <div className="col-span-3">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    const nextStatus = milestone.status === "pending" ? "in_progress" : milestone.status === "in_progress" ? "completed" : "pending";
+                                    handleUpdateMilestoneStatus(milestone.id, nextStatus);
+                                  }}
+                                  className="hover:scale-110 transition-transform"
+                                >
+                                  {MILESTONE_STATUS_ICONS[milestone.status]}
+                                </button>
+                                <div>
+                                  <p className={`font-medium ${milestone.status === "completed" ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                                    {milestone.title}
+                                  </p>
+                                  {milestone.description && (
+                                    <p className="text-xs text-muted-foreground truncate max-w-[200px]">{milestone.description}</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="col-span-2 text-sm text-muted-foreground">
+                              {startDate ? startDate.toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : "-"}
+                            </div>
+                            <div className="col-span-2 text-sm text-muted-foreground">
+                              {endDate ? endDate.toLocaleDateString("fr-FR", { day: "numeric", month: "short" }) : "-"}
+                            </div>
+                            <div className="col-span-3">
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full transition-all ${
+                                      milestone.progress === 100 ? "bg-green-500" :
+                                      milestone.progress > 50 ? "bg-blue-500" :
+                                      milestone.progress > 0 ? "bg-yellow-500" : "bg-muted"
+                                    }`}
+                                    style={{ width: `${milestone.progress}%` }}
+                                  />
+                                </div>
+                                <span className="text-xs text-muted-foreground w-10">{milestone.progress}%</span>
+                              </div>
+                            </div>
+                            <div className="col-span-2">
+                              <span className={`text-xs px-2 py-1 rounded-full ${
+                                milestone.status === "completed" ? "bg-green-500/10 text-green-500" :
+                                milestone.status === "in_progress" ? "bg-yellow-500/10 text-yellow-500" :
+                                "bg-gray-500/10 text-gray-500"
+                              }`}>
+                                {milestone.status === "completed" ? "Terminé" :
+                                 milestone.status === "in_progress" ? "En cours" : "En attente"}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Deliverables */}
+                          {deliverables.length > 0 && (
+                            <div className="mt-3 ml-8 pl-4 border-l-2 border-border">
+                              <p className="text-xs font-medium text-muted-foreground mb-2">Livrables:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {deliverables.map((d: string, i: number) => (
+                                  <span key={i} className="text-xs px-2 py-1 bg-primary/10 text-primary rounded">
+                                    {d}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Add Milestone for Schedule */}
+              <div className="mt-6 p-4 bg-muted/30 rounded-xl border border-dashed border-border">
+                <p className="text-sm text-muted-foreground mb-3">Ajouter une étape à l'échéancier</p>
+                <button
+                  onClick={() => {
+                    setActiveTab("milestones");
+                    setShowMilestoneForm(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Ajouter un milestone
+                </button>
+              </div>
+            </div>
+          )}
+
           {activeTab === "milestones" && (
             <div>
               <div className="flex items-center justify-between mb-6">
@@ -1014,7 +1155,28 @@ export default function ProjectDetailPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm text-muted-foreground mb-1">Date limite</label>
+                      <label className="block text-sm text-muted-foreground mb-1">Description</label>
+                      <input
+                        type="text"
+                        value={newMilestone.description}
+                        onChange={(e) => setNewMilestone({ ...newMilestone, description: e.target.value })}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        placeholder="Description du milestone..."
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm text-muted-foreground mb-1">Date de début</label>
+                      <input
+                        type="date"
+                        value={newMilestone.startDate}
+                        onChange={(e) => setNewMilestone({ ...newMilestone, startDate: e.target.value })}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-muted-foreground mb-1">Date de fin</label>
                       <input
                         type="date"
                         value={newMilestone.dueDate}
@@ -1024,13 +1186,13 @@ export default function ProjectDetailPage() {
                     </div>
                   </div>
                   <div className="mb-4">
-                    <label className="block text-sm text-muted-foreground mb-1">Description</label>
-                    <textarea
-                      value={newMilestone.description}
-                      onChange={(e) => setNewMilestone({ ...newMilestone, description: e.target.value })}
-                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
-                      rows={2}
-                      placeholder="Description du milestone..."
+                    <label className="block text-sm text-muted-foreground mb-1">Livrables (séparés par des virgules)</label>
+                    <input
+                      type="text"
+                      value={newMilestone.deliverables}
+                      onChange={(e) => setNewMilestone({ ...newMilestone, deliverables: e.target.value })}
+                      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      placeholder="Ex: Maquettes, Wireframes, Prototype"
                     />
                   </div>
                   <div className="flex justify-end gap-2">
