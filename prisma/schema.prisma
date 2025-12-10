@@ -785,27 +785,6 @@ model TicketResponse {
 }
 
 
-// Logs d'activité pour l'admin
-model ActivityLog {
-  id          String   @id @default(cuid())
-  action      String   // create, update, delete, login, logout, etc.
-  entityType  String   // Project, Contact, Company, Employee, etc.
-  entityId    String?
-  entityName  String?
-  userId      String?
-  userName    String?
-  userEmail   String?
-  details     String?  @db.Text // JSON avec détails supplémentaires
-  ipAddress   String?
-  userAgent   String?
-  createdAt   DateTime @default(now())
-
-  @@index([action])
-  @@index([entityType])
-  @@index([userId])
-  @@index([createdAt])
-}
-
 // Paramètres système
 model SystemSettings {
   id          String   @id @default(cuid())
