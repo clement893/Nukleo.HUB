@@ -150,9 +150,9 @@ export default function ClientsPage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#0a0a0f]">
+    <div className="min-h-screen bg-[#0a0a0f]">
       <Sidebar />
-      <main className="flex-1 overflow-auto">
+      <main className="pl-64 overflow-auto">
         <div className="p-8">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
