@@ -9,6 +9,27 @@ export async function GET(
     const { id } = await params;
     const project = await prisma.project.findUnique({
       where: { id },
+      include: {
+        company: {
+          select: {
+            id: true,
+            name: true,
+            logoUrl: true,
+            website: true,
+            isClient: true,
+          },
+        },
+        contact: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            phone: true,
+            position: true,
+            photoUrl: true,
+          },
+        },
+      },
     });
 
     if (!project) {

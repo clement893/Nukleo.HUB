@@ -37,6 +37,23 @@ import {
   FolderOpen,
 } from "lucide-react";
 
+interface LinkedCompany {
+  id: string;
+  name: string;
+  logoUrl?: string;
+  website?: string;
+  isClient: boolean;
+}
+
+interface LinkedContact {
+  id: string;
+  fullName: string;
+  email?: string;
+  phone?: string;
+  position?: string;
+  photoUrl?: string;
+}
+
 interface Project {
   id: string;
   name: string;
@@ -63,6 +80,8 @@ interface Project {
   departments?: string;
   createdAt: string;
   updatedAt: string;
+  company?: LinkedCompany;
+  contact?: LinkedContact;
 }
 
 interface Task {
@@ -566,12 +585,46 @@ export default function ProjectDetailPage() {
           </div>
           <div className="glass-card rounded-xl p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <Building2 className="w-5 h-5 text-blue-500" />
-              </div>
-              <div>
+              {project.company?.logoUrl ? (
+                <img src={project.company.logoUrl} alt={project.company.name} className="w-10 h-10 rounded-lg object-cover" />
+              ) : (
+                <div className="p-2 bg-blue-500/10 rounded-lg">
+                  <Building2 className="w-5 h-5 text-blue-500" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
                 <p className="text-sm text-muted-foreground">Client</p>
-                <p className="font-semibold text-foreground truncate">{project.client || "N/A"}</p>
+                {project.company ? (
+                  <a href={`/reseau/clients`} className="font-semibold text-foreground truncate hover:text-primary transition-colors flex items-center gap-1">
+                    {project.company.name}
+                    {project.company.isClient && <span className="text-xs px-1.5 py-0.5 bg-green-500/20 text-green-500 rounded">Client</span>}
+                  </a>
+                ) : (
+                  <p className="font-semibold text-foreground truncate">{project.client || "N/A"}</p>
+                )}
+              </div>
+            </div>
+          </div>
+          {/* Contact lié */}
+          <div className="glass-card rounded-xl p-4">
+            <div className="flex items-center gap-3">
+              {project.contact?.photoUrl ? (
+                <img src={project.contact.photoUrl} alt={project.contact.fullName} className="w-10 h-10 rounded-full object-cover" />
+              ) : (
+                <div className="p-2 bg-green-500/10 rounded-lg">
+                  <User className="w-5 h-5 text-green-500" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-muted-foreground">Contact</p>
+                {project.contact ? (
+                  <div>
+                    <p className="font-semibold text-foreground truncate">{project.contact.fullName}</p>
+                    {project.contact.position && <p className="text-xs text-muted-foreground truncate">{project.contact.position}</p>}
+                  </div>
+                ) : (
+                  <p className="font-semibold text-foreground truncate">{project.contactName || "N/A"}</p>
+                )}
               </div>
             </div>
           </div>
