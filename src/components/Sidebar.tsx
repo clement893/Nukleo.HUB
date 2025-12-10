@@ -24,6 +24,7 @@ import {
   GraduationCap,
   Brain,
   Ticket,
+  Shield,
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 
@@ -74,6 +75,7 @@ const navigation: NavItem[] = [
   { name: "Admin Onboarding", href: "/admin/onboarding", icon: GraduationCap },
   { name: "Leo IA", href: "/leo", icon: Brain },
   { name: "Tickets", href: "/tickets", icon: Ticket },
+  { name: "Administration", href: "/admin", icon: Shield },
 ];
 
 export default function Sidebar() {
