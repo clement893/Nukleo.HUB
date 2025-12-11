@@ -1063,3 +1063,36 @@ model UserAccess {
   @@unique([userId])
   @@index([userId])
 }
+
+
+// Préférences de notifications pour les employés
+model NotificationPreferences {
+  id                    String   @id @default(cuid())
+  employeeId            String   @unique
+  
+  // Notifications par type
+  timesheetApproved     Boolean  @default(true)
+  timesheetRejected     Boolean  @default(true)
+  taskAssigned          Boolean  @default(true)
+  taskUpdated           Boolean  @default(true)
+  requestApproved       Boolean  @default(true)
+  requestRejected       Boolean  @default(true)
+  generalAnnouncements  Boolean  @default(true)
+  
+  // Méthodes de notification
+  inAppEnabled          Boolean  @default(true)
+  emailEnabled          Boolean  @default(false)
+  
+  // Fréquence des emails (si activé)
+  emailFrequency        String   @default("instant") // instant, daily, weekly
+  
+  // Heures de silence (ne pas envoyer de notifications)
+  quietHoursEnabled     Boolean  @default(false)
+  quietHoursStart       String?  // Format HH:MM
+  quietHoursEnd         String?  // Format HH:MM
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@index([employeeId])
+}

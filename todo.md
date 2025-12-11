@@ -424,3 +424,16 @@
 ## Bug Fix - Menu latéral disparaît
 - [x] Corriger le menu qui disparaît sur /admin/users
 - [x] Pousser vers GitHub
+
+## Suppression des Portails Clients
+- [ ] Ajouter API DELETE pour les portails clients
+- [ ] Ajouter bouton de suppression dans l'interface
+- [ ] Pousser vers GitHub
+
+## Centre de Notifications Complet
+- [ ] Ajouter modèle NotificationPreferences au schéma DB
+- [ ] API pour gérer les préférences de notifications
+- [ ] Page centre de notifications dans le portail employé
+- [ ] Page paramètres de notifications dans le portail employé
+- [ ] Page admin de gestion des notifications
+- [ ] Pousser vers GitHub

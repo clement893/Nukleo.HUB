@@ -94,6 +94,7 @@ const navigation: NavItem[] = [
       { name: "Tableau de bord", href: "/admin" },
       { name: "Utilisateurs", href: "/admin/users" },
       { name: "Feuilles de temps", href: "/admin/timesheets" },
+      { name: "Notifications", href: "/admin/notifications" },
       { name: "Onboarding", href: "/admin/onboarding" },
     ],
   },
