@@ -14,7 +14,7 @@ export const contactCreateSchema = z.object({
   notes: z.string().optional().nullable(),
   source: z.string().max(100).optional().nullable(),
   status: z.enum(["active", "inactive", "lead", "client"]).optional(),
-  tags: z.array(z.string()).optional(),
+  tags: z.string().optional().nullable(),  // Chaîne séparée par virgules dans Prisma
 });
 
 export const contactUpdateSchema = contactCreateSchema.partial();
@@ -33,7 +33,7 @@ export const companyCreateSchema = z.object({
   description: z.string().optional().nullable(),
   logoUrl: z.string().url().optional().nullable().or(z.literal("")),
   status: z.enum(["prospect", "client", "partner", "inactive"]).optional(),
-  tags: z.array(z.string()).optional(),
+  tags: z.string().optional().nullable(),  // Chaîne séparée par virgules dans Prisma
 });
 
 export const companyUpdateSchema = companyCreateSchema.partial();
