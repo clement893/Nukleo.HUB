@@ -20,6 +20,10 @@ import {
   Briefcase,
   Edit,
   Trash2,
+  ExternalLink,
+  Link2,
+  Copy,
+  Check,
 } from "lucide-react";
 
 interface Employee {
@@ -83,6 +87,9 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<"day" | "week" | "month">("week");
   const [timerSeconds, setTimerSeconds] = useState(0);
+  const [portalUrl, setPortalUrl] = useState<string | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -98,6 +105,47 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
       return () => clearInterval(interval);
     }
   }, [timeStats?.runningEntry]);
+
+  const fetchPortal = async () => {
+    try {
+      const res = await fetch(`/api/employees/${resolvedParams.id}/portal`);
+      if (res.ok) {
+        const data = await res.json();
+        setPortalUrl(data.url);
+      }
+    } catch (error) {
+      console.error("Error fetching portal:", error);
+    }
+  };
+
+  const generatePortal = async () => {
+    setPortalLoading(true);
+    try {
+      const res = await fetch(`/api/employees/${resolvedParams.id}/portal`, {
+        method: "POST",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPortalUrl(data.url);
+      }
+    } catch (error) {
+      console.error("Error generating portal:", error);
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
+  const copyPortalUrl = () => {
+    if (portalUrl) {
+      navigator.clipboard.writeText(portalUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  useEffect(() => {
+    fetchPortal();
+  }, [resolvedParams.id]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -283,6 +331,50 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
                       </a>
                     )}
                   </div>
+                </div>
+
+                {/* Portail Employé */}
+                <div className="mt-6 pt-6 border-t border-border">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Link2 className="h-4 w-4 text-purple-500" />
+                    <span className="text-sm font-medium text-foreground">Portail Employé</span>
+                  </div>
+                  {portalUrl ? (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <a
+                          href={portalUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2 text-sm"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          Ouvrir
+                        </a>
+                        <button
+                          onClick={copyPortalUrl}
+                          className="px-3 py-2 border border-border rounded-lg hover:bg-muted flex items-center gap-2 text-sm"
+                        >
+                          {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      <button
+                        onClick={generatePortal}
+                        disabled={portalLoading}
+                        className="w-full px-3 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted"
+                      >
+                        {portalLoading ? "Génération..." : "Régénérer le lien"}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={generatePortal}
+                      disabled={portalLoading}
+                      className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2"
+                    >
+                      {portalLoading ? "Génération..." : "Générer le portail"}
+                    </button>
+                  )}
                 </div>
 
                 <div className="mt-6 pt-6 border-t border-border">

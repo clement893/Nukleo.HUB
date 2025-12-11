@@ -186,6 +186,12 @@ model Employee {
   policyAcknowledgments PolicyAcknowledgment[]
   chatMessages          ChatMessage[]
 
+  // Relations portail employé
+  portal                EmployeePortal?
+  requests              EmployeeRequest[]
+  documents             EmployeeDocument[]
+  events                EmployeeEvent[]
+
   @@index([department])
 }
 
@@ -796,4 +802,84 @@ model SystemSettings {
   updatedBy   String?
 
   @@index([category])
+}
+
+
+// Portail Employé - Token d'accès unique
+model EmployeePortal {
+  id          String   @id @default(cuid())
+  employeeId  String   @unique
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  token       String   @unique @default(cuid())
+  isActive    Boolean  @default(true)
+  lastAccess  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([token])
+}
+
+// Demandes des employés (congés, formations, équipement)
+model EmployeeRequest {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type        String   // leave, training, equipment, other
+  title       String
+  description String?  @db.Text
+  startDate   DateTime?
+  endDate     DateTime?
+  status      String   @default("pending") // pending, approved, rejected
+  priority    String   @default("normal") // low, normal, high, urgent
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  reviewNotes String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([type])
+}
+
+// Documents des employés
+model EmployeeDocument {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  fileUrl     String
+  fileType    String?  // pdf, doc, image, etc.
+  fileSize    Int?     // en bytes
+  category    String?  // contract, payslip, training, personal, etc.
+  isPrivate   Boolean  @default(true)
+  uploadedBy  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([employeeId])
+  @@index([category])
+}
+
+// Événements du calendrier employé
+model EmployeeEvent {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  title       String
+  description String?  @db.Text
+  startDate   DateTime
+  endDate     DateTime?
+  allDay      Boolean  @default(false)
+  type        String   @default("event") // event, meeting, deadline, reminder
+  location    String?
+  color       String?
+  isRecurring Boolean  @default(false)
+  recurringPattern String? // daily, weekly, monthly
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([employeeId])
+  @@index([startDate])
 }
