@@ -19,6 +19,8 @@ model User {
   role          String    @default("user") // super_admin, admin, user
   isActive      Boolean   @default(true)
   lastLoginAt   DateTime?
+  employeeId    String?   @unique // Liaison avec un employé
+  employee      Employee? @relation(fields: [employeeId], references: [id])
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
@@ -27,6 +29,7 @@ model User {
 
   @@index([googleId])
   @@index([email])
+  @@index([employeeId])
 }
 
 model Session {
@@ -226,6 +229,9 @@ model Employee {
   // Relations accès et contexte Leo
   access                EmployeeAccess?
   leoContext            EmployeeLeoContext?
+  
+  // Relation avec l'utilisateur connecté
+  linkedUser            User?
 
   @@index([department])
 }

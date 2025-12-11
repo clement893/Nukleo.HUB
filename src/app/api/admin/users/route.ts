@@ -29,7 +29,7 @@ async function checkAdminAccess() {
   return session.user;
 }
 
-// GET - Récupérer tous les utilisateurs
+// GET - Récupérer tous les utilisateurs avec leurs employés liés
 export async function GET(request: NextRequest) {
   try {
     const admin = await checkAdminAccess();
@@ -63,10 +63,43 @@ export async function GET(request: NextRequest) {
         isActive: true,
         lastLoginAt: true,
         createdAt: true,
+        employeeId: true,
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            department: true,
+            role: true,
+            photoUrl: true,
+          },
+        },
       },
     });
 
-    return NextResponse.json({ users, currentUserRole: admin.role });
+    // Récupérer tous les employés pour le sélecteur
+    const employees = await prisma.employee.findMany({
+      select: {
+        id: true,
+        name: true,
+        department: true,
+        role: true,
+        photoUrl: true,
+        email: true,
+        linkedUser: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: { name: "asc" },
+    });
+
+    return NextResponse.json({ 
+      users, 
+      employees,
+      currentUserRole: admin.role 
+    });
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
@@ -88,6 +121,7 @@ export async function POST(request: NextRequest) {
         email: body.email,
         name: body.name,
         role: body.role || "user",
+        employeeId: body.employeeId || null,
       },
     });
 
@@ -98,7 +132,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PATCH - Modifier un utilisateur (rôle, statut actif)
+// PATCH - Modifier un utilisateur (rôle, statut actif, liaison employé)
 export async function PATCH(request: NextRequest) {
   try {
     const admin = await checkAdminAccess();
@@ -107,7 +141,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { userId, role, isActive } = body;
+    const { userId, role, isActive, employeeId } = body;
 
     if (!userId) {
       return NextResponse.json({ error: "ID utilisateur requis" }, { status: 400 });
@@ -141,9 +175,26 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Vous ne pouvez pas modifier votre propre rôle" }, { status: 400 });
     }
 
+    // Vérifier si l'employé est déjà lié à un autre utilisateur
+    if (employeeId) {
+      const existingLink = await prisma.user.findFirst({
+        where: {
+          employeeId,
+          id: { not: userId },
+        },
+      });
+
+      if (existingLink) {
+        return NextResponse.json({ 
+          error: `Cet employé est déjà lié à l'utilisateur ${existingLink.email}` 
+        }, { status: 400 });
+      }
+    }
+
     const updateData: Record<string, unknown> = {};
     if (role !== undefined) updateData.role = role;
     if (isActive !== undefined) updateData.isActive = isActive;
+    if (employeeId !== undefined) updateData.employeeId = employeeId || null;
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
@@ -157,6 +208,16 @@ export async function PATCH(request: NextRequest) {
         isActive: true,
         lastLoginAt: true,
         createdAt: true,
+        employeeId: true,
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            department: true,
+            role: true,
+            photoUrl: true,
+          },
+        },
       },
     });
 

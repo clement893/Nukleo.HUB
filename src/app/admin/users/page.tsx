@@ -22,6 +22,9 @@ import {
   Building2,
   FolderKanban,
   LayoutGrid,
+  Link2,
+  Unlink,
+  UserCircle,
 } from "lucide-react";
 
 interface UserData {
@@ -33,6 +36,14 @@ interface UserData {
   isActive: boolean;
   lastLoginAt: string | null;
   createdAt: string;
+  employeeId: string | null;
+  employee: {
+    id: string;
+    name: string;
+    department: string;
+    role: string | null;
+    photoUrl: string | null;
+  } | null;
 }
 
 interface Invitation {
@@ -65,6 +76,16 @@ interface ProjectOption {
   name: string;
   client?: string | null;
   status?: string | null;
+}
+
+interface EmployeeOption {
+  id: string;
+  name: string;
+  department: string;
+  role: string | null;
+  photoUrl: string | null;
+  email: string | null;
+  linkedUser: { id: string; email: string } | null;
 }
 
 const roleLabels: Record<string, string> = {
@@ -123,6 +144,13 @@ export default function UsersPage() {
   const [allProjects, setAllProjects] = useState<ProjectOption[]>([]);
   const [clientSearch, setClientSearch] = useState("");
   const [projectSearch, setProjectSearch] = useState("");
+  
+  // Modal de liaison employé
+  const [showEmployeeModal, setShowEmployeeModal] = useState(false);
+  const [allEmployees, setAllEmployees] = useState<EmployeeOption[]>([]);
+  const [employeeSearch, setEmployeeSearch] = useState("");
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+  const [savingEmployee, setSavingEmployee] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -135,6 +163,7 @@ export default function UsersPage() {
       if (res.ok) {
         const data = await res.json();
         setUsers(data.users || []);
+        setAllEmployees(data.employees || []);
         setCurrentUserRole(data.currentUserRole || "");
       }
     } catch (error) {
@@ -346,6 +375,52 @@ export default function UsersPage() {
     alert("Lien copié !");
   };
 
+  const openEmployeeModal = (user: UserData) => {
+    setSelectedUser(user);
+    setSelectedEmployeeId(user.employeeId);
+    setEmployeeSearch("");
+    setShowEmployeeModal(true);
+  };
+
+  const saveEmployeeLink = async () => {
+    if (!selectedUser) return;
+    
+    setSavingEmployee(true);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: selectedUser.id,
+          employeeId: selectedEmployeeId,
+        }),
+      });
+
+      if (res.ok) {
+        const updatedUser = await res.json();
+        setUsers(users.map(u => u.id === selectedUser.id ? updatedUser : u));
+        setShowEmployeeModal(false);
+      } else {
+        const error = await res.json();
+        alert(error.error || "Erreur lors de la sauvegarde");
+      }
+    } catch (error) {
+      console.error("Error saving employee link:", error);
+    } finally {
+      setSavingEmployee(false);
+    }
+  };
+
+  const filteredEmployees = allEmployees.filter(emp => {
+    if (!employeeSearch) return true;
+    const searchLower = employeeSearch.toLowerCase();
+    return (
+      emp.name.toLowerCase().includes(searchLower) ||
+      (emp.email && emp.email.toLowerCase().includes(searchLower)) ||
+      emp.department.toLowerCase().includes(searchLower)
+    );
+  });
+
   const filteredUsers = users.filter(user => {
     if (!search) return true;
     const searchLower = search.toLowerCase();
@@ -459,6 +534,7 @@ export default function UsersPage() {
                 <thead className="bg-muted/50 border-b border-border">
                   <tr>
                     <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Utilisateur</th>
+                    <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Employé lié</th>
                     <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Rôle</th>
                     <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Statut</th>
                     <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Dernière connexion</th>
@@ -484,6 +560,36 @@ export default function UsersPage() {
                             <p className="text-sm text-muted-foreground">{user.email}</p>
                           </div>
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => openEmployeeModal(user)}
+                          className="flex items-center gap-2 hover:bg-muted px-2 py-1 rounded-lg transition-colors"
+                        >
+                          {user.employee ? (
+                            <>
+                              {user.employee.photoUrl ? (
+                                <img src={user.employee.photoUrl} alt={user.employee.name} className="w-7 h-7 rounded-full object-cover" />
+                              ) : (
+                                <div className="w-7 h-7 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                                  <span className="text-xs font-medium text-emerald-400">
+                                    {user.employee.name.charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="text-left">
+                                <p className="text-sm font-medium text-foreground">{user.employee.name}</p>
+                                <p className="text-xs text-muted-foreground">{user.employee.department}</p>
+                              </div>
+                              <Link2 className="w-3 h-3 text-emerald-400 ml-1" />
+                            </>
+                          ) : (
+                            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                              <Unlink className="w-4 h-4" />
+                              Non lié
+                            </span>
+                          )}
+                        </button>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${roleColors[user.role]}`}>
@@ -972,6 +1078,127 @@ export default function UsersPage() {
                 className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
                 {savingAccess ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de liaison employé */}
+      {showEmployeeModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-lg max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-border">
+              <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                <Link2 className="w-5 h-5 text-primary" />
+                Lier à un employé
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Associer {selectedUser.name || selectedUser.email} à un profil employé
+              </p>
+            </div>
+
+            <div className="p-6 flex-1 overflow-y-auto">
+              {/* Recherche */}
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Rechercher un employé..."
+                  value={employeeSearch}
+                  onChange={(e) => setEmployeeSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+
+              {/* Option pour délier */}
+              <button
+                onClick={() => setSelectedEmployeeId(null)}
+                className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors mb-2 ${
+                  selectedEmployeeId === null
+                    ? "bg-primary/10 border border-primary/30"
+                    : "bg-muted hover:bg-muted/80 border border-transparent"
+                }`}
+              >
+                <div className="w-10 h-10 rounded-full bg-slate-500/10 flex items-center justify-center">
+                  <Unlink className="w-5 h-5 text-slate-400" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium text-foreground">Aucun employé</p>
+                  <p className="text-xs text-muted-foreground">Ne pas lier à un profil employé</p>
+                </div>
+                {selectedEmployeeId === null && (
+                  <Check className="w-5 h-5 text-primary ml-auto" />
+                )}
+              </button>
+
+              {/* Liste des employés */}
+              <div className="space-y-2">
+                {filteredEmployees.map((emp) => {
+                  const isLinkedToOther = emp.linkedUser && emp.linkedUser.id !== selectedUser.id;
+                  return (
+                    <button
+                      key={emp.id}
+                      onClick={() => !isLinkedToOther && setSelectedEmployeeId(emp.id)}
+                      disabled={isLinkedToOther}
+                      className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                        selectedEmployeeId === emp.id
+                          ? "bg-primary/10 border border-primary/30"
+                          : isLinkedToOther
+                          ? "bg-muted/50 border border-transparent opacity-50 cursor-not-allowed"
+                          : "bg-muted hover:bg-muted/80 border border-transparent"
+                      }`}
+                    >
+                      {emp.photoUrl ? (
+                        <img src={emp.photoUrl} alt={emp.name} className="w-10 h-10 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-sm font-medium text-primary">
+                            {emp.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                      <div className="text-left flex-1">
+                        <p className="font-medium text-foreground">{emp.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {emp.department} {emp.role && `• ${emp.role}`}
+                        </p>
+                        {isLinkedToOther && (
+                          <p className="text-xs text-amber-400 mt-0.5">
+                            Déjà lié à {emp.linkedUser?.email}
+                          </p>
+                        )}
+                      </div>
+                      {selectedEmployeeId === emp.id && (
+                        <Check className="w-5 h-5 text-primary" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {filteredEmployees.length === 0 && employeeSearch && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <UserCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucun employé trouvé</p>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-border flex justify-end gap-3">
+              <button
+                onClick={() => setShowEmployeeModal(false)}
+                className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={saveEmployeeLink}
+                disabled={savingEmployee}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {savingEmployee ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 Enregistrer
               </button>
             </div>
