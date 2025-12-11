@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // Google Favicon API - returns high quality favicons
 function getFaviconUrl(websiteUrl: string): string {
@@ -25,6 +26,9 @@ function getDuckDuckGoFaviconUrl(websiteUrl: string): string {
 }
 
 export async function POST() {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     // Get all companies with a website but no logo or with expired Airtable logos
     const companies = await prisma.company.findMany({
@@ -78,6 +82,9 @@ export async function POST() {
 }
 
 export async function GET() {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     // Get companies that need logo updates
     const companies = await prisma.company.findMany({

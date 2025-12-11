@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import OpenAI from "openai";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // Initialiser OpenAI seulement si la clé est disponible
 function getOpenAIClient() {
@@ -234,6 +235,9 @@ Tu as accès à TOUTES les données ci-dessus. Utilise-les pour répondre de man
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { message, conversationHistory = [] } = await request.json();
 

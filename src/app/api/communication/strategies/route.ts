@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // GET - Récupérer les stratégies
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const clientId = searchParams.get("clientId");
@@ -33,6 +37,9 @@ export async function GET(request: NextRequest) {
 
 // POST - Créer une stratégie
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     const {
@@ -107,6 +114,9 @@ export async function POST(request: NextRequest) {
 
 // PATCH - Mettre à jour une stratégie
 export async function PATCH(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     const { id, ...updates } = body;
@@ -147,6 +157,9 @@ export async function PATCH(request: NextRequest) {
 
 // DELETE - Supprimer une stratégie
 export async function DELETE(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

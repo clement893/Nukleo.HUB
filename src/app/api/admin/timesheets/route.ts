@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications";
+import { requireAdmin, isErrorResponse } from "@/lib/api-auth";
 
 // GET - Récupérer toutes les feuilles de temps (admin)
 export async function GET(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status"); // draft, submitted, approved, rejected
@@ -75,6 +79,9 @@ export async function GET(request: NextRequest) {
 
 // POST - Approuver ou rejeter une feuille de temps
 export async function POST(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     const { timesheetId, action, adminName, adminNotes, rejectionReason } = body;
@@ -173,6 +180,9 @@ export async function POST(request: NextRequest) {
 
 // PATCH - Modifier une entrée de temps (admin)
 export async function PATCH(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     const { entryId, ...updateData } = body;
@@ -218,6 +228,9 @@ export async function PATCH(request: NextRequest) {
 
 // DELETE - Supprimer une entrée de temps (admin)
 export async function DELETE(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const entryId = searchParams.get("entryId");

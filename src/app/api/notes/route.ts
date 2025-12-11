@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // GET /api/notes?entityType=contact&entityId=xxx
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const entityType = searchParams.get("entityType");
@@ -35,6 +39,9 @@ export async function GET(request: NextRequest) {
 
 // POST /api/notes
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     const { content, entityType, entityId, authorName } = body;

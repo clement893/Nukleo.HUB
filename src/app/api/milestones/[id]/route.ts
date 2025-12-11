@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // GET /api/milestones/[id]
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { id } = await context.params;
     
@@ -36,6 +40,9 @@ export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { id } = await context.params;
     const body = await request.json();
@@ -101,6 +108,9 @@ export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { id } = await context.params;
     

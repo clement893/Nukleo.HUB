@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // GET /api/export/opportunities
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const opportunities = await prisma.opportunity.findMany({
       orderBy: { createdAt: "desc" },

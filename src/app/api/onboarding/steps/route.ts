@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // GET - Récupérer toutes les étapes d'onboarding
 export async function GET() {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const steps = await prisma.onboardingStep.findMany({
       orderBy: { order: "asc" }
@@ -17,6 +21,9 @@ export async function GET() {
 
 // POST - Créer une nouvelle étape
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     const { title, description, content, type, order, role, isRequired, duration } = body;
@@ -56,6 +63,9 @@ export async function POST(request: NextRequest) {
 
 // PUT - Mettre à jour une étape
 export async function PUT(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     const { id, ...data } = body;
@@ -78,6 +88,9 @@ export async function PUT(request: NextRequest) {
 
 // DELETE - Supprimer une étape
 export async function DELETE(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

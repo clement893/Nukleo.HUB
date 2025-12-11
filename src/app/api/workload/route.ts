@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // Helper to get week number
 function getWeekNumber(date: Date): number {
@@ -19,6 +20,9 @@ function getWeekStart(date: Date): Date {
 }
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const weeks = parseInt(searchParams.get("weeks") || "4");

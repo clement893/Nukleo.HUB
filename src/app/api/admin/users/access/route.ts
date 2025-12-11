@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
+import { requireAdmin, isErrorResponse } from "@/lib/api-auth";
 
 const SESSION_COOKIE_NAME = "nukleo_session";
 
@@ -29,6 +30,9 @@ async function checkAdminAccess() {
 
 // GET - Récupérer les accès d'un utilisateur
 export async function GET(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const admin = await checkAdminAccess();
     if (!admin) {
@@ -75,6 +79,9 @@ export async function GET(request: NextRequest) {
 
 // PUT - Mettre à jour les accès d'un utilisateur
 export async function PUT(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const admin = await checkAdminAccess();
     if (!admin) {

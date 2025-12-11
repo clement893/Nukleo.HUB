@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
+import { requireAdmin, isErrorResponse } from "@/lib/api-auth";
 
 const SESSION_COOKIE_NAME = "nukleo_session";
 
@@ -25,6 +26,9 @@ async function getAdmin() {
 
 // GET - Liste des notifications (avec filtres)
 export async function GET(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const admin = await getAdmin();
     if (!admin) {
@@ -91,6 +95,9 @@ export async function GET(request: NextRequest) {
 
 // POST - Envoyer une notification à un ou plusieurs employés
 export async function POST(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const admin = await getAdmin();
     if (!admin) {
@@ -132,6 +139,9 @@ export async function POST(request: NextRequest) {
 
 // DELETE - Supprimer des notifications
 export async function DELETE(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const admin = await getAdmin();
     if (!admin) {

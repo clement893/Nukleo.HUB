@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
+import { contactUpdateSchema, validateBody } from "@/lib/validations";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { id } = await params;
     const contact = await prisma.contact.findUnique({
@@ -32,13 +37,25 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { id } = await params;
     const body = await request.json();
 
+    // Validation avec Zod
+    const validation = validateBody(contactUpdateSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error },
+        { status: 400 }
+      );
+    }
+
     const contact = await prisma.contact.update({
       where: { id },
-      data: body,
+      data: validation.data,
     });
 
     return NextResponse.json(contact);
@@ -55,6 +72,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { id } = await params;
     await prisma.contact.delete({

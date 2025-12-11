@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
+import { validateUploadedFile, sanitizeFileName, ALLOWED_FILE_TYPES, ALLOWED_EXTENSIONS, MAX_FILE_SIZES } from "@/lib/upload-validation";
+import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || "ca-central-1",
@@ -12,6 +15,9 @@ const s3Client = new S3Client({
 
 // GET /api/documents?projectId=xxx or ?taskId=xxx or ?companyId=xxx etc.
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const companyId = searchParams.get("companyId");
@@ -58,6 +64,9 @@ export async function GET(request: NextRequest) {
 
 // POST /api/documents - Créer un document ou uploader un fichier
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const contentType = request.headers.get("content-type") || "";
 
@@ -78,10 +87,30 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Rate limiting pour les uploads
+      const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.upload);
+      if (rateLimitError) return rateLimitError;
+
+      // Valider le fichier
+      const validation = validateUploadedFile(file, {
+        allowedTypes: [...ALLOWED_FILE_TYPES.images, ...ALLOWED_FILE_TYPES.documents, ...ALLOWED_FILE_TYPES.archives],
+        allowedExtensions: [...ALLOWED_EXTENSIONS.images, ...ALLOWED_EXTENSIONS.documents, ...ALLOWED_EXTENSIONS.archives],
+        maxSize: MAX_FILE_SIZES.documents,
+      });
+      if (!validation.valid) {
+        return NextResponse.json(
+          { error: validation.error },
+          { status: 400 }
+        );
+      }
+
+      // Sanitiser le nom du fichier
+      const safeFileName = sanitizeFileName(file.name);
+
       // Générer une clé unique pour S3
       const timestamp = Date.now();
       const randomSuffix = Math.random().toString(36).substring(2, 8);
-      const fileKey = `projects/${projectId}/documents/${timestamp}-${randomSuffix}-${file.name}`;
+      const fileKey = `projects/${projectId}/documents/${timestamp}-${randomSuffix}-${safeFileName}`;
 
       // Upload vers S3
       const arrayBuffer = await file.arrayBuffer();
@@ -205,6 +234,9 @@ export async function POST(request: NextRequest) {
 
 // DELETE /api/documents?id=xxx
 export async function DELETE(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

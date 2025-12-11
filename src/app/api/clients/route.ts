@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // GET - Récupérer tous les clients (entreprises marquées comme clients)
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
@@ -119,6 +123,9 @@ export async function GET(request: NextRequest) {
 
 // POST - Créer un nouveau client (marquer une entreprise comme client)
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     const { companyId, createPortal, welcomeMessage } = body;
@@ -150,6 +157,9 @@ export async function POST(request: NextRequest) {
 
 // PATCH - Mettre à jour un client
 export async function PATCH(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     const { companyId, isClient, createPortal, welcomeMessage } = body;

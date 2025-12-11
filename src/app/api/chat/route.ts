@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import OpenAI from "openai";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // Configuration OpenAI (utiliser la clé depuis les variables d'environnement)
 const openai = new OpenAI({
@@ -28,6 +29,9 @@ Garde tes réponses concises et utiles.`;
 
 // POST - Envoyer un message au chat IA
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     const { employeeId, message, conversationHistory = [] } = body;
@@ -113,6 +117,9 @@ export async function POST(request: NextRequest) {
 
 // GET - Récupérer l'historique des conversations
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const employeeId = searchParams.get("employeeId");

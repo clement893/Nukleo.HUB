@@ -600,3 +600,37 @@
 - [x] Analyser l'exposition des données
 
 - [x] Produire le rapport d'audit
+
+
+## Corrections de Sécurité
+
+### Phase 1 - Middleware d'authentification
+- [x] Créer helper requireAuth() réutilisable
+- [x] Créer helper requireAdmin() réutilisable
+- [x] Créer helper requireSuperAdmin() réutilisable
+
+### Phase 2 - Authentification APIs
+- [x] Ajouter auth à toutes les APIs /api/* (70 APIs modifiées)
+- [x] Ajouter vérification admin aux APIs /api/admin/*
+
+### Phase 3 - Validation des entrées
+- [x] Installer Zod
+- [x] Créer schémas de validation pour les entités principales
+- [x] Appliquer validation sur les APIs POST/PUT/PATCH
+
+### Phase 4 - Tokens de portail
+- [x] Ajouter champ expiresAt aux portails (EmployeePortal, ClientPortal)
+- [x] Vérifier expiration dans les APIs portail
+- [x] Migration de base de données
+
+### Phase 5 - XSS et Headers
+- [x] Installer DOMPurify
+- [x] Sanitiser dangerouslySetInnerHTML (leo, onboarding)
+- [x] Ajouter headers de sécurité dans next.config.ts
+
+### Phase 6 - Rate limiting et uploads
+- [x] Implémenter rate limiting basique
+- [x] Valider types de fichiers sur uploads
+- [x] Limiter taille des fichiers
+
+- [ ] Pousser vers GitHub

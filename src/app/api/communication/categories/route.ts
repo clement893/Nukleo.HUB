@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // GET - Récupérer toutes les catégories
 export async function GET() {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const categories = await prisma.clientCategory.findMany({
       orderBy: { order: "asc" },
@@ -25,6 +29,9 @@ export async function GET() {
 
 // POST - Créer une nouvelle catégorie
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     const { name, color, icon, description } = body;

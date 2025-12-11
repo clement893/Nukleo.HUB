@@ -33,6 +33,20 @@ export async function GET(
       return NextResponse.json({ error: "Portal is inactive" }, { status: 403 });
     }
 
+    // Vérifier si le token a expiré
+    if (portal.expiresAt && new Date(portal.expiresAt) < new Date()) {
+      return NextResponse.json(
+        { error: "Ce lien d'accès a expiré. Veuillez contacter Nukleo." },
+        { status: 403 }
+      );
+    }
+
+    // Mettre à jour la date de dernière utilisation
+    await prisma.clientPortal.update({
+      where: { id: portal.id },
+      data: { lastUsedAt: new Date() },
+    }).catch(() => {}); // Ignorer les erreurs de mise à jour
+
     // Récupérer les projets liés à ce client (par nom de client)
     const projects = await prisma.project.findMany({
       where: {

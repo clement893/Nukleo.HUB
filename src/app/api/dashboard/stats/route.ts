@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // Stages considered as "won"
 const WON_STAGES = ["Gagné", "Closed Won", "Won"];
@@ -21,6 +22,9 @@ const ACTIVE_STAGES = [
 ];
 
 export async function GET() {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     // Get all opportunities
     const opportunities = await prisma.opportunity.findMany({

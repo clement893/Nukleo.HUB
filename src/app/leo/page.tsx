@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import DOMPurify from "dompurify";
 import Sidebar from "@/components/Sidebar";
 import {
   Send,
@@ -132,7 +133,7 @@ export default function LeoPage() {
 
   const formatMessage = (content: string) => {
     // Simple markdown-like formatting
-    return content
+    const formatted = content
       .split("\n")
       .map((line, i) => {
         // Bold text
@@ -144,6 +145,8 @@ export default function LeoPage() {
         return `<p key="${i}" class="mb-1">${line}</p>`;
       })
       .join("");
+    // Sanitiser le HTML pour prévenir les attaques XSS
+    return typeof window !== "undefined" ? DOMPurify.sanitize(formatted) : formatted;
   };
 
   return (

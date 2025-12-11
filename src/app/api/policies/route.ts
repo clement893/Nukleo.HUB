@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // GET - Récupérer toutes les politiques
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category");
@@ -25,6 +29,9 @@ export async function GET(request: NextRequest) {
 
 // POST - Créer une nouvelle politique
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     const { title, content, category, version, requiresAck } = body;
@@ -52,6 +59,9 @@ export async function POST(request: NextRequest) {
 
 // PUT - Mettre à jour une politique
 export async function PUT(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     const { id, ...data } = body;

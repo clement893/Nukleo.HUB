@@ -37,6 +37,14 @@ export async function GET(
       );
     }
 
+    // Vérifier si le token a expiré
+    if (portal.expiresAt && new Date(portal.expiresAt) < new Date()) {
+      return NextResponse.json(
+        { error: "Ce lien d'accès a expiré. Veuillez contacter l'administration." },
+        { status: 403 }
+      );
+    }
+
     // Mettre à jour la date de dernier accès
     await prisma.employeePortal.update({
       where: { id: portal.id },

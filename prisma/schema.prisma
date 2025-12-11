@@ -826,6 +826,8 @@ model ClientPortal {
   companyId   String?
   isActive    Boolean  @default(true)
   welcomeMessage String? @db.Text
+  expiresAt   DateTime?  // Date d'expiration du token (null = jamais)
+  lastUsedAt  DateTime?  // Dernière utilisation du portail
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   tickets     Ticket[]
@@ -896,6 +898,7 @@ model EmployeePortal {
   employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   token       String   @unique @default(cuid())
   isActive    Boolean  @default(true)
+  expiresAt   DateTime?  // Date d'expiration du token (null = jamais)
   lastAccess  DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

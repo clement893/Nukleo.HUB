@@ -1,7 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 export async function GET() {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const companies = await prisma.company.findMany({
       orderBy: { name: "asc" },
@@ -17,6 +21,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const data = await request.json();
     const company = await prisma.company.create({

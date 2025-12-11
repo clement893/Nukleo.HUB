@@ -1,7 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 export async function GET() {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const opportunities = await prisma.opportunity.findMany({
       orderBy: { updatedAt: "desc" },
@@ -20,6 +24,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const data = await request.json();
     const opportunity = await prisma.opportunity.create({

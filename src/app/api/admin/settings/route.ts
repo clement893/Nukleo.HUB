@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin, isErrorResponse } from "@/lib/api-auth";
 
 export async function GET(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category") || "";
@@ -37,6 +41,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     
@@ -68,6 +75,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const auth = await requireAdmin();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import DOMPurify from "dompurify";
 import {
   CheckCircle2,
   Circle,
@@ -252,7 +253,7 @@ function OnboardingContent() {
                     </div>
                   </div>
                   <div className="prose prose-invert prose-sm max-w-none mb-6 max-h-64 overflow-y-auto bg-slate-900/50 rounded-xl p-4">
-                    <div dangerouslySetInnerHTML={{ __html: policy.content.replace(/\n/g, "<br/>") }} />
+                    <div dangerouslySetInnerHTML={{ __html: typeof window !== "undefined" ? DOMPurify.sanitize(policy.content.replace(/\n/g, "<br/>")) : policy.content.replace(/\n/g, "<br/>") }} />
                   </div>
                   <button
                     onClick={() => acknowledgePolicy(policy.id)}
@@ -411,7 +412,7 @@ function OnboardingContent() {
                 {/* Contenu de l'étape */}
                 <div className="p-6">
                   <div className="prose prose-invert prose-lg max-w-none mb-8">
-                    <div dangerouslySetInnerHTML={{ __html: currentStep.content.replace(/\n/g, "<br/>") }} />
+                    <div dangerouslySetInnerHTML={{ __html: typeof window !== "undefined" ? DOMPurify.sanitize(currentStep.content.replace(/\n/g, "<br/>")) : currentStep.content.replace(/\n/g, "<br/>") }} />
                   </div>
 
                   {/* Navigation */}

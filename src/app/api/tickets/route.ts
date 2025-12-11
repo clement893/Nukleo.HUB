@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // GET - Liste des tickets (admin) ou tickets d'un portail (client)
 export async function GET(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const portalToken = searchParams.get("portalToken");
@@ -53,6 +57,9 @@ export async function GET(request: NextRequest) {
 
 // POST - Créer un nouveau ticket (client ou admin)
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     const {
@@ -114,6 +121,9 @@ export async function POST(request: NextRequest) {
 
 // PATCH - Mettre à jour un ticket (admin)
 export async function PATCH(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const body = await request.json();
     const { id, ...data } = body;
@@ -147,6 +157,9 @@ export async function PATCH(request: NextRequest) {
 
 // DELETE - Supprimer un ticket (admin)
 export async function DELETE(request: NextRequest) {
+  const auth = await requireAuth();
+  if (isErrorResponse(auth)) return auth;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
