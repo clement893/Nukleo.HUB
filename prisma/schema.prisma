@@ -551,6 +551,13 @@ model CommunicationClient {
   accesses        ClientAccess[]
   messages        ClientMessage[]
   tasks           ClientTask[]
+  // Hub de Communication - Agence du Futur
+  contentCalendar ContentCalendar[]
+  briefs          CommunicationBrief[]
+  strategies      CommunicationStrategy[]
+  brandAssets     BrandAsset[]
+  reports         CommunicationReport[]
+  contentIdeas    ContentIdea[]
   @@index([status])
   @@index([projectId])
   @@index([companyId])
@@ -1095,4 +1102,228 @@ model NotificationPreferences {
   updatedAt             DateTime @updatedAt
   
   @@index([employeeId])
+}
+
+
+// ==========================================
+// HUB DE COMMUNICATION - AGENCE DU FUTUR
+// ==========================================
+
+// Calendrier éditorial - Publications planifiées
+model ContentCalendar {
+  id              String    @id @default(cuid())
+  clientId        String
+  title           String
+  description     String?   @db.Text
+  contentType     String    // post, story, reel, article, newsletter, video, podcast, infographic
+  platform        String    // instagram, facebook, linkedin, twitter, tiktok, youtube, blog, newsletter
+  status          String    @default("draft") // draft, scheduled, published, cancelled
+  scheduledDate   DateTime
+  publishedDate   DateTime?
+  content         String?   @db.Text  // Contenu du post
+  mediaUrls       String?   @db.Text  // URLs des médias (JSON array)
+  hashtags        String?   @db.Text  // Hashtags suggérés
+  caption         String?   @db.Text  // Légende/Caption
+  link            String?   // Lien associé
+  assignedTo      String?   // ID de l'employé assigné
+  approvedBy      String?   // ID de l'approbateur
+  approvedAt      DateTime?
+  engagement      String?   @db.Text  // Métriques d'engagement (JSON)
+  notes           String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@index([clientId])
+  @@index([scheduledDate])
+  @@index([status])
+  @@index([platform])
+}
+
+// Brief de projet de communication
+model CommunicationBrief {
+  id                String    @id @default(cuid())
+  clientId          String
+  title             String
+  projectType       String    // branding, campaign, social_media, website, video, event, launch
+  status            String    @default("draft") // draft, in_review, approved, in_progress, completed
+  priority          String    @default("medium") // low, medium, high, urgent
+  
+  // Contexte et objectifs
+  background        String?   @db.Text  // Contexte du projet
+  objectives        String?   @db.Text  // Objectifs SMART
+  targetAudience    String?   @db.Text  // Persona et audience cible
+  keyMessages       String?   @db.Text  // Messages clés à communiquer
+  toneOfVoice       String?   // professional, friendly, bold, elegant, playful
+  
+  // Livrables et délais
+  deliverables      String?   @db.Text  // Liste des livrables (JSON)
+  startDate         DateTime?
+  deadline          DateTime?
+  milestones        String?   @db.Text  // Jalons du projet (JSON)
+  
+  // Budget et ressources
+  budget            Int?
+  budgetDetails     String?   @db.Text  // Répartition du budget (JSON)
+  teamMembers       String?   @db.Text  // Membres de l'équipe assignés (JSON)
+  
+  // Références et inspiration
+  competitors       String?   @db.Text  // Analyse concurrentielle
+  inspiration       String?   @db.Text  // Références visuelles/créatives (JSON URLs)
+  brandGuidelines   String?   // URL vers les guidelines de marque
+  
+  // Validation
+  clientContact     String?   // Contact principal côté client
+  approvalProcess   String?   @db.Text  // Processus de validation
+  
+  notes             String?   @db.Text
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  client            CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@index([clientId])
+  @@index([status])
+  @@index([deadline])
+}
+
+// Stratégie de communication
+model CommunicationStrategy {
+  id                String    @id @default(cuid())
+  clientId          String
+  title             String
+  type              String    // annual, quarterly, campaign, crisis, launch
+  status            String    @default("draft") // draft, active, paused, completed
+  period            String?   // Q1 2024, 2024, etc.
+  
+  // Analyse
+  swotAnalysis      String?   @db.Text  // Forces, Faiblesses, Opportunités, Menaces (JSON)
+  competitorAnalysis String?  @db.Text  // Analyse concurrentielle (JSON)
+  audienceInsights  String?   @db.Text  // Insights sur l'audience (JSON)
+  
+  // Objectifs stratégiques
+  visionStatement   String?   @db.Text  // Vision de la communication
+  objectives        String?   @db.Text  // Objectifs stratégiques (JSON)
+  kpis              String?   @db.Text  // KPIs à suivre (JSON)
+  
+  // Positionnement
+  positioning       String?   @db.Text  // Positionnement de marque
+  valueProposition  String?   @db.Text  // Proposition de valeur
+  brandPersonality  String?   @db.Text  // Personnalité de marque
+  
+  // Canaux et tactiques
+  channels          String?   @db.Text  // Canaux de communication (JSON)
+  contentPillars    String?   @db.Text  // Piliers de contenu (JSON)
+  tacticalPlan      String?   @db.Text  // Plan tactique (JSON)
+  
+  // Budget et ressources
+  budget            Int?
+  budgetAllocation  String?   @db.Text  // Répartition par canal (JSON)
+  
+  // Calendrier
+  timeline          String?   @db.Text  // Timeline stratégique (JSON)
+  keyDates          String?   @db.Text  // Dates clés (JSON)
+  
+  notes             String?   @db.Text
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  client            CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@index([clientId])
+  @@index([status])
+  @@index([type])
+}
+
+// Assets de marque
+model BrandAsset {
+  id              String    @id @default(cuid())
+  clientId        String
+  name            String
+  type            String    // logo, color_palette, typography, icon, template, photo, video, document
+  category        String?   // primary, secondary, social, print, web
+  fileUrl         String
+  thumbnailUrl    String?
+  format          String?   // png, jpg, svg, pdf, ai, psd, mp4
+  dimensions      String?   // 1920x1080, etc.
+  fileSize        Int?      // En bytes
+  version         String?   // v1, v2, etc.
+  isApproved      Boolean   @default(false)
+  approvedBy      String?
+  approvedAt      DateTime?
+  tags            String?   @db.Text  // Tags pour recherche (JSON)
+  usageNotes      String?   @db.Text  // Notes d'utilisation
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@index([clientId])
+  @@index([type])
+  @@index([category])
+}
+
+// Rapports et Analytics
+model CommunicationReport {
+  id              String    @id @default(cuid())
+  clientId        String
+  title           String
+  type            String    // monthly, quarterly, annual, campaign, custom
+  period          String    // Janvier 2024, Q1 2024, etc.
+  status          String    @default("draft") // draft, sent, viewed
+  
+  // Métriques globales
+  metrics         String?   @db.Text  // Toutes les métriques (JSON)
+  highlights      String?   @db.Text  // Points forts du mois (JSON)
+  challenges      String?   @db.Text  // Défis rencontrés (JSON)
+  
+  // Réseaux sociaux
+  socialMetrics   String?   @db.Text  // Métriques par plateforme (JSON)
+  topPosts        String?   @db.Text  // Meilleurs posts (JSON)
+  audienceGrowth  String?   @db.Text  // Croissance de l'audience (JSON)
+  
+  // Campagnes
+  campaignResults String?   @db.Text  // Résultats des campagnes (JSON)
+  
+  // Recommandations
+  recommendations String?   @db.Text  // Recommandations pour le prochain mois
+  nextSteps       String?   @db.Text  // Prochaines étapes (JSON)
+  
+  // Fichier
+  reportUrl       String?   // URL du rapport PDF
+  presentationUrl String?   // URL de la présentation
+  
+  sentAt          DateTime?
+  viewedAt        DateTime?
+  notes           String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@index([clientId])
+  @@index([type])
+  @@index([period])
+}
+
+// Idées et brainstorming
+model ContentIdea {
+  id              String    @id @default(cuid())
+  clientId        String
+  title           String
+  description     String?   @db.Text
+  category        String?   // trending, evergreen, seasonal, promotional, educational
+  platform        String?   // Pour quelle plateforme
+  format          String?   // post, video, story, carousel, etc.
+  status          String    @default("idea") // idea, approved, scheduled, rejected
+  priority        Int       @default(0)  // Score de priorité
+  source          String?   // Origine de l'idée (team, client, trend, competitor)
+  references      String?   @db.Text  // Liens de référence (JSON)
+  suggestedDate   DateTime?
+  assignedTo      String?
+  votes           Int       @default(0)  // Votes de l'équipe
+  notes           String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@index([clientId])
+  @@index([status])
+  @@index([category])
 }

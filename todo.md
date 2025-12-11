@@ -437,3 +437,18 @@
 - [x] Page paramètres de notifications dans le portail employé
 - [x] Page admin de gestion des notifications
 - [x] Pousser vers GitHub
+
+## Hub de Communication - Agence du Futur
+- [ ] Analyser la structure actuelle du Hub de Comm
+- [ ] Créer modèles DB : ContentCalendar, CommunicationBrief, Strategy, Campaign
+- [ ] API calendrier éditorial (CRUD + vue mensuelle)
+- [ ] API briefs de projets de communication
+- [ ] API stratégies de communication
+- [ ] API campagnes et analytics
+- [ ] Interface Dashboard Hub de Comm
+- [ ] Interface Calendrier Éditorial
+- [ ] Interface Briefs de Projets
+- [ ] Interface Stratégies
+- [ ] Interface Campagnes
+- [ ] Interface Analytics et Reporting
+- [ ] Pousser vers GitHub
