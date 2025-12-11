@@ -415,8 +415,12 @@
 - [x] Pousser vers GitHub
 
 ## Amélioration Gestion des Accès - Sélection Spécifique
-- [ ] API pour récupérer la liste des clients
-- [ ] API pour récupérer la liste des projets
-- [ ] Sélecteur de clients spécifiques dans le modal
-- [ ] Sélecteur de projets spécifiques dans le modal
+- [x] API pour récupérer la liste des clients (existante)
+- [x] API pour récupérer la liste des projets (existante)
+- [x] Sélecteur de clients spécifiques dans le modal
+- [x] Sélecteur de projets spécifiques dans le modal
+- [x] Pousser vers GitHub
+
+## Bug Fix - Menu latéral disparaît
+- [ ] Corriger le menu qui disparaît sur /admin/users
 - [ ] Pousser vers GitHub

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Sidebar from "@/components/Sidebar";
 import {
   Users,
   Search,
@@ -369,15 +370,20 @@ export default function UsersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="flex min-h-screen bg-background">
+        <Sidebar />
+        <main className="flex-1 ml-64 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="flex min-h-screen bg-background">
+      <Sidebar />
+      <main className="flex-1 ml-64 p-6">
+        <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -972,6 +978,8 @@ export default function UsersPage() {
           </div>
         </div>
       )}
+        </div>
+      </main>
     </div>
   );
 }
