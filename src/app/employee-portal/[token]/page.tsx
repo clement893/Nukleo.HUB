@@ -35,6 +35,9 @@ import {
   CheckCheck,
   XCircle,
   ClockIcon,
+  Bell,
+  BellRing,
+  Check,
 } from "lucide-react";
 
 interface Employee {
@@ -145,6 +148,17 @@ interface ChatMessage {
   content: string;
 }
 
+interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  link: string | null;
+  isRead: boolean;
+  readAt: string | null;
+  createdAt: string;
+}
+
 // Obtenir le lundi de la semaine pour une date donnée
 function getWeekStart(date: Date): Date {
   const d = new Date(date);
@@ -223,6 +237,12 @@ export default function EmployeePortalPage() {
   const [chatLoading, setChatLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Notifications state
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
+
   // Request modal state
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [newRequest, setNewRequest] = useState({
@@ -259,6 +279,65 @@ export default function EmployeePortalPage() {
       fetchTimesheetData();
     }
   }, [token, selectedWeek, activeTab]);
+
+  // Charger les notifications au démarrage et toutes les 30 secondes
+  useEffect(() => {
+    if (token) {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [token]);
+
+  // Fermer le panneau de notifications en cliquant à l'extérieur
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  async function fetchNotifications() {
+    try {
+      const res = await fetch(`/api/employee-portal/${token}/notifications`);
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications);
+        setUnreadCount(data.unreadCount);
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  }
+
+  async function markNotificationAsRead(notificationId: string) {
+    try {
+      await fetch(`/api/employee-portal/${token}/notifications`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notificationIds: [notificationId] }),
+      });
+      fetchNotifications();
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
+  }
+
+  async function markAllNotificationsAsRead() {
+    try {
+      await fetch(`/api/employee-portal/${token}/notifications`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markAllRead: true }),
+      });
+      fetchNotifications();
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+    }
+  }
 
   async function fetchPortalData() {
     try {
@@ -461,6 +540,105 @@ export default function EmployeePortalPage() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            {/* Notifications Bell */}
+            <div className="relative" ref={notificationRef}>
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
+              >
+                {unreadCount > 0 ? (
+                  <BellRing className="w-5 h-5 text-blue-400 animate-pulse" />
+                ) : (
+                  <Bell className="w-5 h-5 text-slate-400" />
+                )}
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Notifications Panel */}
+              {showNotifications && (
+                <div className="absolute right-0 top-full mt-2 w-80 max-h-96 bg-slate-800 border border-slate-700 rounded-xl shadow-xl overflow-hidden z-50">
+                  <div className="p-3 border-b border-slate-700 flex items-center justify-between">
+                    <h3 className="font-semibold text-white">Notifications</h3>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllNotificationsAsRead}
+                        className="text-xs text-blue-400 hover:text-blue-300"
+                      >
+                        Tout marquer comme lu
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-72 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-slate-400">
+                        <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p>Aucune notification</p>
+                      </div>
+                    ) : (
+                      notifications.map(notif => (
+                        <div
+                          key={notif.id}
+                          className={`p-3 border-b border-slate-700/50 hover:bg-slate-700/30 cursor-pointer transition-colors ${
+                            !notif.isRead ? "bg-blue-500/10" : ""
+                          }`}
+                          onClick={() => {
+                            if (!notif.isRead) markNotificationAsRead(notif.id);
+                            if (notif.link) {
+                              // Navigate to the link if it's an internal route
+                              if (notif.link.startsWith("/")) {
+                                setActiveTab(notif.link.replace("/", "") as typeof activeTab);
+                              }
+                            }
+                            setShowNotifications(false);
+                          }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`p-1.5 rounded-lg ${
+                              notif.type.includes("approved") ? "bg-green-500/20" :
+                              notif.type.includes("rejected") ? "bg-red-500/20" :
+                              notif.type.includes("task") ? "bg-purple-500/20" :
+                              "bg-blue-500/20"
+                            }`}>
+                              {notif.type.includes("approved") ? (
+                                <CheckCircle2 className="w-4 h-4 text-green-400" />
+                              ) : notif.type.includes("rejected") ? (
+                                <XCircle className="w-4 h-4 text-red-400" />
+                              ) : notif.type.includes("task") ? (
+                                <FolderKanban className="w-4 h-4 text-purple-400" />
+                              ) : (
+                                <Bell className="w-4 h-4 text-blue-400" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm font-medium ${!notif.isRead ? "text-white" : "text-slate-300"}`}>
+                                {notif.title}
+                              </p>
+                              <p className="text-xs text-slate-400 line-clamp-2">{notif.message}</p>
+                              <p className="text-xs text-slate-500 mt-1">
+                                {new Date(notif.createdAt).toLocaleDateString("fr-CA", {
+                                  day: "numeric",
+                                  month: "short",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                            </div>
+                            {!notif.isRead && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2" />
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="text-right">
               <p className="text-sm text-slate-400">Département</p>
               <p className="font-medium text-white">{employee.department}</p>

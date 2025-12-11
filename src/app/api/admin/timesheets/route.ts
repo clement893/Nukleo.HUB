@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createNotification } from "@/app/api/notifications/route";
 
 // GET - Récupérer toutes les feuilles de temps (admin)
 export async function GET(request: NextRequest) {
@@ -136,6 +137,32 @@ export async function POST(request: NextRequest) {
         entries: true,
       },
     });
+
+    // Créer une notification pour l'employé
+    const weekStartFormatted = new Date(updatedTimesheet.weekStartDate).toLocaleDateString("fr-CA", {
+      day: "numeric",
+      month: "short",
+    });
+
+    if (action === "approve") {
+      await createNotification({
+        employeeId: updatedTimesheet.employeeId,
+        type: "timesheet_approved",
+        title: "Feuille de temps approuvée",
+        message: `Votre feuille de temps de la semaine du ${weekStartFormatted} a été approuvée par ${adminName || "Admin"}.`,
+        link: "/timesheets",
+        metadata: { timesheetId, weekStart: updatedTimesheet.weekStartDate },
+      });
+    } else if (action === "reject") {
+      await createNotification({
+        employeeId: updatedTimesheet.employeeId,
+        type: "timesheet_rejected",
+        title: "Feuille de temps rejetée",
+        message: `Votre feuille de temps de la semaine du ${weekStartFormatted} a été rejetée. Raison: ${rejectionReason || "Non spécifiée"}`,
+        link: "/timesheets",
+        metadata: { timesheetId, weekStart: updatedTimesheet.weekStartDate, reason: rejectionReason },
+      });
+    }
 
     return NextResponse.json(updatedTimesheet);
   } catch (error) {

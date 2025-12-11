@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { createNotification } from "@/app/api/notifications/route";
 
 export async function GET(
   request: NextRequest,
@@ -78,6 +79,16 @@ export async function PATCH(
       await prisma.employee.update({
         where: { id: employeeId },
         data: { currentTaskId: id },
+      });
+
+      // Créer une notification pour l'employé
+      await createNotification({
+        employeeId: employeeId,
+        type: "task_assigned",
+        title: "Nouvelle tâche assignée",
+        message: `La tâche "${task.title}" vous a été assignée.${task.project ? ` Projet: ${task.project.name}` : ""}`,
+        link: "/tasks",
+        metadata: { taskId: id, projectId: task.projectId },
       });
 
       return NextResponse.json(task);

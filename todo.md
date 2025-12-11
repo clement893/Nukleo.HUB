@@ -352,12 +352,24 @@
 - [x] Pousser vers GitHub
 
 ## Feuilles de Temps avec Approbation
-- [ ] Ajouter modèle WeeklyTimesheet avec statut d'approbation au schéma DB
-- [ ] Créer API pour récupérer les feuilles de temps par semaine
-- [ ] Créer API pour modifier les entrées de temps (si non approuvées)
-- [ ] Créer API admin pour approuver/rejeter les feuilles de temps
-- [ ] Page feuilles de temps dans le portail employé (vue par semaine)
-- [ ] Formulaire de modification des entrées de temps
-- [ ] Page admin pour consulter et approuver les feuilles de temps
-- [ ] Filtres par employé, semaine, statut dans l'admin
+- [x] Ajouter modèle WeeklyTimesheet avec statut d'approbation au schéma DB
+- [x] Créer API pour récupérer les feuilles de temps par semaine
+- [x] Créer API pour modifier les entrées de temps (si non approuvées)
+- [x] Créer API admin pour approuver/rejeter les feuilles de temps
+- [x] Page feuilles de temps dans le portail employé (vue par semaine)
+- [x] Formulaire de modification des entrées de temps
+- [x] Page admin pour consulter et approuver les feuilles de temps
+- [x] Filtres par employé, semaine, statut dans l'admin
+- [x] Pousser vers GitHub
+
+## Notifications en Temps Réel - Portail Employé
+- [ ] Créer modèle EmployeeNotification dans le schéma DB
+- [ ] Créer API pour récupérer les notifications
+- [ ] Créer API pour marquer les notifications comme lues
+- [ ] Créer API pour créer des notifications (interne)
+- [ ] Composant cloche de notifications dans le header du portail
+- [ ] Panel de notifications avec liste et actions
+- [ ] Intégrer notifications aux feuilles de temps (approbation/rejet)
+- [ ] Intégrer notifications aux nouvelles tâches assignées
+- [ ] Badge de compteur de notifications non lues
 - [ ] Pousser vers GitHub

@@ -975,3 +975,22 @@ model EmployeeLeoContext {
   @@unique([employeeId])
   @@index([employeeId])
 }
+
+
+// Notifications pour les employés
+model EmployeeNotification {
+  id          String    @id @default(cuid())
+  employeeId  String
+  type        String    // timesheet_approved, timesheet_rejected, task_assigned, task_updated, request_approved, request_rejected, general
+  title       String
+  message     String    @db.Text
+  link        String?   // Lien vers la ressource concernée (ex: /timesheets, /tasks/123)
+  isRead      Boolean   @default(false)
+  readAt      DateTime?
+  metadata    String?   @db.Text // JSON avec données additionnelles
+  createdAt   DateTime  @default(now())
+
+  @@index([employeeId])
+  @@index([isRead])
+  @@index([createdAt])
+}
