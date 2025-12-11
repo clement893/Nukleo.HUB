@@ -428,7 +428,7 @@
 ## Suppression des Portails Clients
 - [ ] Ajouter API DELETE pour les portails clients
 - [ ] Ajouter bouton de suppression dans l'interface
-- [ ] Pousser vers GitHub
+- [x] Pousser vers GitHub
 
 ## Centre de Notifications Complet
 - [x] Ajouter modèle NotificationPreferences au schéma DB
@@ -572,4 +572,31 @@
 - [x] Notifications automatiques
 - [x] Lien dans le menu Administration
 
-- [ ] Pousser vers GitHub
+- [x] Pousser vers GitHub
+
+
+## Audit de Sécurité (Décembre 2024)
+
+### Phase 1 - Authentification
+- [x] Analyser le système OAuth Google
+- [x] Vérifier la gestion des sessions et cookies
+- [x] Analyser le middleware de protection
+- [x] Vérifier les tokens des portails
+
+### Phase 2 - APIs
+- [x] Analyser la validation des entrées
+- [x] Vérifier les injections SQL
+- [x] Analyser les protections XSS/CSRF
+- [x] Vérifier l'authentification des APIs
+
+### Phase 3 - Contrôles d'accès
+- [x] Analyser le système de rôles
+- [x] Vérifier les failles IDOR
+- [x] Analyser l'isolation des données
+
+### Phase 4 - Données et stockage
+- [x] Analyser la sécurité des uploads
+- [x] Vérifier le chiffrement
+- [x] Analyser l'exposition des données
+
+- [x] Produire le rapport d'audit
