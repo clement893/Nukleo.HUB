@@ -666,4 +666,4 @@
 - [x] Afficher les jours fériés dans le calendrier
 - [x] Afficher la fermeture du bureau
 - [x] Bouton toggle pour afficher/masquer les vacances
-- [ ] Pousser vers GitHub
+- [x] Pousser vers GitHub

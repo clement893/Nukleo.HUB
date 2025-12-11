@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
         employee: {
           select: {
             id: true,
-            fullName: true,
+            name: true,
             photoUrl: true,
             department: true,
           },
@@ -114,14 +114,14 @@ export async function GET(request: NextRequest) {
 
       events.push({
         id: `vacation-${vacation.id}`,
-        title: `${vacation.employee.fullName} - ${typeLabels[vacation.type] || vacation.type}`,
+        title: `${vacation.employee.name} - ${typeLabels[vacation.type] || vacation.type}`,
         startDate: vacation.startDate.toISOString(),
         endDate: vacation.endDate.toISOString(),
         allDay: true,
         type: "vacation",
         color: getVacationColor(vacation.type),
         employeeId: vacation.employee.id,
-        employeeName: vacation.employee.fullName,
+        employeeName: vacation.employee.name,
         employeePhoto: vacation.employee.photoUrl,
         status: vacation.status,
       });
