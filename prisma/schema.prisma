@@ -232,6 +232,10 @@ model Employee {
   
   // Relation avec l'utilisateur connecté
   linkedUser            User?
+  
+  // Relations vacances
+  vacationRequests      VacationRequest[]
+  vacationBalance       VacationBalance?
 
   @@index([department])
 }
@@ -1505,4 +1509,48 @@ model ClientFileComment {
   @@index([fileId])
   @@index([deliverableId])
   @@index([portalId])
+}
+
+
+// Demandes de vacances
+model VacationRequest {
+  id            String   @id @default(cuid())
+  employeeId    String
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type          String   // vacation, sick, personal, unpaid, other
+  startDate     DateTime
+  endDate       DateTime
+  totalDays     Float    // Nombre de jours demandés
+  reason        String?  @db.Text
+  status        String   @default("pending") // pending, approved, rejected, cancelled
+  reviewedBy    String?  // ID de l'admin qui a traité la demande
+  reviewedByName String? // Nom de l'admin
+  reviewedAt    DateTime?
+  reviewComment String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+// Solde de vacances par employé
+model VacationBalance {
+  id              String   @id @default(cuid())
+  employeeId      String   @unique
+  employee        Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  year            Int      @default(2025)
+  totalDays       Float    @default(20) // Jours alloués par an
+  usedDays        Float    @default(0)  // Jours utilisés
+  pendingDays     Float    @default(0)  // Jours en attente d'approbation
+  carriedOverDays Float    @default(0)  // Jours reportés de l'année précédente
+  sickDaysUsed    Float    @default(0)  // Jours maladie utilisés
+  sickDaysAllowed Float    @default(5)  // Jours maladie alloués
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([employeeId])
+  @@index([year])
 }

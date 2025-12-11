@@ -28,6 +28,7 @@ import {
   Shield,
   LogOut,
   Loader2,
+  Palmtree,
 } from "lucide-react";
 
 interface AuthUser {
@@ -93,6 +94,7 @@ const navigation: NavItem[] = [
     children: [
       { name: "Tableau de bord", href: "/admin" },
       { name: "Utilisateurs", href: "/admin/users" },
+      { name: "Vacances", href: "/admin/vacations" },
       { name: "Feuilles de temps", href: "/admin/timesheets" },
       { name: "Notifications", href: "/admin/notifications" },
       { name: "Onboarding", href: "/admin/onboarding" },

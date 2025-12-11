@@ -38,6 +38,8 @@ import {
   Bell,
   BellRing,
   Check,
+  Palmtree,
+  Loader2,
 } from "lucide-react";
 
 interface Employee {
@@ -159,6 +161,30 @@ interface Notification {
   createdAt: string;
 }
 
+interface VacationRequest {
+  id: string;
+  type: string;
+  startDate: string;
+  endDate: string;
+  totalDays: number;
+  reason: string | null;
+  status: string;
+  reviewedByName: string | null;
+  reviewedAt: string | null;
+  reviewComment: string | null;
+  createdAt: string;
+}
+
+interface VacationBalance {
+  totalDays: number;
+  usedDays: number;
+  pendingDays: number;
+  availableDays: number;
+  carriedOverDays: number;
+  sickDaysUsed: number;
+  sickDaysAllowed: number;
+}
+
 // Obtenir le lundi de la semaine pour une date donnée
 function getWeekStart(date: Date): Date {
   const d = new Date(date);
@@ -214,7 +240,7 @@ export default function EmployeePortalPage() {
   const [events, setEvents] = useState<EmployeeEvent[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "time" | "timesheets" | "calendar" | "documents" | "requests" | "notifications" | "profile" | "leo">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "time" | "timesheets" | "calendar" | "documents" | "requests" | "vacations" | "notifications" | "profile" | "leo">("dashboard");
 
   // Timesheet state
   const [selectedWeek, setSelectedWeek] = useState<Date>(getWeekStart(new Date()));
@@ -253,6 +279,18 @@ export default function EmployeePortalPage() {
     endDate: "",
   });
 
+  // Vacation state
+  const [vacationRequests, setVacationRequests] = useState<VacationRequest[]>([]);
+  const [vacationBalance, setVacationBalance] = useState<VacationBalance | null>(null);
+  const [showVacationModal, setShowVacationModal] = useState(false);
+  const [vacationLoading, setVacationLoading] = useState(false);
+  const [newVacation, setNewVacation] = useState({
+    type: "vacation",
+    startDate: "",
+    endDate: "",
+    reason: "",
+  });
+
   useEffect(() => {
     fetchPortalData();
   }, [token]);
@@ -279,6 +317,12 @@ export default function EmployeePortalPage() {
       fetchTimesheetData();
     }
   }, [token, selectedWeek, activeTab]);
+
+  useEffect(() => {
+    if (token && activeTab === "vacations") {
+      fetchVacations();
+    }
+  }, [token, activeTab]);
 
   // Charger les notifications au démarrage et toutes les 30 secondes
   useEffect(() => {
@@ -385,6 +429,61 @@ export default function EmployeePortalPage() {
       console.error("Error fetching timesheet:", error);
     } finally {
       setTimesheetLoading(false);
+    }
+  }
+
+  async function fetchVacations() {
+    try {
+      const res = await fetch(`/api/employee-portal/${token}/vacations`);
+      if (res.ok) {
+        const data = await res.json();
+        setVacationRequests(data.requests || []);
+        setVacationBalance(data.balance || null);
+      }
+    } catch (error) {
+      console.error("Error fetching vacations:", error);
+    }
+  }
+
+  async function submitVacation() {
+    if (!newVacation.startDate || !newVacation.endDate) return;
+    
+    setVacationLoading(true);
+    try {
+      const res = await fetch(`/api/employee-portal/${token}/vacations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newVacation),
+      });
+      
+      if (res.ok) {
+        setShowVacationModal(false);
+        setNewVacation({ type: "vacation", startDate: "", endDate: "", reason: "" });
+        fetchVacations();
+      } else {
+        const error = await res.json();
+        alert(error.error || "Erreur lors de la création de la demande");
+      }
+    } catch (error) {
+      console.error("Error submitting vacation:", error);
+    } finally {
+      setVacationLoading(false);
+    }
+  }
+
+  async function cancelVacation(id: string) {
+    if (!confirm("Êtes-vous sûr de vouloir annuler cette demande ?")) return;
+    
+    try {
+      const res = await fetch(`/api/employee-portal/${token}/vacations?id=${id}`, {
+        method: "DELETE",
+      });
+      
+      if (res.ok) {
+        fetchVacations();
+      }
+    } catch (error) {
+      console.error("Error cancelling vacation:", error);
     }
   }
 
@@ -511,6 +610,7 @@ export default function EmployeePortalPage() {
     { id: "calendar", label: "Calendrier", icon: Calendar },
     { id: "documents", label: "Documents", icon: FileText },
     { id: "requests", label: "Demandes", icon: Send },
+    { id: "vacations", label: "Vacances", icon: Palmtree },
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "profile", label: "Profil", icon: User },
     { id: "leo", label: "Leo IA", icon: Brain },
@@ -1466,6 +1566,228 @@ export default function EmployeePortalPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Vacations Tab */}
+        {activeTab === "vacations" && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Palmtree className="w-6 h-6 text-emerald-400" />
+                Demandes de vacances
+              </h2>
+              <button
+                onClick={() => setShowVacationModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Nouvelle demande
+              </button>
+            </div>
+
+            {/* Solde de vacances */}
+            {vacationBalance && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-4">
+                  <p className="text-sm text-slate-400">Jours disponibles</p>
+                  <p className="text-2xl font-bold text-emerald-400">{vacationBalance.availableDays}</p>
+                </div>
+                <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-4">
+                  <p className="text-sm text-slate-400">Jours utilisés</p>
+                  <p className="text-2xl font-bold text-blue-400">{vacationBalance.usedDays}</p>
+                </div>
+                <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-4">
+                  <p className="text-sm text-slate-400">En attente</p>
+                  <p className="text-2xl font-bold text-amber-400">{vacationBalance.pendingDays}</p>
+                </div>
+                <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-4">
+                  <p className="text-sm text-slate-400">Total annuel</p>
+                  <p className="text-2xl font-bold text-white">{vacationBalance.totalDays + vacationBalance.carriedOverDays}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Liste des demandes */}
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-slate-700/50">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-slate-300">Type</th>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-slate-300">Période</th>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-slate-300">Jours</th>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-slate-300">Statut</th>
+                    <th className="text-left px-4 py-3 text-sm font-medium text-slate-300">Réponse</th>
+                    <th className="text-right px-4 py-3 text-sm font-medium text-slate-300">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-700">
+                  {vacationRequests.map((req) => (
+                    <tr key={req.id} className="hover:bg-slate-700/30">
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                          req.type === "vacation" ? "bg-emerald-500/10 text-emerald-400" :
+                          req.type === "sick" ? "bg-red-500/10 text-red-400" :
+                          req.type === "personal" ? "bg-blue-500/10 text-blue-400" :
+                          "bg-slate-500/10 text-slate-400"
+                        }`}>
+                          {req.type === "vacation" ? "Vacances" :
+                           req.type === "sick" ? "Maladie" :
+                           req.type === "personal" ? "Personnel" :
+                           req.type === "unpaid" ? "Sans solde" : "Autre"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-white">
+                        {new Date(req.startDate).toLocaleDateString("fr-FR")} - {new Date(req.endDate).toLocaleDateString("fr-FR")}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-white">{req.totalDays} jour{req.totalDays > 1 ? "s" : ""}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                          req.status === "pending" ? "bg-amber-500/10 text-amber-400" :
+                          req.status === "approved" ? "bg-emerald-500/10 text-emerald-400" :
+                          req.status === "rejected" ? "bg-red-500/10 text-red-400" :
+                          "bg-slate-500/10 text-slate-400"
+                        }`}>
+                          {req.status === "pending" && <ClockIcon className="w-3 h-3" />}
+                          {req.status === "approved" && <CheckCircle2 className="w-3 h-3" />}
+                          {req.status === "rejected" && <XCircle className="w-3 h-3" />}
+                          {req.status === "pending" ? "En attente" :
+                           req.status === "approved" ? "Approuvée" :
+                           req.status === "rejected" ? "Refusée" : "Annulée"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-slate-400">
+                        {req.reviewedByName ? (
+                          <div>
+                            <p className="text-white">{req.reviewedByName}</p>
+                            {req.reviewComment && <p className="text-xs text-slate-500">{req.reviewComment}</p>}
+                          </div>
+                        ) : "-"}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {req.status === "pending" && (
+                          <button
+                            onClick={() => cancelVacation(req.id)}
+                            className="text-red-400 hover:text-red-300 text-sm"
+                          >
+                            Annuler
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {vacationRequests.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-400">
+                        Aucune demande de vacances
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Jours maladie */}
+            {vacationBalance && (
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-4">
+                <h3 className="text-lg font-semibold text-white mb-3">Jours maladie</h3>
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 bg-slate-700 rounded-full h-3">
+                    <div
+                      className="bg-red-500 h-3 rounded-full transition-all"
+                      style={{ width: `${Math.min((vacationBalance.sickDaysUsed / vacationBalance.sickDaysAllowed) * 100, 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-sm text-slate-300">
+                    {vacationBalance.sickDaysUsed} / {vacationBalance.sickDaysAllowed} jours utilisés
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Vacation Modal */}
+        {showVacationModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-md">
+              <div className="p-6 border-b border-slate-700">
+                <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                  <Palmtree className="w-5 h-5 text-emerald-400" />
+                  Nouvelle demande
+                </h2>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Type de congé</label>
+                  <select
+                    value={newVacation.type}
+                    onChange={(e) => setNewVacation({ ...newVacation, type: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="vacation">Vacances</option>
+                    <option value="sick">Maladie</option>
+                    <option value="personal">Personnel</option>
+                    <option value="unpaid">Sans solde</option>
+                    <option value="other">Autre</option>
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Date de début</label>
+                    <input
+                      type="date"
+                      value={newVacation.startDate}
+                      onChange={(e) => setNewVacation({ ...newVacation, startDate: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-300 mb-2">Date de fin</label>
+                    <input
+                      type="date"
+                      value={newVacation.endDate}
+                      onChange={(e) => setNewVacation({ ...newVacation, endDate: e.target.value })}
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">Raison (optionnel)</label>
+                  <textarea
+                    value={newVacation.reason}
+                    onChange={(e) => setNewVacation({ ...newVacation, reason: e.target.value })}
+                    rows={3}
+                    placeholder="Précisez la raison de votre demande..."
+                    className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                  />
+                </div>
+                {vacationBalance && newVacation.type === "vacation" && (
+                  <div className="bg-slate-700/50 rounded-lg p-3">
+                    <p className="text-sm text-slate-300">
+                      Solde disponible: <span className="font-semibold text-emerald-400">{vacationBalance.availableDays} jours</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="p-6 border-t border-slate-700 flex justify-end gap-3">
+                <button
+                  onClick={() => setShowVacationModal(false)}
+                  className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={submitVacation}
+                  disabled={vacationLoading || !newVacation.startDate || !newVacation.endDate}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {vacationLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  Soumettre
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -541,4 +541,35 @@
 
 ## Corrections Portail Employé
 
-- [ ] Corriger l'affichage des photos des employés sur le portail
+- [x] Corriger l'affichage des photos des employés sur le portail
+
+
+## Module Demande de Vacances
+
+### Phase 1 - Base de données
+- [x] Créer modèle VacationRequest dans Prisma
+- [x] Créer modèle VacationBalance dans Prisma
+- [x] Migrer la base de données
+
+### Phase 2 - APIs
+- [x] API création demande de vacances (employé)
+- [x] API liste des demandes (employé)
+- [x] API liste des demandes en attente (admin)
+- [x] API approbation/refus (admin)
+- [x] API mise à jour du solde (admin)
+
+### Phase 3 - Interface Portail Employé
+- [x] Onglet Vacances dans le portail
+- [x] Formulaire de demande de vacances
+- [x] Liste des demandes avec statut
+- [x] Affichage du solde de jours
+- [x] Annulation des demandes en attente
+
+### Phase 4 - Interface Admin
+- [x] Page de gestion des demandes de vacances
+- [x] Approbation/refus avec commentaires
+- [x] Filtres par statut et département
+- [x] Notifications automatiques
+- [x] Lien dans le menu Administration
+
+- [ ] Pousser vers GitHub
