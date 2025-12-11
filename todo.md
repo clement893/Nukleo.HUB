@@ -653,4 +653,4 @@
 - [x] Ajouter le lazy loading aux images
 - [x] Créer composant OptimizedImage avec skeleton
 
-- [ ] Pousser vers GitHub
+- [x] Pousser vers GitHub
