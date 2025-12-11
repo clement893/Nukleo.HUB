@@ -460,3 +460,39 @@
 - [x] Déplacer le hub actuel vers /communication/[clientId]
 - [x] Filtres et recherche de clients
 - [x] Pousser vers GitHub
+
+## Portail Client Amélioré - Expérience Complète
+
+### Phase 1 - Schéma DB
+- [ ] Modèle ProjectMilestone (étapes de projet pour client)
+- [ ] Modèle ClientDeliverable (livrables avec approbation)
+- [ ] Modèle ClientChatMessage (messagerie temps réel)
+- [ ] Modèle ClientNotification (notifications client)
+- [ ] Modèle ClientFile (bibliothèque de fichiers)
+- [ ] Modèle ClientMeeting (réunions et notes)
+- [ ] Modèle ProjectBudgetTracking (suivi budget)
+
+### Phase 2 - APIs
+- [ ] API timeline de projet client
+- [ ] API livrables et approbations
+- [ ] API messagerie client-équipe
+- [ ] API notifications client
+- [ ] API documents et fichiers
+- [ ] API réunions et notes
+- [ ] API reporting et budget
+
+### Phase 3 - Interface Portail Client
+- [ ] Dashboard client personnalisé avec KPIs
+- [ ] Navigation par onglets moderne
+- [ ] Timeline visuelle du projet
+- [ ] Liste des livrables avec approbation en ligne
+- [ ] Chat intégré avec l'équipe Nukleo
+- [ ] Centre de notifications
+- [ ] Bibliothèque de fichiers avec upload
+- [ ] Calendrier des réunions
+- [ ] Notes de réunion accessibles
+- [ ] Rapports et statistiques
+- [ ] Suivi du budget en temps réel
+- [ ] Commentaires sur les fichiers
+
+- [ ] Pousser vers GitHub

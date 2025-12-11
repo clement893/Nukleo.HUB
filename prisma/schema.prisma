@@ -1327,3 +1327,176 @@ model ContentIdea {
   @@index([status])
   @@index([category])
 }
+
+
+// ==========================================
+// PORTAIL CLIENT AMÉLIORÉ
+// ==========================================
+
+// Livrables de projet pour le client
+model ClientDeliverable {
+  id            String   @id @default(cuid())
+  portalId      String
+  projectId     String?
+  title         String
+  description   String?  @db.Text
+  type          String   // document, design, video, website, other
+  status        String   @default("pending") // pending, in_review, approved, rejected, revision_requested
+  dueDate       DateTime?
+  fileUrl       String?
+  thumbnailUrl  String?
+  version       Int      @default(1)
+  clientFeedback String? @db.Text
+  approvedAt    DateTime?
+  approvedBy    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([portalId])
+  @@index([projectId])
+  @@index([status])
+}
+
+// Messagerie client-équipe
+model ClientChatMessage {
+  id          String   @id @default(cuid())
+  portalId    String
+  projectId   String?
+  content     String   @db.Text
+  senderType  String   // client, employee
+  senderName  String
+  senderId    String?  // employeeId si employee
+  isRead      Boolean  @default(false)
+  attachments String?  @db.Text // JSON array of file URLs
+  createdAt   DateTime @default(now())
+
+  @@index([portalId])
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+// Notifications pour le client
+model ClientNotification {
+  id          String   @id @default(cuid())
+  portalId    String
+  type        String   // deliverable_ready, message_received, meeting_scheduled, project_update, invoice_ready
+  title       String
+  message     String   @db.Text
+  link        String?
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([portalId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// Fichiers partagés avec le client
+model ClientFile {
+  id          String   @id @default(cuid())
+  portalId    String
+  projectId   String?
+  name        String
+  description String?
+  fileUrl     String
+  fileType    String   // pdf, image, video, document, archive, other
+  fileSize    Int?     // en bytes
+  category    String?  // contract, invoice, deliverable, asset, brand, other
+  uploadedBy  String   // employee name
+  uploadedById String?
+  isPublic    Boolean  @default(true) // visible par le client
+  createdAt   DateTime @default(now())
+
+  @@index([portalId])
+  @@index([projectId])
+  @@index([category])
+}
+
+// Réunions avec le client
+model ClientMeeting {
+  id            String   @id @default(cuid())
+  portalId      String
+  projectId     String?
+  title         String
+  description   String?  @db.Text
+  meetingDate   DateTime
+  duration      Int?     // en minutes
+  location      String?  // URL de visio ou lieu physique
+  meetingType   String   @default("video") // video, phone, in_person
+  status        String   @default("scheduled") // scheduled, completed, cancelled, rescheduled
+  attendees     String?  @db.Text // JSON array of attendees
+  notes         String?  @db.Text
+  recordingUrl  String?
+  agendaItems   String?  @db.Text // JSON array
+  actionItems   String?  @db.Text // JSON array
+  createdBy     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([portalId])
+  @@index([projectId])
+  @@index([meetingDate])
+  @@index([status])
+}
+
+// Suivi du budget projet pour le client
+model ProjectBudgetTracking {
+  id            String   @id @default(cuid())
+  portalId      String
+  projectId     String?
+  totalBudget   Float
+  spentAmount   Float    @default(0)
+  currency      String   @default("CAD")
+  lastUpdated   DateTime @default(now())
+  breakdown     String?  @db.Text // JSON breakdown by category
+  invoices      String?  @db.Text // JSON array of invoice references
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([portalId])
+  @@index([projectId])
+}
+
+// Timeline/Étapes de projet visible par le client
+model ClientProjectMilestone {
+  id            String   @id @default(cuid())
+  portalId      String
+  projectId     String?
+  title         String
+  description   String?  @db.Text
+  phase         String?  // discovery, design, development, testing, launch
+  status        String   @default("upcoming") // upcoming, in_progress, completed, delayed
+  dueDate       DateTime?
+  completedAt   DateTime?
+  order         Int      @default(0)
+  isVisible     Boolean  @default(true) // visible par le client
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([portalId])
+  @@index([projectId])
+  @@index([status])
+  @@index([order])
+}
+
+// Commentaires sur les fichiers/livrables
+model ClientFileComment {
+  id            String   @id @default(cuid())
+  fileId        String?  // ClientFile id
+  deliverableId String?  // ClientDeliverable id
+  portalId      String
+  content       String   @db.Text
+  authorType    String   // client, employee
+  authorName    String
+  authorId      String?
+  positionX     Float?   // Position du commentaire sur l'image/document
+  positionY     Float?
+  pageNumber    Int?     // Pour les PDFs
+  isResolved    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@index([fileId])
+  @@index([deliverableId])
+  @@index([portalId])
+}
