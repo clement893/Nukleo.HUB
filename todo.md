@@ -422,5 +422,5 @@
 - [x] Pousser vers GitHub
 
 ## Bug Fix - Menu latéral disparaît
-- [ ] Corriger le menu qui disparaît sur /admin/users
-- [ ] Pousser vers GitHub
+- [x] Corriger le menu qui disparaît sur /admin/users
+- [x] Pousser vers GitHub
