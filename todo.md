@@ -454,9 +454,9 @@
 - [x] Pousser vers GitHub
 
 ## Page d'accueil Hubs de Communication
-- [ ] Créer page d'accueil /communication avec liste des clients
-- [ ] Cartes clients avec aperçu du hub (stats, dernière activité)
-- [ ] Formulaire de création de nouveau client communication
-- [ ] Déplacer le hub actuel vers /communication/[clientId]
-- [ ] Filtres et recherche de clients
-- [ ] Pousser vers GitHub
+- [x] Créer page d'accueil /communication avec liste des clients
+- [x] Cartes clients avec aperçu du hub (stats, dernière activité)
+- [x] Formulaire de création de nouveau client communication
+- [x] Déplacer le hub actuel vers /communication/[clientId]
+- [x] Filtres et recherche de clients
+- [x] Pousser vers GitHub

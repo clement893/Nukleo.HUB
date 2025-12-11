@@ -6,335 +6,417 @@ import Sidebar from "@/components/Sidebar";
 import {
   ArrowLeft,
   Plus,
-  Share2,
-  Mail,
-  Megaphone,
-  Key,
-  MessageSquare,
-  CheckSquare,
-  Globe,
-  Phone,
-  Building2,
+  Calendar,
+  FileText,
+  Target,
+  Lightbulb,
+  BarChart3,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Send,
   Edit,
   Trash2,
-  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  ThumbsUp,
   Eye,
-  EyeOff,
-  Calendar,
-  Clock,
+  MessageSquare,
+  Loader2,
+  Image as ImageIcon,
+  Video,
+  FileEdit,
+  Megaphone,
   TrendingUp,
   Users,
-  DollarSign,
-  Send,
-  X,
+  Hash,
+  Link,
   Facebook,
   Instagram,
   Linkedin,
   Twitter,
   Youtube,
-  ChevronDown,
-  ChevronRight,
-  AlertCircle,
-  CheckCircle2,
-  Circle,
-  Loader2,
+  Globe,
 } from "lucide-react";
 
 // Types
-interface SocialAccount {
-  id: string;
-  platform: string;
-  accountName: string;
-  accountUrl: string | null;
-  username: string | null;
-  followers: number | null;
-  status: string;
-  accessEmail: string | null;
-  accessPassword: string | null;
-  postsPerWeek: number | null;
-}
-
-interface Newsletter {
+interface CommunicationClient {
   id: string;
   name: string;
-  platform: string | null;
-  listSize: number | null;
-  frequency: string | null;
-  lastSentDate: string | null;
-  nextSendDate: string | null;
-  openRate: number | null;
-  clickRate: number | null;
+  logo: string | null;
+  description: string | null;
+  industry: string | null;
+  website: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  monthlyBudget: number | null;
   status: string;
 }
 
-interface Campaign {
-  id: string;
-  name: string;
-  type: string;
-  status: string;
-  startDate: string | null;
-  endDate: string | null;
-  budget: number | null;
-  spent: number | null;
-  impressions: number | null;
-  clicks: number | null;
-  conversions: number | null;
-}
-
-interface ClientAccess {
-  id: string;
-  name: string;
-  type: string;
-  url: string | null;
-  username: string | null;
-  password: string | null;
-  email: string | null;
-  expiryDate: string | null;
-}
-
-interface ClientTask {
+interface ContentCalendar {
   id: string;
   title: string;
   description: string | null;
-  type: string | null;
+  contentType: string;
+  platform: string;
+  scheduledDate: string;
+  scheduledTime: string | null;
+  status: string;
+  content: string | null;
+  hashtags: string | null;
+  mediaUrls: string | null;
+}
+
+interface CommunicationBrief {
+  id: string;
+  title: string;
+  projectType: string;
   status: string;
   priority: string;
-  dueDate: string | null;
-  assignedTo: string | null;
+  deadline: string | null;
+  context: string | null;
+  objectives: string | null;
+  targetAudience: string | null;
+  deliverables: string | null;
+  budget: number | null;
 }
 
-interface ClientMessage {
+interface CommunicationStrategy {
   id: string;
-  direction: string;
-  channel: string;
-  subject: string | null;
-  content: string;
-  sentAt: string;
-  sentBy: string | null;
-  isImportant: boolean;
-}
-
-interface Client {
-  id: string;
-  name: string;
-  company: string | null;
-  email: string | null;
-  phone: string | null;
-  website: string | null;
-  logoUrl: string | null;
-  industry: string | null;
-  description: string | null;
+  title: string;
+  strategyType: string;
   status: string;
-  monthlyBudget: number | null;
-  socialAccounts: SocialAccount[];
-  newsletters: Newsletter[];
-  campaigns: Campaign[];
-  accesses: ClientAccess[];
-  tasks: ClientTask[];
-  messages: ClientMessage[];
+  startDate: string | null;
+  endDate: string | null;
+  objectives: string | null;
+  positioning: string | null;
+  channels: string | null;
+  kpis: string | null;
 }
 
-const PLATFORM_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  facebook: Facebook,
-  instagram: Instagram,
-  linkedin: Linkedin,
-  twitter: Twitter,
-  youtube: Youtube,
+interface ContentIdea {
+  id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  platform: string | null;
+  votes: number;
+  status: string;
+}
+
+const platformIcons: { [key: string]: React.ReactNode } = {
+  facebook: <Facebook className="w-4 h-4" />,
+  instagram: <Instagram className="w-4 h-4" />,
+  linkedin: <Linkedin className="w-4 h-4" />,
+  twitter: <Twitter className="w-4 h-4" />,
+  youtube: <Youtube className="w-4 h-4" />,
+  tiktok: <Video className="w-4 h-4" />,
+  website: <Globe className="w-4 h-4" />,
+  blog: <FileEdit className="w-4 h-4" />,
+  newsletter: <Send className="w-4 h-4" />,
 };
 
-const PLATFORM_COLORS: Record<string, string> = {
-  facebook: "#1877F2",
-  instagram: "#E4405F",
-  linkedin: "#0A66C2",
-  twitter: "#1DA1F2",
-  youtube: "#FF0000",
-  tiktok: "#000000",
+const statusColors: { [key: string]: string } = {
+  draft: "bg-gray-100 text-gray-700",
+  scheduled: "bg-blue-100 text-blue-700",
+  published: "bg-green-100 text-green-700",
+  cancelled: "bg-red-100 text-red-700",
+  pending: "bg-yellow-100 text-yellow-700",
+  in_progress: "bg-purple-100 text-purple-700",
+  completed: "bg-green-100 text-green-700",
+  approved: "bg-green-100 text-green-700",
+  rejected: "bg-red-100 text-red-700",
 };
 
-const CAMPAIGN_TYPES: Record<string, { label: string; color: string }> = {
-  google_ads: { label: "Google Ads", color: "#4285F4" },
-  facebook_ads: { label: "Facebook Ads", color: "#1877F2" },
-  linkedin_ads: { label: "LinkedIn Ads", color: "#0A66C2" },
-  seo: { label: "SEO", color: "#10B981" },
-  email: { label: "Email", color: "#F59E0B" },
-  influencer: { label: "Influenceur", color: "#EC4899" },
+const priorityColors: { [key: string]: string } = {
+  low: "bg-gray-100 text-gray-700",
+  medium: "bg-yellow-100 text-yellow-700",
+  high: "bg-orange-100 text-orange-700",
+  urgent: "bg-red-100 text-red-700",
 };
 
-const TASK_STATUS: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
-  todo: { label: "À faire", color: "#6B7280", icon: Circle },
-  in_progress: { label: "En cours", color: "#F59E0B", icon: Loader2 },
-  review: { label: "En révision", color: "#8B5CF6", icon: AlertCircle },
-  done: { label: "Terminé", color: "#10B981", icon: CheckCircle2 },
-};
-
-const PRIORITY_COLORS: Record<string, string> = {
-  low: "#10B981",
-  medium: "#F59E0B",
-  high: "#EF4444",
-  urgent: "#DC2626",
-};
-
-export default function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function ClientHubPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const [client, setClient] = useState<Client | null>(null);
+  const [client, setClient] = useState<CommunicationClient | null>(null);
+  const [activeTab, setActiveTab] = useState<"dashboard" | "calendar" | "briefs" | "strategies" | "ideas">("dashboard");
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
-
-  // Modal states
-  const [showAddSocial, setShowAddSocial] = useState(false);
-  const [showAddCampaign, setShowAddCampaign] = useState(false);
-  const [showAddAccess, setShowAddAccess] = useState(false);
-  const [showAddTask, setShowAddTask] = useState(false);
-  const [showAddMessage, setShowAddMessage] = useState(false);
-
+  
+  // Calendar state
+  const [calendarItems, setCalendarItems] = useState<ContentCalendar[]>([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  
+  // Briefs state
+  const [briefs, setBriefs] = useState<CommunicationBrief[]>([]);
+  const [showBriefModal, setShowBriefModal] = useState(false);
+  
+  // Strategies state
+  const [strategies, setStrategies] = useState<CommunicationStrategy[]>([]);
+  const [showStrategyModal, setShowStrategyModal] = useState(false);
+  
+  // Ideas state
+  const [ideas, setIdeas] = useState<ContentIdea[]>([]);
+  const [showIdeaModal, setShowIdeaModal] = useState(false);
+  
   // Form states
-  const [newSocial, setNewSocial] = useState({ platform: "facebook", accountName: "", accountUrl: "", username: "", followers: "" });
-  const [newCampaign, setNewCampaign] = useState({ name: "", type: "google_ads", budget: "", startDate: "", endDate: "" });
-  const [newAccess, setNewAccess] = useState({ name: "", type: "website", url: "", username: "", password: "", email: "" });
-  const [newTask, setNewTask] = useState({ title: "", description: "", type: "content", priority: "medium", dueDate: "" });
-  const [newMessage, setNewMessage] = useState({ direction: "outbound", channel: "email", subject: "", content: "" });
+  const [calendarForm, setCalendarForm] = useState({
+    title: "",
+    description: "",
+    contentType: "post",
+    platform: "instagram",
+    scheduledDate: "",
+    scheduledTime: "",
+    content: "",
+    hashtags: "",
+    status: "draft",
+  });
+  
+  const [briefForm, setBriefForm] = useState({
+    title: "",
+    projectType: "campaign",
+    priority: "medium",
+    deadline: "",
+    context: "",
+    objectives: "",
+    targetAudience: "",
+    deliverables: "",
+    budget: "",
+  });
+  
+  const [strategyForm, setStrategyForm] = useState({
+    title: "",
+    strategyType: "annual",
+    startDate: "",
+    endDate: "",
+    objectives: "",
+    positioning: "",
+    channels: "",
+    kpis: "",
+  });
+  
+  const [ideaForm, setIdeaForm] = useState({
+    title: "",
+    description: "",
+    category: "trend",
+    platform: "instagram",
+  });
 
   useEffect(() => {
-    fetchClient();
+    fetchClientData();
   }, [resolvedParams.id]);
 
-  const fetchClient = async () => {
-    setLoading(true);
+  const fetchClientData = async () => {
     try {
-      const res = await fetch(`/api/communication/clients/${resolvedParams.id}`);
-      const data = await res.json();
-      setClient(data);
+      setLoading(true);
+      
+      // Fetch client details
+      const clientRes = await fetch(`/api/communication/clients/${resolvedParams.id}`);
+      if (clientRes.ok) {
+        const clientData = await clientRes.json();
+        setClient(clientData);
+      }
+      
+      // Fetch calendar items
+      const calendarRes = await fetch(`/api/communication/calendar?clientId=${resolvedParams.id}`);
+      if (calendarRes.ok) {
+        const calendarData = await calendarRes.json();
+        setCalendarItems(calendarData);
+      }
+      
+      // Fetch briefs
+      const briefsRes = await fetch(`/api/communication/briefs?clientId=${resolvedParams.id}`);
+      if (briefsRes.ok) {
+        const briefsData = await briefsRes.json();
+        setBriefs(briefsData);
+      }
+      
+      // Fetch strategies
+      const strategiesRes = await fetch(`/api/communication/strategies?clientId=${resolvedParams.id}`);
+      if (strategiesRes.ok) {
+        const strategiesData = await strategiesRes.json();
+        setStrategies(strategiesData);
+      }
+      
+      // Fetch ideas
+      const ideasRes = await fetch(`/api/communication/ideas?clientId=${resolvedParams.id}`);
+      if (ideasRes.ok) {
+        const ideasData = await ideasRes.json();
+        setIdeas(ideasData);
+      }
     } catch (error) {
-      console.error("Error fetching client:", error);
+      console.error("Error fetching client data:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const handleAddSocial = async () => {
-    if (!newSocial.accountName) return;
+  // Calendar functions
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDay = firstDay.getDay();
+    
+    const days: (Date | null)[] = [];
+    for (let i = 0; i < startingDay; i++) {
+      days.push(null);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(new Date(year, month, i));
+    }
+    return days;
+  };
+
+  const getItemsForDate = (date: Date) => {
+    return calendarItems.filter(item => {
+      const itemDate = new Date(item.scheduledDate);
+      return itemDate.toDateString() === date.toDateString();
+    });
+  };
+
+  const handleCreateCalendarItem = async () => {
     try {
-      await fetch("/api/communication/social", {
+      const res = await fetch("/api/communication/calendar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          ...calendarForm,
           clientId: resolvedParams.id,
-          ...newSocial,
-          followers: newSocial.followers ? parseInt(newSocial.followers) : null,
         }),
       });
-      setShowAddSocial(false);
-      setNewSocial({ platform: "facebook", accountName: "", accountUrl: "", username: "", followers: "" });
-      fetchClient();
+      
+      if (res.ok) {
+        setShowCalendarModal(false);
+        setCalendarForm({
+          title: "",
+          description: "",
+          contentType: "post",
+          platform: "instagram",
+          scheduledDate: "",
+          scheduledTime: "",
+          content: "",
+          hashtags: "",
+          status: "draft",
+        });
+        fetchClientData();
+      }
     } catch (error) {
-      console.error("Error adding social:", error);
+      console.error("Error creating calendar item:", error);
     }
   };
 
-  const handleAddCampaign = async () => {
-    if (!newCampaign.name) return;
+  const handleCreateBrief = async () => {
     try {
-      await fetch("/api/communication/campaigns", {
+      const res = await fetch("/api/communication/briefs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          ...briefForm,
           clientId: resolvedParams.id,
-          ...newCampaign,
-          budget: newCampaign.budget ? parseInt(newCampaign.budget) : null,
+          budget: briefForm.budget ? parseFloat(briefForm.budget) : null,
         }),
       });
-      setShowAddCampaign(false);
-      setNewCampaign({ name: "", type: "google_ads", budget: "", startDate: "", endDate: "" });
-      fetchClient();
+      
+      if (res.ok) {
+        setShowBriefModal(false);
+        setBriefForm({
+          title: "",
+          projectType: "campaign",
+          priority: "medium",
+          deadline: "",
+          context: "",
+          objectives: "",
+          targetAudience: "",
+          deliverables: "",
+          budget: "",
+        });
+        fetchClientData();
+      }
     } catch (error) {
-      console.error("Error adding campaign:", error);
+      console.error("Error creating brief:", error);
     }
   };
 
-  const handleAddAccess = async () => {
-    if (!newAccess.name) return;
+  const handleCreateStrategy = async () => {
     try {
-      await fetch("/api/communication/accesses", {
+      const res = await fetch("/api/communication/strategies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId: resolvedParams.id, ...newAccess }),
+        body: JSON.stringify({
+          ...strategyForm,
+          clientId: resolvedParams.id,
+        }),
       });
-      setShowAddAccess(false);
-      setNewAccess({ name: "", type: "website", url: "", username: "", password: "", email: "" });
-      fetchClient();
+      
+      if (res.ok) {
+        setShowStrategyModal(false);
+        setStrategyForm({
+          title: "",
+          strategyType: "annual",
+          startDate: "",
+          endDate: "",
+          objectives: "",
+          positioning: "",
+          channels: "",
+          kpis: "",
+        });
+        fetchClientData();
+      }
     } catch (error) {
-      console.error("Error adding access:", error);
+      console.error("Error creating strategy:", error);
     }
   };
 
-  const handleAddTask = async () => {
-    if (!newTask.title) return;
+  const handleCreateIdea = async () => {
     try {
-      await fetch("/api/communication/tasks", {
+      const res = await fetch("/api/communication/ideas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId: resolvedParams.id, ...newTask }),
+        body: JSON.stringify({
+          ...ideaForm,
+          clientId: resolvedParams.id,
+        }),
       });
-      setShowAddTask(false);
-      setNewTask({ title: "", description: "", type: "content", priority: "medium", dueDate: "" });
-      fetchClient();
+      
+      if (res.ok) {
+        setShowIdeaModal(false);
+        setIdeaForm({
+          title: "",
+          description: "",
+          category: "trend",
+          platform: "instagram",
+        });
+        fetchClientData();
+      }
     } catch (error) {
-      console.error("Error adding task:", error);
+      console.error("Error creating idea:", error);
     }
   };
 
-  const handleAddMessage = async () => {
-    if (!newMessage.content) return;
+  const handleVoteIdea = async (ideaId: string) => {
     try {
-      await fetch("/api/communication/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clientId: resolvedParams.id, ...newMessage }),
-      });
-      setShowAddMessage(false);
-      setNewMessage({ direction: "outbound", channel: "email", subject: "", content: "" });
-      fetchClient();
-    } catch (error) {
-      console.error("Error adding message:", error);
-    }
-  };
-
-  const handleUpdateTaskStatus = async (taskId: string, status: string) => {
-    try {
-      await fetch("/api/communication/tasks", {
+      await fetch(`/api/communication/ideas?id=${ideaId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: taskId, status }),
+        body: JSON.stringify({ action: "vote" }),
       });
-      fetchClient();
+      fetchClientData();
     } catch (error) {
-      console.error("Error updating task:", error);
+      console.error("Error voting idea:", error);
     }
   };
-
-  const handleDeleteItem = async (type: string, id: string) => {
-    if (!confirm("Supprimer cet élément ?")) return;
-    try {
-      await fetch(`/api/communication/${type}?id=${id}`, { method: "DELETE" });
-      fetchClient();
-    } catch (error) {
-      console.error("Error deleting item:", error);
-    }
-  };
-
-  const togglePassword = (id: string) => {
-    setShowPassword((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
-        <main className="pl-64 flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <main className="flex-1 ml-64 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
         </main>
       </div>
     );
@@ -342,667 +424,668 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
 
   if (!client) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="flex min-h-screen bg-gray-50">
         <Sidebar />
-        <main className="pl-64 flex items-center justify-center h-screen">
-          <p className="text-muted-foreground">Client non trouvé</p>
+        <main className="flex-1 ml-64 flex items-center justify-center">
+          <div className="text-center">
+            <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900">Client non trouvé</h2>
+            <button
+              onClick={() => router.push("/communication")}
+              className="mt-4 text-purple-600 hover:text-purple-700"
+            >
+              Retour aux hubs
+            </button>
+          </div>
         </main>
       </div>
     );
   }
 
-  const tabs = [
-    { id: "overview", label: "Vue d'ensemble", icon: TrendingUp },
-    { id: "social", label: "Médias sociaux", icon: Share2, count: client.socialAccounts.length },
-    { id: "campaigns", label: "Campagnes", icon: Megaphone, count: client.campaigns.length },
-    { id: "accesses", label: "Accès", icon: Key, count: client.accesses.length },
-    { id: "tasks", label: "Tâches", icon: CheckSquare, count: client.tasks.filter((t) => t.status !== "done").length },
-    { id: "messages", label: "Communications", icon: MessageSquare, count: client.messages.length },
-  ];
+  const scheduledCount = calendarItems.filter(i => i.status === "scheduled").length;
+  const publishedCount = calendarItems.filter(i => i.status === "published").length;
+  const activeBriefs = briefs.filter(b => b.status === "in_progress").length;
+  const totalIdeas = ideas.length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen bg-gray-50">
       <Sidebar />
-      <main className="pl-64">
+      <main className="flex-1 ml-64">
         {/* Header */}
-        <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-sm">
-          <div className="flex h-16 items-center gap-4 px-8">
-            <button onClick={() => router.back()} className="p-2 rounded-lg hover:bg-muted transition-colors">
-              <ArrowLeft className="h-5 w-5 text-muted-foreground" />
+        <div className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white">
+          <div className="max-w-7xl mx-auto px-6 py-8">
+            <button
+              onClick={() => router.push("/communication")}
+              className="flex items-center gap-2 text-white/80 hover:text-white mb-4 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Retour aux hubs
             </button>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold">
-                {client.logoUrl ? (
-                  <img src={client.logoUrl} alt={client.name} className="w-full h-full rounded-xl object-cover" />
-                ) : (
-                  getInitials(client.name)
-                )}
-              </div>
+            
+            <div className="flex items-center gap-6">
+              {client.logo ? (
+                <img src={client.logo} alt={client.name} className="w-20 h-20 rounded-xl object-cover bg-white" />
+              ) : (
+                <div className="w-20 h-20 rounded-xl bg-white/20 flex items-center justify-center text-3xl font-bold">
+                  {client.name.charAt(0)}
+                </div>
+              )}
               <div>
-                <h1 className="text-xl font-semibold text-foreground">{client.name}</h1>
-                <p className="text-sm text-muted-foreground">{client.company || client.industry || "Client"}</p>
+                <h1 className="text-3xl font-bold">{client.name}</h1>
+                {client.description && (
+                  <p className="text-white/80 mt-1">{client.description}</p>
+                )}
+                <div className="flex items-center gap-4 mt-2">
+                  <span className={`px-3 py-1 rounded-full text-sm ${
+                    client.status === "active" ? "bg-green-500/20 text-green-100" : "bg-gray-500/20 text-gray-100"
+                  }`}>
+                    {client.status === "active" ? "Actif" : client.status}
+                  </span>
+                  {client.monthlyBudget && (
+                    <span className="text-white/80">
+                      Budget: {client.monthlyBudget.toLocaleString()}$/mois
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex gap-1 px-8 -mb-px">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
+            
+            {/* Tabs */}
+            <div className="flex gap-1 mt-8">
+              {[
+                { id: "dashboard", label: "Tableau de bord", icon: BarChart3 },
+                { id: "calendar", label: "Calendrier", icon: Calendar },
+                { id: "briefs", label: "Briefs", icon: FileText },
+                { id: "strategies", label: "Stratégies", icon: Target },
+                { id: "ideas", label: "Idées", icon: Lightbulb },
+              ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-t-lg transition-colors ${
                     activeTab === tab.id
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
+                      ? "bg-white text-purple-600"
+                      : "text-white/80 hover:text-white hover:bg-white/10"
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
+                  <tab.icon className="w-4 h-4" />
                   {tab.label}
-                  {tab.count !== undefined && tab.count > 0 && (
-                    <span className="px-1.5 py-0.5 rounded-full text-xs bg-muted">{tab.count}</span>
-                  )}
                 </button>
-              );
-            })}
+              ))}
+            </div>
           </div>
-        </header>
+        </div>
 
-        <div className="p-8">
-          {/* Overview Tab */}
-          {activeTab === "overview" && (
-            <div className="grid grid-cols-3 gap-6">
-              {/* Client info */}
-              <div className="bg-card border border-border rounded-xl p-6">
-                <h3 className="font-semibold text-foreground mb-4">Informations</h3>
-                <div className="space-y-3 text-sm">
-                  {client.email && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Mail className="h-4 w-4" />
-                      <a href={`mailto:${client.email}`} className="hover:text-primary">{client.email}</a>
+        {/* Content */}
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          {/* Dashboard Tab */}
+          {activeTab === "dashboard" && (
+            <div className="space-y-8">
+              {/* Stats */}
+              <div className="grid grid-cols-4 gap-6">
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+                      <Clock className="w-6 h-6 text-blue-600" />
                     </div>
-                  )}
-                  {client.phone && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Phone className="h-4 w-4" />
-                      <span>{client.phone}</span>
+                    <div>
+                      <p className="text-2xl font-bold text-gray-900">{scheduledCount}</p>
+                      <p className="text-sm text-gray-500">Planifiées</p>
                     </div>
-                  )}
-                  {client.website && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Globe className="h-4 w-4" />
-                      <a href={client.website} target="_blank" rel="noopener noreferrer" className="hover:text-primary flex items-center gap-1">
-                        {client.website.replace(/^https?:\/\//, "")}
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                  )}
-                  {client.industry && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Building2 className="h-4 w-4" />
-                      <span>{client.industry}</span>
-                    </div>
-                  )}
-                  {client.monthlyBudget && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <DollarSign className="h-4 w-4" />
-                      <span>{client.monthlyBudget.toLocaleString()}$/mois</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Quick stats */}
-              <div className="col-span-2 grid grid-cols-4 gap-4">
-                <div className="bg-card border border-border rounded-xl p-4">
-                  <Share2 className="h-5 w-5 text-blue-500 mb-2" />
-                  <p className="text-2xl font-bold text-foreground">{client.socialAccounts.length}</p>
-                  <p className="text-sm text-muted-foreground">Réseaux sociaux</p>
-                </div>
-                <div className="bg-card border border-border rounded-xl p-4">
-                  <Megaphone className="h-5 w-5 text-violet-500 mb-2" />
-                  <p className="text-2xl font-bold text-foreground">{client.campaigns.length}</p>
-                  <p className="text-sm text-muted-foreground">Campagnes</p>
-                </div>
-                <div className="bg-card border border-border rounded-xl p-4">
-                  <Key className="h-5 w-5 text-amber-500 mb-2" />
-                  <p className="text-2xl font-bold text-foreground">{client.accesses.length}</p>
-                  <p className="text-sm text-muted-foreground">Accès</p>
-                </div>
-                <div className="bg-card border border-border rounded-xl p-4">
-                  <CheckSquare className="h-5 w-5 text-emerald-500 mb-2" />
-                  <p className="text-2xl font-bold text-foreground">{client.tasks.filter((t) => t.status !== "done").length}</p>
-                  <p className="text-sm text-muted-foreground">Tâches actives</p>
-                </div>
-              </div>
-
-              {/* Recent tasks */}
-              <div className="col-span-2 bg-card border border-border rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-foreground">Tâches récentes</h3>
-                  <button onClick={() => setActiveTab("tasks")} className="text-sm text-primary hover:underline">
-                    Voir tout
-                  </button>
-                </div>
-                {client.tasks.length === 0 ? (
-                  <p className="text-muted-foreground text-sm">Aucune tâche</p>
-                ) : (
-                  <div className="space-y-2">
-                    {client.tasks.slice(0, 5).map((task) => {
-                      const statusInfo = TASK_STATUS[task.status] || TASK_STATUS.todo;
-                      const StatusIcon = statusInfo.icon;
-                      return (
-                        <div key={task.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
-                          <div style={{ color: statusInfo.color }}><StatusIcon className="h-4 w-4" /></div>
-                          <span className="flex-1 text-sm text-foreground">{task.title}</span>
-                          <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: `${PRIORITY_COLORS[task.priority]}20`, color: PRIORITY_COLORS[task.priority] }}>
-                            {task.priority}
-                          </span>
-                        </div>
-                      );
-                    })}
                   </div>
-                )}
-              </div>
-
-              {/* Social accounts preview */}
-              <div className="bg-card border border-border rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-foreground">Réseaux sociaux</h3>
-                  <button onClick={() => setActiveTab("social")} className="text-sm text-primary hover:underline">
-                    Gérer
-                  </button>
                 </div>
-                {client.socialAccounts.length === 0 ? (
-                  <p className="text-muted-foreground text-sm">Aucun compte</p>
-                ) : (
-                  <div className="space-y-2">
-                    {client.socialAccounts.map((account) => {
-                      const Icon = PLATFORM_ICONS[account.platform] || Share2;
-                      return (
-                        <div key={account.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
-                          <div style={{ color: PLATFORM_COLORS[account.platform] }}><Icon className="h-4 w-4" /></div>
-                          <span className="flex-1 text-sm text-foreground">{account.accountName}</span>
-                          {account.followers && (
-                            <span className="text-xs text-muted-foreground">{account.followers.toLocaleString()}</span>
-                          )}
-                        </div>
-                      );
-                    })}
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
+                      <CheckCircle2 className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-gray-900">{publishedCount}</p>
+                      <p className="text-sm text-gray-500">Publiées</p>
+                    </div>
                   </div>
-                )}
+                </div>
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                      <FileText className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-gray-900">{activeBriefs}</p>
+                      <p className="text-sm text-gray-500">Briefs actifs</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-yellow-100 flex items-center justify-center">
+                      <Lightbulb className="w-6 h-6 text-yellow-600" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-gray-900">{totalIdeas}</p>
+                      <p className="text-sm text-gray-500">Idées</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
 
-          {/* Social Tab */}
-          {activeTab === "social" && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Médias sociaux</h2>
-                <button onClick={() => setShowAddSocial(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
-                  <Plus className="h-4 w-4" />
-                  Ajouter un compte
+              {/* Quick Actions */}
+              <div className="grid grid-cols-4 gap-4">
+                <button
+                  onClick={() => { setActiveTab("calendar"); setShowCalendarModal(true); }}
+                  className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow text-left"
+                >
+                  <Calendar className="w-8 h-8 text-blue-600 mb-2" />
+                  <h3 className="font-semibold text-gray-900">Planifier</h3>
+                  <p className="text-sm text-gray-500">Nouvelle publication</p>
+                </button>
+                <button
+                  onClick={() => { setActiveTab("briefs"); setShowBriefModal(true); }}
+                  className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow text-left"
+                >
+                  <FileText className="w-8 h-8 text-purple-600 mb-2" />
+                  <h3 className="font-semibold text-gray-900">Créer un brief</h3>
+                  <p className="text-sm text-gray-500">Nouveau projet</p>
+                </button>
+                <button
+                  onClick={() => { setActiveTab("strategies"); setShowStrategyModal(true); }}
+                  className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow text-left"
+                >
+                  <Target className="w-8 h-8 text-green-600 mb-2" />
+                  <h3 className="font-semibold text-gray-900">Stratégie</h3>
+                  <p className="text-sm text-gray-500">Définir les objectifs</p>
+                </button>
+                <button
+                  onClick={() => { setActiveTab("ideas"); setShowIdeaModal(true); }}
+                  className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow text-left"
+                >
+                  <Lightbulb className="w-8 h-8 text-yellow-600 mb-2" />
+                  <h3 className="font-semibold text-gray-900">Brainstorming</h3>
+                  <p className="text-sm text-gray-500">Nouvelle idée</p>
                 </button>
               </div>
-              {client.socialAccounts.length === 0 ? (
-                <div className="text-center py-12 bg-card border border-border rounded-xl">
-                  <Share2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Aucun compte de médias sociaux</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-3 gap-4">
-                  {client.socialAccounts.map((account) => {
-                    const Icon = PLATFORM_ICONS[account.platform] || Share2;
-                    return (
-                      <div key={account.id} className="bg-card border border-border rounded-xl p-4 group">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg" style={{ backgroundColor: `${PLATFORM_COLORS[account.platform]}20` }}>
-                              <div style={{ color: PLATFORM_COLORS[account.platform] }}><Icon className="h-5 w-5" /></div>
-                            </div>
-                            <div>
-                              <p className="font-medium text-foreground">{account.accountName}</p>
-                              <p className="text-sm text-muted-foreground capitalize">{account.platform}</p>
-                            </div>
-                          </div>
-                          <button onClick={() => handleDeleteItem("social", account.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                        {account.followers && (
-                          <p className="text-sm text-muted-foreground mb-2">
-                            <Users className="h-4 w-4 inline mr-1" />
-                            {account.followers.toLocaleString()} abonnés
-                          </p>
-                        )}
-                        {account.accountUrl && (
-                          <a href={account.accountUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline flex items-center gap-1">
-                            Voir le profil <ExternalLink className="h-3 w-3" />
-                          </a>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
 
-          {/* Campaigns Tab */}
-          {activeTab === "campaigns" && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Campagnes</h2>
-                <button onClick={() => setShowAddCampaign(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
-                  <Plus className="h-4 w-4" />
-                  Nouvelle campagne
-                </button>
-              </div>
-              {client.campaigns.length === 0 ? (
-                <div className="text-center py-12 bg-card border border-border rounded-xl">
-                  <Megaphone className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Aucune campagne</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {client.campaigns.map((campaign) => {
-                    const typeInfo = CAMPAIGN_TYPES[campaign.type] || { label: campaign.type, color: "#6B7280" };
-                    return (
-                      <div key={campaign.id} className="bg-card border border-border rounded-xl p-4 group">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg" style={{ backgroundColor: `${typeInfo.color}20` }}>
-                              <div style={{ color: typeInfo.color }}><Megaphone className="h-5 w-5" /></div>
-                            </div>
-                            <div>
-                              <p className="font-medium text-foreground">{campaign.name}</p>
-                              <p className="text-sm text-muted-foreground">{typeInfo.label}</p>
-                            </div>
+              {/* Recent Activity */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <h3 className="font-semibold text-gray-900 mb-4">Prochaines publications</h3>
+                  {calendarItems.filter(i => i.status === "scheduled").slice(0, 5).length > 0 ? (
+                    <div className="space-y-3">
+                      {calendarItems.filter(i => i.status === "scheduled").slice(0, 5).map((item) => (
+                        <div key={item.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                          <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center">
+                            {platformIcons[item.platform] || <Globe className="w-5 h-5 text-gray-400" />}
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              campaign.status === "active" ? "bg-emerald-500/10 text-emerald-500" :
-                              campaign.status === "paused" ? "bg-amber-500/10 text-amber-500" :
-                              "bg-muted text-muted-foreground"
-                            }`}>
-                              {campaign.status}
-                            </span>
-                            <button onClick={() => handleDeleteItem("campaigns", campaign.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900 text-sm">{item.title}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(item.scheduledDate).toLocaleDateString("fr-FR")}
+                              {item.scheduledTime && ` à ${item.scheduledTime}`}
+                            </p>
                           </div>
                         </div>
-                        <div className="grid grid-cols-4 gap-4 mt-4 text-sm">
-                          {campaign.budget && (
-                            <div>
-                              <p className="text-muted-foreground">Budget</p>
-                              <p className="font-medium text-foreground">{campaign.budget.toLocaleString()}$</p>
-                            </div>
-                          )}
-                          {campaign.impressions && (
-                            <div>
-                              <p className="text-muted-foreground">Impressions</p>
-                              <p className="font-medium text-foreground">{campaign.impressions.toLocaleString()}</p>
-                            </div>
-                          )}
-                          {campaign.clicks && (
-                            <div>
-                              <p className="text-muted-foreground">Clics</p>
-                              <p className="font-medium text-foreground">{campaign.clicks.toLocaleString()}</p>
-                            </div>
-                          )}
-                          {campaign.conversions && (
-                            <div>
-                              <p className="text-muted-foreground">Conversions</p>
-                              <p className="font-medium text-foreground">{campaign.conversions.toLocaleString()}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Accesses Tab */}
-          {activeTab === "accesses" && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Accès & Liens</h2>
-                <button onClick={() => setShowAddAccess(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
-                  <Plus className="h-4 w-4" />
-                  Ajouter un accès
-                </button>
-              </div>
-              {client.accesses.length === 0 ? (
-                <div className="text-center py-12 bg-card border border-border rounded-xl">
-                  <Key className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Aucun accès enregistré</p>
-                </div>
-              ) : (
-                <div className="bg-card border border-border rounded-xl overflow-hidden">
-                  <table className="w-full">
-                    <thead className="bg-muted/30">
-                      <tr className="text-left text-sm text-muted-foreground">
-                        <th className="px-4 py-3">Service</th>
-                        <th className="px-4 py-3">Type</th>
-                        <th className="px-4 py-3">Identifiant</th>
-                        <th className="px-4 py-3">Mot de passe</th>
-                        <th className="px-4 py-3">URL</th>
-                        <th className="px-4 py-3"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {client.accesses.map((access) => (
-                        <tr key={access.id} className="border-t border-border group">
-                          <td className="px-4 py-3 font-medium text-foreground">{access.name}</td>
-                          <td className="px-4 py-3 text-muted-foreground capitalize">{access.type}</td>
-                          <td className="px-4 py-3 text-foreground">{access.username || access.email || "-"}</td>
-                          <td className="px-4 py-3">
-                            {access.password ? (
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono text-sm text-foreground">
-                                  {showPassword[access.id] ? access.password : "••••••••"}
-                                </span>
-                                <button onClick={() => togglePassword(access.id)} className="p-1 rounded hover:bg-muted">
-                                  {showPassword[access.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </button>
-                              </div>
-                            ) : "-"}
-                          </td>
-                          <td className="px-4 py-3">
-                            {access.url ? (
-                              <a href={access.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
-                                Ouvrir <ExternalLink className="h-3 w-3" />
-                              </a>
-                            ) : "-"}
-                          </td>
-                          <td className="px-4 py-3">
-                            <button onClick={() => handleDeleteItem("accesses", access.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100">
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </td>
-                        </tr>
                       ))}
-                    </tbody>
-                  </table>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">Aucune publication planifiée</p>
+                  )}
                 </div>
-              )}
+
+                <div className="bg-white rounded-xl p-6 shadow-sm">
+                  <h3 className="font-semibold text-gray-900 mb-4">Idées populaires</h3>
+                  {ideas.sort((a, b) => b.votes - a.votes).slice(0, 5).length > 0 ? (
+                    <div className="space-y-3">
+                      {ideas.sort((a, b) => b.votes - a.votes).slice(0, 5).map((idea) => (
+                        <div key={idea.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                          <button
+                            onClick={() => handleVoteIdea(idea.id)}
+                            className="flex items-center gap-1 text-purple-600 hover:text-purple-700"
+                          >
+                            <ThumbsUp className="w-4 h-4" />
+                            <span className="text-sm font-medium">{idea.votes}</span>
+                          </button>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900 text-sm">{idea.title}</p>
+                            <p className="text-xs text-gray-500">{idea.category}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">Aucune idée pour le moment</p>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Tasks Tab */}
-          {activeTab === "tasks" && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Tâches</h2>
-                <button onClick={() => setShowAddTask(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
-                  <Plus className="h-4 w-4" />
-                  Nouvelle tâche
+          {/* Calendar Tab */}
+          {activeTab === "calendar" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {currentMonth.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
+                  </h2>
+                  <button
+                    onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+                    className="p-2 hover:bg-gray-100 rounded-lg"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+                <button
+                  onClick={() => setShowCalendarModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                >
+                  <Plus className="w-4 h-4" />
+                  Planifier
                 </button>
               </div>
-              {client.tasks.length === 0 ? (
-                <div className="text-center py-12 bg-card border border-border rounded-xl">
-                  <CheckSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Aucune tâche</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {client.tasks.map((task) => {
-                    const statusInfo = TASK_STATUS[task.status] || TASK_STATUS.todo;
-                    const StatusIcon = statusInfo.icon;
-                    return (
-                      <div key={task.id} className="bg-card border border-border rounded-xl p-4 group flex items-center gap-4">
-                        <select
-                          value={task.status}
-                          onChange={(e) => handleUpdateTaskStatus(task.id, e.target.value)}
-                          className="rounded-lg border border-border bg-background px-2 py-1 text-sm"
-                          style={{ color: statusInfo.color }}
-                        >
-                          {Object.entries(TASK_STATUS).map(([key, val]) => (
-                            <option key={key} value={key}>{val.label}</option>
-                          ))}
-                        </select>
-                        <div className="flex-1">
-                          <p className={`font-medium ${task.status === "done" ? "text-muted-foreground line-through" : "text-foreground"}`}>
-                            {task.title}
-                          </p>
-                          {task.description && (
-                            <p className="text-sm text-muted-foreground">{task.description}</p>
-                          )}
-                        </div>
-                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: `${PRIORITY_COLORS[task.priority]}20`, color: PRIORITY_COLORS[task.priority] }}>
-                          {task.priority}
-                        </span>
-                        {task.dueDate && (
-                          <span className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Calendar className="h-4 w-4" />
-                            {new Date(task.dueDate).toLocaleDateString("fr-FR")}
-                          </span>
-                        )}
-                        <button onClick={() => handleDeleteItem("tasks", task.id)} className="p-1.5 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
 
-          {/* Messages Tab */}
-          {activeTab === "messages" && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Communications</h2>
-                <button onClick={() => setShowAddMessage(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
-                  <Plus className="h-4 w-4" />
-                  Nouveau message
-                </button>
-              </div>
-              {client.messages.length === 0 ? (
-                <div className="text-center py-12 bg-card border border-border rounded-xl">
-                  <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Aucune communication</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {client.messages.map((message) => (
-                    <div key={message.id} className={`bg-card border border-border rounded-xl p-4 ${message.direction === "inbound" ? "border-l-4 border-l-blue-500" : "border-l-4 border-l-emerald-500"}`}>
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${message.direction === "inbound" ? "bg-blue-500/10 text-blue-500" : "bg-emerald-500/10 text-emerald-500"}`}>
-                            {message.direction === "inbound" ? "Reçu" : "Envoyé"}
-                          </span>
-                          <span className="text-sm text-muted-foreground capitalize">{message.channel}</span>
-                          {message.isImportant && <AlertCircle className="h-4 w-4 text-amber-500" />}
-                        </div>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(message.sentAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                        </span>
-                      </div>
-                      {message.subject && <p className="font-medium text-foreground mb-1">{message.subject}</p>}
-                      <p className="text-sm text-muted-foreground">{message.content}</p>
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div className="grid grid-cols-7 border-b">
+                  {["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"].map((day) => (
+                    <div key={day} className="p-3 text-center text-sm font-medium text-gray-500">
+                      {day}
                     </div>
                   ))}
+                </div>
+                <div className="grid grid-cols-7">
+                  {getDaysInMonth(currentMonth).map((date, index) => (
+                    <div
+                      key={index}
+                      className={`min-h-[120px] p-2 border-b border-r ${
+                        date ? "hover:bg-gray-50 cursor-pointer" : "bg-gray-50"
+                      }`}
+                      onClick={() => {
+                        if (date) {
+                          setSelectedDate(date);
+                          setCalendarForm(prev => ({
+                            ...prev,
+                            scheduledDate: date.toISOString().split("T")[0],
+                          }));
+                          setShowCalendarModal(true);
+                        }
+                      }}
+                    >
+                      {date && (
+                        <>
+                          <p className={`text-sm font-medium ${
+                            date.toDateString() === new Date().toDateString()
+                              ? "text-purple-600"
+                              : "text-gray-900"
+                          }`}>
+                            {date.getDate()}
+                          </p>
+                          <div className="mt-1 space-y-1">
+                            {getItemsForDate(date).slice(0, 3).map((item) => (
+                              <div
+                                key={item.id}
+                                className={`text-xs p-1 rounded truncate ${statusColors[item.status] || "bg-gray-100"}`}
+                              >
+                                {platformIcons[item.platform]} {item.title}
+                              </div>
+                            ))}
+                            {getItemsForDate(date).length > 3 && (
+                              <p className="text-xs text-gray-500">
+                                +{getItemsForDate(date).length - 3} autres
+                              </p>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Briefs Tab */}
+          {activeTab === "briefs" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900">Briefs de projets</h2>
+                <button
+                  onClick={() => setShowBriefModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                >
+                  <Plus className="w-4 h-4" />
+                  Nouveau brief
+                </button>
+              </div>
+
+              {briefs.length > 0 ? (
+                <div className="grid grid-cols-2 gap-6">
+                  {briefs.map((brief) => (
+                    <div key={brief.id} className="bg-white rounded-xl p-6 shadow-sm">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{brief.title}</h3>
+                          <p className="text-sm text-gray-500">{brief.projectType}</p>
+                        </div>
+                        <span className={`px-2 py-1 rounded text-xs ${priorityColors[brief.priority]}`}>
+                          {brief.priority}
+                        </span>
+                      </div>
+                      {brief.context && (
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{brief.context}</p>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <span className={`px-2 py-1 rounded text-xs ${statusColors[brief.status]}`}>
+                          {brief.status}
+                        </span>
+                        {brief.deadline && (
+                          <span className="text-sm text-gray-500">
+                            Deadline: {new Date(brief.deadline).toLocaleDateString("fr-FR")}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl p-12 text-center">
+                  <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun brief</h3>
+                  <p className="text-gray-500 mb-4">Créez votre premier brief de projet</p>
+                  <button
+                    onClick={() => setShowBriefModal(true)}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  >
+                    Créer un brief
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Strategies Tab */}
+          {activeTab === "strategies" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900">Stratégies de communication</h2>
+                <button
+                  onClick={() => setShowStrategyModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                >
+                  <Plus className="w-4 h-4" />
+                  Nouvelle stratégie
+                </button>
+              </div>
+
+              {strategies.length > 0 ? (
+                <div className="grid grid-cols-2 gap-6">
+                  {strategies.map((strategy) => (
+                    <div key={strategy.id} className="bg-white rounded-xl p-6 shadow-sm">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{strategy.title}</h3>
+                          <p className="text-sm text-gray-500">{strategy.strategyType}</p>
+                        </div>
+                        <span className={`px-2 py-1 rounded text-xs ${statusColors[strategy.status]}`}>
+                          {strategy.status}
+                        </span>
+                      </div>
+                      {strategy.objectives && (
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{strategy.objectives}</p>
+                      )}
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        {strategy.startDate && (
+                          <span>Début: {new Date(strategy.startDate).toLocaleDateString("fr-FR")}</span>
+                        )}
+                        {strategy.endDate && (
+                          <span>Fin: {new Date(strategy.endDate).toLocaleDateString("fr-FR")}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl p-12 text-center">
+                  <Target className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune stratégie</h3>
+                  <p className="text-gray-500 mb-4">Définissez votre première stratégie</p>
+                  <button
+                    onClick={() => setShowStrategyModal(true)}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  >
+                    Créer une stratégie
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Ideas Tab */}
+          {activeTab === "ideas" && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900">Banque d'idées</h2>
+                <button
+                  onClick={() => setShowIdeaModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                >
+                  <Plus className="w-4 h-4" />
+                  Nouvelle idée
+                </button>
+              </div>
+
+              {ideas.length > 0 ? (
+                <div className="grid grid-cols-3 gap-4">
+                  {ideas.sort((a, b) => b.votes - a.votes).map((idea) => (
+                    <div key={idea.id} className="bg-white rounded-xl p-4 shadow-sm">
+                      <div className="flex items-start gap-3">
+                        <button
+                          onClick={() => handleVoteIdea(idea.id)}
+                          className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-purple-50 transition-colors"
+                        >
+                          <ThumbsUp className="w-5 h-5 text-purple-600" />
+                          <span className="text-sm font-bold text-purple-600">{idea.votes}</span>
+                        </button>
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900">{idea.title}</h3>
+                          {idea.description && (
+                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">{idea.description}</p>
+                          )}
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
+                              {idea.category}
+                            </span>
+                            {idea.platform && (
+                              <span className="px-2 py-0.5 bg-purple-100 text-purple-600 rounded text-xs flex items-center gap-1">
+                                {platformIcons[idea.platform]}
+                                {idea.platform}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl p-12 text-center">
+                  <Lightbulb className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune idée</h3>
+                  <p className="text-gray-500 mb-4">Lancez le brainstorming !</p>
+                  <button
+                    onClick={() => setShowIdeaModal(true)}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  >
+                    Ajouter une idée
+                  </button>
                 </div>
               )}
             </div>
           )}
         </div>
 
-        {/* Add Social Modal */}
-        {showAddSocial && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md shadow-xl">
+        {/* Calendar Modal */}
+        {showCalendarModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Ajouter un compte</h2>
-                <button onClick={() => setShowAddSocial(false)} className="p-2 rounded-lg hover:bg-muted"><X className="h-5 w-5" /></button>
+                <h2 className="text-xl font-semibold">Planifier une publication</h2>
+                <button onClick={() => setShowCalendarModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Plateforme</label>
-                  <select value={newSocial.platform} onChange={(e) => setNewSocial({ ...newSocial, platform: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background">
-                    <option value="facebook">Facebook</option>
-                    <option value="instagram">Instagram</option>
-                    <option value="linkedin">LinkedIn</option>
-                    <option value="twitter">Twitter/X</option>
-                    <option value="youtube">YouTube</option>
-                    <option value="tiktok">TikTok</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Nom du compte *</label>
-                  <input type="text" value={newSocial.accountName} onChange={(e) => setNewSocial({ ...newSocial, accountName: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">URL du profil</label>
-                  <input type="url" value={newSocial.accountUrl} onChange={(e) => setNewSocial({ ...newSocial, accountUrl: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Nombre d'abonnés</label>
-                  <input type="number" value={newSocial.followers} onChange={(e) => setNewSocial({ ...newSocial, followers: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" />
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button onClick={() => setShowAddSocial(false)} className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted">Annuler</button>
-                <button onClick={handleAddSocial} disabled={!newSocial.accountName} className="px-4 py-2 rounded-lg bg-primary text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50">Ajouter</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Add Campaign Modal */}
-        {showAddCampaign && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md shadow-xl">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Nouvelle campagne</h2>
-                <button onClick={() => setShowAddCampaign(false)} className="p-2 rounded-lg hover:bg-muted"><X className="h-5 w-5" /></button>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Nom *</label>
-                  <input type="text" value={newCampaign.name} onChange={(e) => setNewCampaign({ ...newCampaign, name: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Type</label>
-                  <select value={newCampaign.type} onChange={(e) => setNewCampaign({ ...newCampaign, type: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background">
-                    {Object.entries(CAMPAIGN_TYPES).map(([key, val]) => (
-                      <option key={key} value={key}>{val.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Budget ($)</label>
-                  <input type="number" value={newCampaign.budget} onChange={(e) => setNewCampaign({ ...newCampaign, budget: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                  <input
+                    type="text"
+                    value={calendarForm.title}
+                    onChange={(e) => setCalendarForm({ ...calendarForm, title: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Titre de la publication"
+                  />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Date début</label>
-                    <input type="date" value={newCampaign.startDate} onChange={(e) => setNewCampaign({ ...newCampaign, startDate: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Date fin</label>
-                    <input type="date" value={newCampaign.endDate} onChange={(e) => setNewCampaign({ ...newCampaign, endDate: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" />
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button onClick={() => setShowAddCampaign(false)} className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted">Annuler</button>
-                <button onClick={handleAddCampaign} disabled={!newCampaign.name} className="px-4 py-2 rounded-lg bg-primary text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50">Créer</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Add Access Modal */}
-        {showAddAccess && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md shadow-xl">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Ajouter un accès</h2>
-                <button onClick={() => setShowAddAccess(false)} className="p-2 rounded-lg hover:bg-muted"><X className="h-5 w-5" /></button>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Nom du service *</label>
-                  <input type="text" value={newAccess.name} onChange={(e) => setNewAccess({ ...newAccess, name: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Type</label>
-                  <select value={newAccess.type} onChange={(e) => setNewAccess({ ...newAccess, type: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background">
-                    <option value="website">Site web</option>
-                    <option value="hosting">Hébergement</option>
-                    <option value="domain">Domaine</option>
-                    <option value="analytics">Analytics</option>
-                    <option value="cms">CMS</option>
-                    <option value="crm">CRM</option>
-                    <option value="email">Email</option>
-                    <option value="other">Autre</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">URL</label>
-                  <input type="url" value={newAccess.url} onChange={(e) => setNewAccess({ ...newAccess, url: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Identifiant</label>
-                    <input type="text" value={newAccess.username} onChange={(e) => setNewAccess({ ...newAccess, username: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Mot de passe</label>
-                    <input type="password" value={newAccess.password} onChange={(e) => setNewAccess({ ...newAccess, password: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" />
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button onClick={() => setShowAddAccess(false)} className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted">Annuler</button>
-                <button onClick={handleAddAccess} disabled={!newAccess.name} className="px-4 py-2 rounded-lg bg-primary text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50">Ajouter</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Add Task Modal */}
-        {showAddTask && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md shadow-xl">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Nouvelle tâche</h2>
-                <button onClick={() => setShowAddTask(false)} className="p-2 rounded-lg hover:bg-muted"><X className="h-5 w-5" /></button>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Titre *</label>
-                  <input type="text" value={newTask.title} onChange={(e) => setNewTask({ ...newTask, title: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Description</label>
-                  <textarea value={newTask.description} onChange={(e) => setNewTask({ ...newTask, description: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" rows={3} />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Type</label>
-                    <select value={newTask.type} onChange={(e) => setNewTask({ ...newTask, type: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background">
-                      <option value="content">Contenu</option>
-                      <option value="design">Design</option>
-                      <option value="development">Développement</option>
-                      <option value="meeting">Réunion</option>
-                      <option value="review">Révision</option>
-                      <option value="other">Autre</option>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Plateforme</label>
+                    <select
+                      value={calendarForm.platform}
+                      onChange={(e) => setCalendarForm({ ...calendarForm, platform: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    >
+                      <option value="instagram">Instagram</option>
+                      <option value="facebook">Facebook</option>
+                      <option value="linkedin">LinkedIn</option>
+                      <option value="twitter">Twitter</option>
+                      <option value="tiktok">TikTok</option>
+                      <option value="youtube">YouTube</option>
+                      <option value="blog">Blog</option>
+                      <option value="newsletter">Newsletter</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Priorité</label>
-                    <select value={newTask.priority} onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <select
+                      value={calendarForm.contentType}
+                      onChange={(e) => setCalendarForm({ ...calendarForm, contentType: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    >
+                      <option value="post">Post</option>
+                      <option value="story">Story</option>
+                      <option value="reel">Reel</option>
+                      <option value="video">Vidéo</option>
+                      <option value="carousel">Carousel</option>
+                      <option value="article">Article</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <input
+                      type="date"
+                      value={calendarForm.scheduledDate}
+                      onChange={(e) => setCalendarForm({ ...calendarForm, scheduledDate: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Heure</label>
+                    <input
+                      type="time"
+                      value={calendarForm.scheduledTime}
+                      onChange={(e) => setCalendarForm({ ...calendarForm, scheduledTime: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Contenu</label>
+                  <textarea
+                    value={calendarForm.content}
+                    onChange={(e) => setCalendarForm({ ...calendarForm, content: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    rows={4}
+                    placeholder="Texte de la publication..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Hashtags</label>
+                  <input
+                    type="text"
+                    value={calendarForm.hashtags}
+                    onChange={(e) => setCalendarForm({ ...calendarForm, hashtags: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="#hashtag1 #hashtag2"
+                  />
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    onClick={() => setShowCalendarModal(false)}
+                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleCreateCalendarItem}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  >
+                    Planifier
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Brief Modal */}
+        {showBriefModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold">Nouveau brief</h2>
+                <button onClick={() => setShowBriefModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                  <input
+                    type="text"
+                    value={briefForm.title}
+                    onChange={(e) => setBriefForm({ ...briefForm, title: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Titre du projet"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                    <select
+                      value={briefForm.projectType}
+                      onChange={(e) => setBriefForm({ ...briefForm, projectType: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    >
+                      <option value="campaign">Campagne</option>
+                      <option value="branding">Branding</option>
+                      <option value="social_media">Réseaux sociaux</option>
+                      <option value="content">Contenu</option>
+                      <option value="event">Événement</option>
+                      <option value="video">Vidéo</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Priorité</label>
+                    <select
+                      value={briefForm.priority}
+                      onChange={(e) => setBriefForm({ ...briefForm, priority: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    >
                       <option value="low">Basse</option>
                       <option value="medium">Moyenne</option>
                       <option value="high">Haute</option>
@@ -1010,59 +1093,237 @@ export default function ClientDetailPage({ params }: { params: Promise<{ id: str
                     </select>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Date d'échéance</label>
-                  <input type="date" value={newTask.dueDate} onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Deadline</label>
+                    <input
+                      type="date"
+                      value={briefForm.deadline}
+                      onChange={(e) => setBriefForm({ ...briefForm, deadline: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Budget</label>
+                    <input
+                      type="number"
+                      value={briefForm.budget}
+                      onChange={(e) => setBriefForm({ ...briefForm, budget: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                      placeholder="0"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button onClick={() => setShowAddTask(false)} className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted">Annuler</button>
-                <button onClick={handleAddTask} disabled={!newTask.title} className="px-4 py-2 rounded-lg bg-primary text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50">Créer</button>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Contexte</label>
+                  <textarea
+                    value={briefForm.context}
+                    onChange={(e) => setBriefForm({ ...briefForm, context: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    rows={3}
+                    placeholder="Contexte du projet..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Objectifs</label>
+                  <textarea
+                    value={briefForm.objectives}
+                    onChange={(e) => setBriefForm({ ...briefForm, objectives: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    rows={2}
+                    placeholder="Objectifs à atteindre..."
+                  />
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    onClick={() => setShowBriefModal(false)}
+                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleCreateBrief}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  >
+                    Créer
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Add Message Modal */}
-        {showAddMessage && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-card border border-border rounded-xl p-6 w-full max-w-md shadow-xl">
+        {/* Strategy Modal */}
+        {showStrategyModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-foreground">Nouveau message</h2>
-                <button onClick={() => setShowAddMessage(false)} className="p-2 rounded-lg hover:bg-muted"><X className="h-5 w-5" /></button>
+                <h2 className="text-xl font-semibold">Nouvelle stratégie</h2>
+                <button onClick={() => setShowStrategyModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
               <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                  <input
+                    type="text"
+                    value={strategyForm.title}
+                    onChange={(e) => setStrategyForm({ ...strategyForm, title: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Titre de la stratégie"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                  <select
+                    value={strategyForm.strategyType}
+                    onChange={(e) => setStrategyForm({ ...strategyForm, strategyType: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="annual">Annuelle</option>
+                    <option value="quarterly">Trimestrielle</option>
+                    <option value="campaign">Campagne</option>
+                    <option value="crisis">Crise</option>
+                    <option value="launch">Lancement</option>
+                  </select>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Direction</label>
-                    <select value={newMessage.direction} onChange={(e) => setNewMessage({ ...newMessage, direction: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background">
-                      <option value="outbound">Envoyé</option>
-                      <option value="inbound">Reçu</option>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date début</label>
+                    <input
+                      type="date"
+                      value={strategyForm.startDate}
+                      onChange={(e) => setStrategyForm({ ...strategyForm, startDate: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Date fin</label>
+                    <input
+                      type="date"
+                      value={strategyForm.endDate}
+                      onChange={(e) => setStrategyForm({ ...strategyForm, endDate: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Objectifs</label>
+                  <textarea
+                    value={strategyForm.objectives}
+                    onChange={(e) => setStrategyForm({ ...strategyForm, objectives: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    rows={3}
+                    placeholder="Objectifs de la stratégie..."
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Canaux</label>
+                  <input
+                    type="text"
+                    value={strategyForm.channels}
+                    onChange={(e) => setStrategyForm({ ...strategyForm, channels: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Instagram, LinkedIn, Newsletter..."
+                  />
+                </div>
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    onClick={() => setShowStrategyModal(false)}
+                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleCreateStrategy}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  >
+                    Créer
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Idea Modal */}
+        {showIdeaModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 w-full max-w-lg">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold">Nouvelle idée</h2>
+                <button onClick={() => setShowIdeaModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                  <input
+                    type="text"
+                    value={ideaForm.title}
+                    onChange={(e) => setIdeaForm({ ...ideaForm, title: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    placeholder="Titre de l'idée"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea
+                    value={ideaForm.description}
+                    onChange={(e) => setIdeaForm({ ...ideaForm, description: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    rows={3}
+                    placeholder="Décrivez votre idée..."
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                    <select
+                      value={ideaForm.category}
+                      onChange={(e) => setIdeaForm({ ...ideaForm, category: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    >
+                      <option value="trend">Tendance</option>
+                      <option value="evergreen">Evergreen</option>
+                      <option value="seasonal">Saisonnier</option>
+                      <option value="event">Événement</option>
+                      <option value="promo">Promotion</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Canal</label>
-                    <select value={newMessage.channel} onChange={(e) => setNewMessage({ ...newMessage, channel: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background">
-                      <option value="email">Email</option>
-                      <option value="phone">Téléphone</option>
-                      <option value="meeting">Réunion</option>
-                      <option value="slack">Slack</option>
-                      <option value="other">Autre</option>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Plateforme</label>
+                    <select
+                      value={ideaForm.platform}
+                      onChange={(e) => setIdeaForm({ ...ideaForm, platform: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
+                    >
+                      <option value="instagram">Instagram</option>
+                      <option value="facebook">Facebook</option>
+                      <option value="linkedin">LinkedIn</option>
+                      <option value="twitter">Twitter</option>
+                      <option value="tiktok">TikTok</option>
+                      <option value="youtube">YouTube</option>
+                      <option value="blog">Blog</option>
                     </select>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Sujet</label>
-                  <input type="text" value={newMessage.subject} onChange={(e) => setNewMessage({ ...newMessage, subject: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" />
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    onClick={() => setShowIdeaModal(false)}
+                    className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    onClick={handleCreateIdea}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  >
+                    Ajouter
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Contenu *</label>
-                  <textarea value={newMessage.content} onChange={(e) => setNewMessage({ ...newMessage, content: e.target.value })} className="w-full px-3 py-2 rounded-lg border border-border bg-background" rows={4} />
-                </div>
-              </div>
-              <div className="flex justify-end gap-3 mt-6">
-                <button onClick={() => setShowAddMessage(false)} className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted">Annuler</button>
-                <button onClick={handleAddMessage} disabled={!newMessage.content} className="px-4 py-2 rounded-lg bg-primary text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50">Envoyer</button>
               </div>
             </div>
           </div>
