@@ -214,11 +214,11 @@ model Task {
   priority        String?   @default("medium") // low, medium, high
   estimatedHours  Float?    @default(2) // Heures estimées pour la tâche
   dueDate         DateTime?
-  completedAt     DateTime?
+   completedAt     DateTime?
   order           Int       @default(0)
+  googleEventId   String?   // ID de l'événement Google Calendar
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
   assignedEmployee Employee? @relation("CurrentTask")
 
   @@index([zone])

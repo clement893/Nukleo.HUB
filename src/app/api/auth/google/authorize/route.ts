@@ -6,8 +6,8 @@ const REDIRECT_URI = process.env.NEXT_PUBLIC_APP_URL
   : "https://nukleohub-production.up.railway.app/api/auth/google/callback";
 
 const SCOPES = [
-  "https://www.googleapis.com/auth/calendar.readonly",
-  "https://www.googleapis.com/auth/calendar.events.readonly",
+  "https://www.googleapis.com/auth/calendar",
+  "https://www.googleapis.com/auth/calendar.events",
 ].join(" ");
 
 export async function GET(request: NextRequest) {

@@ -25,6 +25,7 @@ import {
   Copy,
   Check,
   Settings,
+  Plus,
 } from "lucide-react";
 
 interface Employee {
@@ -111,6 +112,9 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
   const [calendarId, setCalendarId] = useState("");
   const [calendarSync, setCalendarSync] = useState(false);
   const [savingCalendar, setSavingCalendar] = useState(false);
+  const [showAddEvent, setShowAddEvent] = useState(false);
+  const [newEvent, setNewEvent] = useState({ title: "", description: "", startDate: "", startTime: "", endDate: "", endTime: "", allDay: false });
+  const [addingEvent, setAddingEvent] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -166,6 +170,45 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
       console.error("Error saving calendar config:", error);
     } finally {
       setSavingCalendar(false);
+    }
+  };
+
+  const handleAddEvent = async () => {
+    if (!newEvent.title || !newEvent.startDate) return;
+    setAddingEvent(true);
+    try {
+      const startDateTime = newEvent.allDay 
+        ? newEvent.startDate 
+        : `${newEvent.startDate}T${newEvent.startTime || "09:00"}:00`;
+      const endDateTime = newEvent.allDay 
+        ? (newEvent.endDate || newEvent.startDate) 
+        : `${newEvent.endDate || newEvent.startDate}T${newEvent.endTime || "10:00"}:00`;
+      
+      const res = await fetch(`/api/employees/${resolvedParams.id}/calendar/events`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newEvent.title,
+          description: newEvent.description,
+          startDateTime,
+          endDateTime,
+          allDay: newEvent.allDay,
+        }),
+      });
+      
+      if (res.ok) {
+        setShowAddEvent(false);
+        setNewEvent({ title: "", description: "", startDate: "", startTime: "", endDate: "", endTime: "", allDay: false });
+        fetchCalendarEvents();
+      } else {
+        const data = await res.json();
+        alert(data.error || "Échec de la création");
+      }
+    } catch (error) {
+      console.error("Error adding event:", error);
+      alert("Échec de la création de l'événement");
+    } finally {
+      setAddingEvent(false);
     }
   };
 
@@ -479,6 +522,92 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
                     </a>
                   ) : (
                     <>
+                      <button
+                        onClick={() => setShowAddEvent(true)}
+                        className="w-full mb-3 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm flex items-center justify-center gap-2"
+                      >
+                        <Plus className="h-4 w-4" /> Ajouter un événement
+                      </button>
+                      
+                      {showAddEvent && (
+                        <div className="mb-3 p-3 bg-muted/50 rounded-lg space-y-2">
+                          <input
+                            type="text"
+                            placeholder="Titre de l'événement"
+                            value={newEvent.title}
+                            onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                          />
+                          <textarea
+                            placeholder="Description (optionnel)"
+                            value={newEvent.description}
+                            onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm h-16 resize-none"
+                          />
+                          <div className="flex items-center gap-2 mb-2">
+                            <input
+                              type="checkbox"
+                              id="allDay"
+                              checked={newEvent.allDay}
+                              onChange={(e) => setNewEvent({ ...newEvent, allDay: e.target.checked })}
+                              className="rounded"
+                            />
+                            <label htmlFor="allDay" className="text-sm">Toute la journée</label>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-xs text-muted-foreground">Début</label>
+                              <input
+                                type="date"
+                                value={newEvent.startDate}
+                                onChange={(e) => setNewEvent({ ...newEvent, startDate: e.target.value })}
+                                className="w-full px-2 py-1 bg-background border border-border rounded text-sm"
+                              />
+                              {!newEvent.allDay && (
+                                <input
+                                  type="time"
+                                  value={newEvent.startTime}
+                                  onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })}
+                                  className="w-full mt-1 px-2 py-1 bg-background border border-border rounded text-sm"
+                                />
+                              )}
+                            </div>
+                            <div>
+                              <label className="text-xs text-muted-foreground">Fin</label>
+                              <input
+                                type="date"
+                                value={newEvent.endDate}
+                                onChange={(e) => setNewEvent({ ...newEvent, endDate: e.target.value })}
+                                className="w-full px-2 py-1 bg-background border border-border rounded text-sm"
+                              />
+                              {!newEvent.allDay && (
+                                <input
+                                  type="time"
+                                  value={newEvent.endTime}
+                                  onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
+                                  className="w-full mt-1 px-2 py-1 bg-background border border-border rounded text-sm"
+                                />
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-2 mt-2">
+                            <button
+                              onClick={handleAddEvent}
+                              disabled={addingEvent || !newEvent.title || !newEvent.startDate}
+                              className="flex-1 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm disabled:opacity-50"
+                            >
+                              {addingEvent ? "Création..." : "Créer"}
+                            </button>
+                            <button
+                              onClick={() => setShowAddEvent(false)}
+                              className="px-3 py-2 bg-muted text-foreground rounded-lg hover:bg-muted/80 text-sm"
+                            >
+                              Annuler
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
                       {calendarEvents.length > 0 ? (
                         <div className="space-y-2 max-h-48 overflow-y-auto mb-3">
                           {calendarEvents.slice(0, 5).map((event) => (
