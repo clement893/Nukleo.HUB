@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createNotification } from "@/app/api/notifications/route";
+import { createNotification } from "@/lib/notifications";
 
 export async function GET(
   request: NextRequest,

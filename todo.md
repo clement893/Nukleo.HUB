@@ -363,13 +363,13 @@
 - [x] Pousser vers GitHub
 
 ## Notifications en Temps Réel - Portail Employé
-- [ ] Créer modèle EmployeeNotification dans le schéma DB
-- [ ] Créer API pour récupérer les notifications
-- [ ] Créer API pour marquer les notifications comme lues
-- [ ] Créer API pour créer des notifications (interne)
-- [ ] Composant cloche de notifications dans le header du portail
-- [ ] Panel de notifications avec liste et actions
-- [ ] Intégrer notifications aux feuilles de temps (approbation/rejet)
-- [ ] Intégrer notifications aux nouvelles tâches assignées
-- [ ] Badge de compteur de notifications non lues
-- [ ] Pousser vers GitHub
+- [x] Créer modèle EmployeeNotification dans le schéma DB
+- [x] Créer API pour récupérer les notifications
+- [x] Créer API pour marquer les notifications comme lues
+- [x] Créer API pour créer des notifications (interne)
+- [x] Composant cloche de notifications dans le header du portail
+- [x] Panel de notifications avec liste et actions
+- [x] Intégrer notifications aux feuilles de temps (approbation/rejet)
+- [x] Intégrer notifications aux nouvelles tâches assignées
+- [x] Badge de compteur de notifications non lues
+- [x] Pousser vers GitHub
