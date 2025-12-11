@@ -404,12 +404,19 @@
 - [x] Pousser vers GitHub
 
 ## Invitations et Contrôle d'Accès Granulaire
-- [ ] Créer modèle Invitation dans le schéma DB
-- [ ] Créer modèle UserAccess pour les permissions granulaires
-- [ ] API pour envoyer des invitations par email
-- [ ] API pour accepter une invitation
-- [ ] API pour gérer les accès utilisateur (clients, projets, espaces)
-- [ ] Interface d'invitation dans l'admin
-- [ ] Interface de gestion des accès par utilisateur
-- [ ] Envoi d'email d'invitation avec lien
+- [x] Créer modèle Invitation dans le schéma DB
+- [x] Créer modèle UserAccess pour les permissions granulaires
+- [x] API pour envoyer des invitations par email
+- [x] API pour accepter une invitation
+- [x] API pour gérer les accès utilisateur (clients, projets, espaces)
+- [x] Interface d'invitation dans l'admin
+- [x] Interface de gestion des accès par utilisateur
+- [x] Envoi d'email d'invitation avec lien
+- [x] Pousser vers GitHub
+
+## Amélioration Gestion des Accès - Sélection Spécifique
+- [ ] API pour récupérer la liste des clients
+- [ ] API pour récupérer la liste des projets
+- [ ] Sélecteur de clients spécifiques dans le modal
+- [ ] Sélecteur de projets spécifiques dans le modal
 - [ ] Pousser vers GitHub

@@ -53,6 +53,19 @@ interface UserAccess {
   allowedSpaces: string[];
 }
 
+interface ClientOption {
+  id: string;
+  name: string;
+  logoUrl?: string | null;
+}
+
+interface ProjectOption {
+  id: string;
+  name: string;
+  client?: string | null;
+  status?: string | null;
+}
+
 const roleLabels: Record<string, string> = {
   super_admin: "Super Admin",
   admin: "Admin",
@@ -103,6 +116,12 @@ export default function UsersPage() {
   const [userAccess, setUserAccess] = useState<UserAccess | null>(null);
   const [loadingAccess, setLoadingAccess] = useState(false);
   const [savingAccess, setSavingAccess] = useState(false);
+  
+  // Listes pour la sélection spécifique
+  const [allClients, setAllClients] = useState<ClientOption[]>([]);
+  const [allProjects, setAllProjects] = useState<ProjectOption[]>([]);
+  const [clientSearch, setClientSearch] = useState("");
+  const [projectSearch, setProjectSearch] = useState("");
 
   useEffect(() => {
     fetchUsers();
@@ -252,12 +271,40 @@ export default function UsersPage() {
     setSelectedUser(user);
     setShowAccessModal(true);
     setLoadingAccess(true);
+    setClientSearch("");
+    setProjectSearch("");
     
     try {
-      const res = await fetch(`/api/admin/users/access?userId=${user.id}`);
-      if (res.ok) {
-        const data = await res.json();
+      // Charger les accès de l'utilisateur et les listes de clients/projets en parallèle
+      const [accessRes, clientsRes, projectsRes] = await Promise.all([
+        fetch(`/api/admin/users/access?userId=${user.id}`),
+        fetch("/api/clients"),
+        fetch("/api/projects"),
+      ]);
+      
+      if (accessRes.ok) {
+        const data = await accessRes.json();
         setUserAccess(data.access);
+      }
+      
+      if (clientsRes.ok) {
+        const clientsData = await clientsRes.json();
+        // L'API clients retourne un tableau d'objets avec id, name, logoUrl
+        setAllClients(clientsData.map((c: { id: string; name: string; logoUrl?: string }) => ({
+          id: c.id,
+          name: c.name,
+          logoUrl: c.logoUrl,
+        })));
+      }
+      
+      if (projectsRes.ok) {
+        const projectsData = await projectsRes.json();
+        setAllProjects(projectsData.map((p: { id: string; name: string; client?: string; status?: string }) => ({
+          id: p.id,
+          name: p.name,
+          client: p.client,
+          status: p.status,
+        })));
       }
     } catch (error) {
       console.error("Error fetching user access:", error);
@@ -692,7 +739,7 @@ export default function UsersPage() {
       {/* Modal de gestion des accès */}
       {showAccessModal && selectedUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card border border-border rounded-2xl w-full max-w-lg p-6">
+          <div className="bg-card border border-border rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
             <h2 className="text-xl font-semibold text-foreground mb-2 flex items-center gap-2">
               <Settings2 className="w-5 h-5 text-primary" />
               Gérer les accès
@@ -713,7 +760,7 @@ export default function UsersPage() {
                     <Building2 className="w-4 h-4" />
                     Accès aux clients
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 mb-3">
                     {["all", "specific", "none"].map((option) => (
                       <button
                         key={option}
@@ -728,6 +775,57 @@ export default function UsersPage() {
                       </button>
                     ))}
                   </div>
+                  
+                  {userAccess.clientsAccess === "specific" && (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        placeholder="Rechercher un client..."
+                        value={clientSearch}
+                        onChange={(e) => setClientSearch(e.target.value)}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                      <div className="max-h-40 overflow-y-auto space-y-1 bg-muted/50 rounded-lg p-2">
+                        {allClients
+                          .filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase()))
+                          .map((client) => (
+                            <button
+                              key={client.id}
+                              onClick={() => {
+                                const current = userAccess.allowedClients || [];
+                                const updated = current.includes(client.id)
+                                  ? current.filter(id => id !== client.id)
+                                  : [...current, client.id];
+                                setUserAccess({ ...userAccess, allowedClients: updated });
+                              }}
+                              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-left transition-colors ${
+                                userAccess.allowedClients?.includes(client.id)
+                                  ? "bg-primary/10 text-primary border border-primary/30"
+                                  : "bg-background text-foreground hover:bg-muted border border-transparent"
+                              }`}
+                            >
+                              {client.logoUrl ? (
+                                <img src={client.logoUrl} alt="" className="w-5 h-5 rounded object-cover" />
+                              ) : (
+                                <div className="w-5 h-5 rounded bg-primary/10 flex items-center justify-center text-xs text-primary">
+                                  {client.name.charAt(0)}
+                                </div>
+                              )}
+                              {client.name}
+                              {userAccess.allowedClients?.includes(client.id) && (
+                                <Check className="w-4 h-4 ml-auto text-primary" />
+                              )}
+                            </button>
+                          ))}
+                        {allClients.filter(c => c.name.toLowerCase().includes(clientSearch.toLowerCase())).length === 0 && (
+                          <p className="text-sm text-muted-foreground text-center py-2">Aucun client trouvé</p>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {userAccess.allowedClients?.length || 0} client(s) sélectionné(s)
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Accès aux projets */}
@@ -736,7 +834,7 @@ export default function UsersPage() {
                     <FolderKanban className="w-4 h-4" />
                     Accès aux projets
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 mb-3">
                     {["all", "specific", "none"].map((option) => (
                       <button
                         key={option}
@@ -751,6 +849,58 @@ export default function UsersPage() {
                       </button>
                     ))}
                   </div>
+                  
+                  {userAccess.projectsAccess === "specific" && (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        placeholder="Rechercher un projet..."
+                        value={projectSearch}
+                        onChange={(e) => setProjectSearch(e.target.value)}
+                        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      />
+                      <div className="max-h-40 overflow-y-auto space-y-1 bg-muted/50 rounded-lg p-2">
+                        {allProjects
+                          .filter(p => p.name.toLowerCase().includes(projectSearch.toLowerCase()) || 
+                                       (p.client && p.client.toLowerCase().includes(projectSearch.toLowerCase())))
+                          .map((project) => (
+                            <button
+                              key={project.id}
+                              onClick={() => {
+                                const current = userAccess.allowedProjects || [];
+                                const updated = current.includes(project.id)
+                                  ? current.filter(id => id !== project.id)
+                                  : [...current, project.id];
+                                setUserAccess({ ...userAccess, allowedProjects: updated });
+                              }}
+                              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-left transition-colors ${
+                                userAccess.allowedProjects?.includes(project.id)
+                                  ? "bg-primary/10 text-primary border border-primary/30"
+                                  : "bg-background text-foreground hover:bg-muted border border-transparent"
+                              }`}
+                            >
+                              <FolderKanban className="w-4 h-4 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="truncate">{project.name}</p>
+                                {project.client && (
+                                  <p className="text-xs text-muted-foreground truncate">{project.client}</p>
+                                )}
+                              </div>
+                              {userAccess.allowedProjects?.includes(project.id) && (
+                                <Check className="w-4 h-4 flex-shrink-0 text-primary" />
+                              )}
+                            </button>
+                          ))}
+                        {allProjects.filter(p => p.name.toLowerCase().includes(projectSearch.toLowerCase()) || 
+                                                  (p.client && p.client.toLowerCase().includes(projectSearch.toLowerCase()))).length === 0 && (
+                          <p className="text-sm text-muted-foreground text-center py-2">Aucun projet trouvé</p>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {userAccess.allowedProjects?.length || 0} projet(s) sélectionné(s)
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Accès aux espaces */}
