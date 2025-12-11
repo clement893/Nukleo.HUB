@@ -1136,7 +1136,7 @@ export default function UsersPage() {
               {/* Liste des employés */}
               <div className="space-y-2">
                 {filteredEmployees.map((emp) => {
-                  const isLinkedToOther = emp.linkedUser && emp.linkedUser.id !== selectedUser.id;
+                  const isLinkedToOther = !!(emp.linkedUser && emp.linkedUser.id !== selectedUser.id);
                   return (
                     <button
                       key={emp.id}

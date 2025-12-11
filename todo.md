@@ -501,39 +501,39 @@
 ## Analyse de Sécurité
 
 ### Phase 1 - Authentification et Sessions
-- [ ] Analyser le système OAuth Google
-- [ ] Vérifier la gestion des sessions et cookies
-- [ ] Analyser le middleware de protection des routes
-- [ ] Vérifier les tokens du portail employé/client
+- [x] Analyser le système OAuth Google
+- [x] Vérifier la gestion des sessions et cookies
+- [x] Analyser le middleware de protection des routes
+- [x] Vérifier les tokens du portail employé/client
 
 ### Phase 2 - APIs et Validation
-- [ ] Analyser la validation des entrées utilisateur
-- [ ] Vérifier les injections SQL potentielles
-- [ ] Analyser les protections XSS
-- [ ] Vérifier les protections CSRF
+- [x] Analyser la validation des entrées utilisateur
+- [x] Vérifier les injections SQL potentielles
+- [x] Analyser les protections XSS
+- [x] Vérifier les protections CSRF
 
 ### Phase 3 - Contrôles d'accès
-- [ ] Analyser le système de rôles et permissions
-- [ ] Vérifier les contrôles d'accès aux ressources
-- [ ] Analyser les failles IDOR potentielles
-- [ ] Vérifier l'isolation des données par utilisateur
+- [x] Analyser le système de rôles et permissions
+- [x] Vérifier les contrôles d'accès aux ressources
+- [x] Analyser les failles IDOR potentielles
+- [x] Vérifier l'isolation des données par utilisateur
 
 ### Phase 4 - Données et Stockage
-- [ ] Analyser la sécurité des uploads de fichiers
-- [ ] Vérifier le chiffrement des données sensibles
-- [ ] Analyser l'exposition des données dans les APIs
-- [ ] Vérifier les variables d'environnement
+- [x] Analyser la sécurité des uploads de fichiers
+- [x] Vérifier le chiffrement des données sensibles
+- [x] Analyser l'exposition des données dans les APIs
+- [x] Vérifier les variables d'environnement
 
-- [ ] Compiler le rapport de sécurité
+- [x] Compiler le rapport de sécurité
 
 
 ## Liaison Utilisateur-Employé
 
-- [ ] Ajouter champ employeeId au modèle User
-- [ ] Ajouter relation User-Employee dans le schéma Prisma
-- [ ] Migrer la base de données
-- [ ] Créer API pour lier/délier un utilisateur à un employé
-- [ ] Mettre à jour l'interface admin des utilisateurs
-- [ ] Afficher l'employé lié dans la liste des utilisateurs
-- [ ] Permettre la sélection d'un employé lors de la modification d'un utilisateur
-- [ ] Pousser vers GitHub
+- [x] Ajouter champ employeeId au modèle User
+- [x] Ajouter relation User-Employee dans le schéma Prisma
+- [x] Migrer la base de données
+- [x] Créer API pour lier/délier un utilisateur à un employé
+- [x] Mettre à jour l'interface admin des utilisateurs
+- [x] Afficher l'employé lié dans la liste des utilisateurs
+- [x] Permettre la sélection d'un employé lors de la modification d'un utilisateur
+- [x] Pousser vers GitHub
