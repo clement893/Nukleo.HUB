@@ -223,28 +223,28 @@ export default function ClientHubPage({ params }: { params: Promise<{ id: string
       const calendarRes = await fetch(`/api/communication/calendar?clientId=${resolvedParams.id}`);
       if (calendarRes.ok) {
         const calendarData = await calendarRes.json();
-        setCalendarItems(calendarData);
+        setCalendarItems(Array.isArray(calendarData) ? calendarData : []);
       }
       
       // Fetch briefs
       const briefsRes = await fetch(`/api/communication/briefs?clientId=${resolvedParams.id}`);
       if (briefsRes.ok) {
         const briefsData = await briefsRes.json();
-        setBriefs(briefsData);
+        setBriefs(Array.isArray(briefsData) ? briefsData : []);
       }
       
       // Fetch strategies
       const strategiesRes = await fetch(`/api/communication/strategies?clientId=${resolvedParams.id}`);
       if (strategiesRes.ok) {
         const strategiesData = await strategiesRes.json();
-        setStrategies(strategiesData);
+        setStrategies(Array.isArray(strategiesData) ? strategiesData : []);
       }
       
       // Fetch ideas
       const ideasRes = await fetch(`/api/communication/ideas?clientId=${resolvedParams.id}`);
       if (ideasRes.ok) {
         const ideasData = await ideasRes.json();
-        setIdeas(ideasData);
+        setIdeas(Array.isArray(ideasData) ? ideasData : []);
       }
     } catch (error) {
       console.error("Error fetching client data:", error);
@@ -273,6 +273,7 @@ export default function ClientHubPage({ params }: { params: Promise<{ id: string
   };
 
   const getItemsForDate = (date: Date) => {
+    if (!Array.isArray(calendarItems)) return [];
     return calendarItems.filter(item => {
       const itemDate = new Date(item.scheduledDate);
       return itemDate.toDateString() === date.toDateString();
@@ -442,10 +443,10 @@ export default function ClientHubPage({ params }: { params: Promise<{ id: string
     );
   }
 
-  const scheduledCount = calendarItems.filter(i => i.status === "scheduled").length;
-  const publishedCount = calendarItems.filter(i => i.status === "published").length;
-  const activeBriefs = briefs.filter(b => b.status === "in_progress").length;
-  const totalIdeas = ideas.length;
+  const scheduledCount = Array.isArray(calendarItems) ? calendarItems.filter(i => i.status === "scheduled").length : 0;
+  const publishedCount = Array.isArray(calendarItems) ? calendarItems.filter(i => i.status === "published").length : 0;
+  const activeBriefs = Array.isArray(briefs) ? briefs.filter(b => b.status === "in_progress").length : 0;
+  const totalIdeas = Array.isArray(ideas) ? ideas.length : 0;
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -609,9 +610,9 @@ export default function ClientHubPage({ params }: { params: Promise<{ id: string
               <div className="grid grid-cols-2 gap-6">
                 <div className="bg-white rounded-xl p-6 shadow-sm">
                   <h3 className="font-semibold text-gray-900 mb-4">Prochaines publications</h3>
-                  {calendarItems.filter(i => i.status === "scheduled").slice(0, 5).length > 0 ? (
+                  {(Array.isArray(calendarItems) ? calendarItems : []).filter(i => i.status === "scheduled").slice(0, 5).length > 0 ? (
                     <div className="space-y-3">
-                      {calendarItems.filter(i => i.status === "scheduled").slice(0, 5).map((item) => (
+                      {(Array.isArray(calendarItems) ? calendarItems : []).filter(i => i.status === "scheduled").slice(0, 5).map((item) => (
                         <div key={item.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                           <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center">
                             {platformIcons[item.platform] || <Globe className="w-5 h-5 text-gray-400" />}
@@ -633,9 +634,9 @@ export default function ClientHubPage({ params }: { params: Promise<{ id: string
 
                 <div className="bg-white rounded-xl p-6 shadow-sm">
                   <h3 className="font-semibold text-gray-900 mb-4">Idées populaires</h3>
-                  {ideas.sort((a, b) => b.votes - a.votes).slice(0, 5).length > 0 ? (
+                  {(Array.isArray(ideas) ? [...ideas].sort((a, b) => b.votes - a.votes) : []).slice(0, 5).length > 0 ? (
                     <div className="space-y-3">
-                      {ideas.sort((a, b) => b.votes - a.votes).slice(0, 5).map((idea) => (
+                      {(Array.isArray(ideas) ? [...ideas].sort((a, b) => b.votes - a.votes) : []).slice(0, 5).map((idea) => (
                         <div key={idea.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                           <button
                             onClick={() => handleVoteIdea(idea.id)}
@@ -762,9 +763,9 @@ export default function ClientHubPage({ params }: { params: Promise<{ id: string
                 </button>
               </div>
 
-              {briefs.length > 0 ? (
+              {(Array.isArray(briefs) ? briefs : []).length > 0 ? (
                 <div className="grid grid-cols-2 gap-6">
-                  {briefs.map((brief) => (
+                  {(Array.isArray(briefs) ? briefs : []).map((brief) => (
                     <div key={brief.id} className="bg-white rounded-xl p-6 shadow-sm">
                       <div className="flex items-start justify-between mb-4">
                         <div>
@@ -821,9 +822,9 @@ export default function ClientHubPage({ params }: { params: Promise<{ id: string
                 </button>
               </div>
 
-              {strategies.length > 0 ? (
+              {(Array.isArray(strategies) ? strategies : []).length > 0 ? (
                 <div className="grid grid-cols-2 gap-6">
-                  {strategies.map((strategy) => (
+                  {(Array.isArray(strategies) ? strategies : []).map((strategy) => (
                     <div key={strategy.id} className="bg-white rounded-xl p-6 shadow-sm">
                       <div className="flex items-start justify-between mb-4">
                         <div>
@@ -878,9 +879,9 @@ export default function ClientHubPage({ params }: { params: Promise<{ id: string
                 </button>
               </div>
 
-              {ideas.length > 0 ? (
+              {(Array.isArray(ideas) ? ideas : []).length > 0 ? (
                 <div className="grid grid-cols-3 gap-4">
-                  {ideas.sort((a, b) => b.votes - a.votes).map((idea) => (
+                  {(Array.isArray(ideas) ? [...ideas].sort((a, b) => b.votes - a.votes) : []).map((idea) => (
                     <div key={idea.id} className="bg-white rounded-xl p-4 shadow-sm">
                       <div className="flex items-start gap-3">
                         <button
