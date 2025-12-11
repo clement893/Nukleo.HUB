@@ -214,7 +214,7 @@ export default function EmployeePortalPage() {
   const [events, setEvents] = useState<EmployeeEvent[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "time" | "timesheets" | "calendar" | "documents" | "requests" | "profile" | "leo">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "time" | "timesheets" | "calendar" | "documents" | "requests" | "notifications" | "profile" | "leo">("dashboard");
 
   // Timesheet state
   const [selectedWeek, setSelectedWeek] = useState<Date>(getWeekStart(new Date()));
@@ -511,6 +511,7 @@ export default function EmployeePortalPage() {
     { id: "calendar", label: "Calendrier", icon: Calendar },
     { id: "documents", label: "Documents", icon: FileText },
     { id: "requests", label: "Demandes", icon: Send },
+    { id: "notifications", label: "Notifications", icon: Bell },
     { id: "profile", label: "Profil", icon: User },
     { id: "leo", label: "Leo IA", icon: Brain },
   ];
@@ -1465,6 +1466,131 @@ export default function EmployeePortalPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Notifications Tab */}
+        {activeTab === "notifications" && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Bell className="w-6 h-6 text-violet-400" />
+                Centre de notifications
+              </h2>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.location.href = `/employee-portal/${token}/notifications/settings`}
+                  className="flex items-center gap-2 px-3 py-1.5 text-sm bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  Paramètres
+                </button>
+                {notifications.filter(n => !n.isRead).length > 0 && (
+                  <button
+                    onClick={markAllNotificationsAsRead}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 rounded-lg transition-colors"
+                  >
+                    <CheckCheck className="w-4 h-4" />
+                    Tout marquer comme lu
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-4 text-center">
+                <div className="text-2xl font-bold text-white">{notifications.length}</div>
+                <div className="text-xs text-white/50">Total</div>
+              </div>
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-4 text-center">
+                <div className="text-2xl font-bold text-violet-400">{notifications.filter(n => !n.isRead).length}</div>
+                <div className="text-xs text-white/50">Non lues</div>
+              </div>
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-4 text-center">
+                <div className="text-2xl font-bold text-green-400">{notifications.filter(n => n.isRead).length}</div>
+                <div className="text-xs text-white/50">Lues</div>
+              </div>
+            </div>
+
+            {/* Liste des notifications */}
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 overflow-hidden">
+              {notifications.length === 0 ? (
+                <div className="p-8 text-center">
+                  <Bell className="w-12 h-12 text-white/20 mx-auto mb-3" />
+                  <p className="text-white/50">Aucune notification</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-700">
+                  {notifications.map(notif => (
+                    <div
+                      key={notif.id}
+                      className={`p-4 hover:bg-white/5 transition-colors ${!notif.isRead ? 'bg-violet-500/5 border-l-2 border-violet-500' : ''}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 mt-1">
+                          {notif.type === 'timesheet_approved' && <CheckCircle2 className="w-5 h-5 text-green-500" />}
+                          {notif.type === 'timesheet_rejected' && <XCircle className="w-5 h-5 text-red-500" />}
+                          {notif.type === 'task_assigned' && <FolderKanban className="w-5 h-5 text-violet-500" />}
+                          {notif.type === 'task_updated' && <FolderKanban className="w-5 h-5 text-blue-500" />}
+                          {notif.type === 'request_approved' && <CheckCircle2 className="w-5 h-5 text-blue-500" />}
+                          {notif.type === 'request_rejected' && <XCircle className="w-5 h-5 text-orange-500" />}
+                          {notif.type === 'general' && <MessageSquare className="w-5 h-5 text-gray-500" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <h3 className={`font-medium ${notif.isRead ? 'text-white/80' : 'text-white'}`}>
+                              {notif.title}
+                            </h3>
+                            <span className="text-xs text-white/40 flex-shrink-0">
+                              {new Date(notif.createdAt).toLocaleDateString('fr-CA', { day: '2-digit', month: 'short' })}
+                            </span>
+                          </div>
+                          <p className="text-sm text-white/60 mt-1">{notif.message}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            {notif.link && (
+                              <button
+                                onClick={() => setActiveTab(notif.link?.replace('/', '') as typeof activeTab)}
+                                className="text-xs text-violet-400 hover:text-violet-300"
+                              >
+                                Voir les détails →
+                              </button>
+                            )}
+                            {!notif.isRead && (
+                              <button
+                                onClick={async () => {
+                                  await fetch(`/api/employee-portal/${token}/notifications`, {
+                                    method: 'PATCH',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ notificationId: notif.id }),
+                                  });
+                                  setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, isRead: true } : n));
+                                }}
+                                className="text-xs text-green-400 hover:text-green-300"
+                              >
+                                Marquer comme lu
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Lien vers paramètres */}
+            <div className="text-center">
+              <a
+                href={`/employee-portal/${token}/notifications/settings`}
+                className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-white transition-colors"
+              >
+                <Edit2 className="w-4 h-4" />
+                Gérer mes préférences de notifications
+              </a>
             </div>
           </div>
         )}
