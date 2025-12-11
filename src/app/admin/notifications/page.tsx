@@ -33,16 +33,14 @@ interface Notification {
   createdAt: string;
   employee: {
     id: string;
-    firstName: string;
-    lastName: string;
+    name: string;
     photoUrl: string | null;
   } | null;
 }
 
 interface Employee {
   id: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   photoUrl: string | null;
   department: string | null;
 }
@@ -221,8 +219,7 @@ export default function AdminNotificationsPage() {
     return (
       n.title.toLowerCase().includes(searchLower) ||
       n.message.toLowerCase().includes(searchLower) ||
-      n.employee?.firstName.toLowerCase().includes(searchLower) ||
-      n.employee?.lastName.toLowerCase().includes(searchLower)
+      n.employee?.name.toLowerCase().includes(searchLower)
     );
   });
 
@@ -404,13 +401,12 @@ export default function AdminNotificationsPage() {
                           ) : (
                             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                               <span className="text-xs font-medium text-primary">
-                                {notification.employee?.firstName?.[0]}
-                                {notification.employee?.lastName?.[0]}
+                                {notification.employee?.name?.split(' ').map(n => n[0]).join('')}
                               </span>
                             </div>
                           )}
                           <span className="text-sm text-foreground">
-                            {notification.employee?.firstName} {notification.employee?.lastName}
+                            {notification.employee?.name}
                           </span>
                         </div>
                       </td>
@@ -530,7 +526,7 @@ export default function AdminNotificationsPage() {
                             )}
                           </div>
                           <span className="text-sm text-foreground">
-                            {emp.firstName} {emp.lastName}
+                            {emp.name}
                           </span>
                         </label>
                       ))}

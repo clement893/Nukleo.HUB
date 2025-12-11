@@ -431,9 +431,9 @@
 - [ ] Pousser vers GitHub
 
 ## Centre de Notifications Complet
-- [ ] Ajouter modèle NotificationPreferences au schéma DB
-- [ ] API pour gérer les préférences de notifications
-- [ ] Page centre de notifications dans le portail employé
-- [ ] Page paramètres de notifications dans le portail employé
-- [ ] Page admin de gestion des notifications
-- [ ] Pousser vers GitHub
+- [x] Ajouter modèle NotificationPreferences au schéma DB
+- [x] API pour gérer les préférences de notifications
+- [x] Page centre de notifications dans le portail employé
+- [x] Page paramètres de notifications dans le portail employé
+- [x] Page admin de gestion des notifications
+- [x] Pousser vers GitHub

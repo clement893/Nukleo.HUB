@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     const employeeIds = [...new Set(notifications.map(n => n.employeeId))];
     const employees = await prisma.employee.findMany({
       where: { id: { in: employeeIds } },
-      select: { id: true, firstName: true, lastName: true, photoUrl: true },
+      select: { id: true, name: true, photoUrl: true },
     });
 
     const employeeMap = new Map(employees.map(e => [e.id, e]));
