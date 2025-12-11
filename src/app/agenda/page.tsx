@@ -15,6 +15,10 @@ import {
   Bell,
   CalendarDays,
   CalendarRange,
+  Palmtree,
+  Building2,
+  PartyPopper,
+  User,
 } from "lucide-react";
 
 interface Event {
@@ -33,6 +37,20 @@ interface Event {
   companyId: string | null;
   reminder: boolean;
   reminderTime: number | null;
+}
+
+interface VacationEvent {
+  id: string;
+  title: string;
+  startDate: string;
+  endDate: string | null;
+  allDay: boolean;
+  type: "vacation" | "holiday" | "closure";
+  color: string;
+  employeeId?: string;
+  employeeName?: string;
+  employeePhoto?: string | null;
+  status?: string;
 }
 
 const EVENT_TYPES = [
@@ -55,6 +73,8 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
 export default function AgendaPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState<Event[]>([]);
+  const [vacationEvents, setVacationEvents] = useState<VacationEvent[]>([]);
+  const [showVacations, setShowVacations] = useState(true);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"month" | "week" | "day" | "list">("month");
   const [showAddEvent, setShowAddEvent] = useState(false);
@@ -99,11 +119,21 @@ export default function AgendaPage() {
         end = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
       }
       
+      // Récupérer les événements
       const res = await fetch(
         `/api/events?start=${start.toISOString()}&end=${end.toISOString()}`
       );
       const data = await res.json();
       setEvents(data);
+
+      // Récupérer les vacances, jours fériés et fermetures
+      const vacRes = await fetch(
+        `/api/agenda/vacations?start=${start.toISOString()}&end=${end.toISOString()}`
+      );
+      if (vacRes.ok) {
+        const vacData = await vacRes.json();
+        setVacationEvents(vacData);
+      }
     } catch (error) {
       console.error("Error fetching events:", error);
     }
@@ -254,6 +284,44 @@ export default function AgendaPage() {
     });
   };
 
+  // Fonction pour vérifier si une date est dans une plage (pour les vacances multi-jours)
+  const isDateInRange = (date: Date, startDate: string, endDate: string | null) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = endDate ? new Date(endDate) : start;
+    end.setHours(23, 59, 59, 999);
+    return d >= start && d <= end;
+  };
+
+  // Récupérer les vacances/fériés/fermetures pour un jour donné
+  const getVacationsForDay = (day: number, month?: number, year?: number) => {
+    if (!showVacations) return [];
+    const m = month ?? currentDate.getMonth();
+    const y = year ?? currentDate.getFullYear();
+    const date = new Date(y, m, day);
+    return vacationEvents.filter((event) => isDateInRange(date, event.startDate, event.endDate));
+  };
+
+  // Récupérer les vacances/fériés/fermetures pour une date donnée
+  const getVacationsForDate = (date: Date) => {
+    if (!showVacations) return [];
+    return vacationEvents.filter((event) => isDateInRange(date, event.startDate, event.endDate));
+  };
+
+  // Vérifier si un jour est un jour férié
+  const isHoliday = (day: number, month?: number, year?: number) => {
+    const vacations = getVacationsForDay(day, month, year);
+    return vacations.some(v => v.type === "holiday");
+  };
+
+  // Vérifier si un jour est pendant la fermeture du bureau
+  const isClosure = (day: number, month?: number, year?: number) => {
+    const vacations = getVacationsForDay(day, month, year);
+    return vacations.some(v => v.type === "closure");
+  };
+
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
   };
@@ -333,6 +401,14 @@ export default function AgendaPage() {
                   <List className="h-4 w-4" />
                 </button>
               </div>
+              <button
+                onClick={() => setShowVacations(!showVacations)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border ${showVacations ? "bg-sky-500/10 border-sky-500/30 text-sky-600" : "border-border text-muted-foreground hover:bg-muted"}`}
+                title="Afficher/masquer vacances et fériés"
+              >
+                <Palmtree className="h-4 w-4" />
+                Vacances
+              </button>
               <button onClick={() => navigate(-1)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground"><ChevronLeft className="h-5 w-5" /></button>
               <button onClick={goToToday} className="px-3 py-1.5 text-sm font-medium rounded-lg hover:bg-muted text-muted-foreground">Aujourd'hui</button>
               <button onClick={() => navigate(1)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground"><ChevronRight className="h-5 w-5" /></button>
@@ -354,18 +430,43 @@ export default function AgendaPage() {
               <div className="grid grid-cols-7">
                 {getDaysInMonth().map((day, index) => {
                   const dayEvents = day ? getEventsForDay(day) : [];
+                  const dayVacations = day ? getVacationsForDay(day) : [];
+                  const holidayToday = day ? isHoliday(day) : false;
+                  const closureToday = day ? isClosure(day) : false;
                   return (
-                    <div key={index} className={`min-h-[120px] border-b border-r border-border p-2 ${day ? "cursor-pointer hover:bg-muted/50" : "bg-muted/20"}`} onClick={() => day && handleDayClick(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))}>
+                    <div 
+                      key={index} 
+                      className={`min-h-[120px] border-b border-r border-border p-2 ${day ? "cursor-pointer hover:bg-muted/50" : "bg-muted/20"} ${holidayToday ? "bg-red-500/5" : ""} ${closureToday ? "bg-violet-500/5" : ""}`} 
+                      onClick={() => day && handleDayClick(new Date(currentDate.getFullYear(), currentDate.getMonth(), day))}
+                    >
                       {day && (
                         <>
-                          <div className={`text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full ${isTodayDay(day) ? "bg-primary text-white" : "text-foreground"}`}>{day}</div>
+                          <div className="flex items-center gap-1 mb-1">
+                            <div className={`text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full ${isTodayDay(day) ? "bg-primary text-white" : holidayToday ? "bg-red-500 text-white" : "text-foreground"}`}>{day}</div>
+                            {holidayToday && <PartyPopper className="h-3.5 w-3.5 text-red-500" />}
+                            {closureToday && !holidayToday && <Building2 className="h-3.5 w-3.5 text-violet-500" />}
+                          </div>
                           <div className="space-y-1">
-                            {dayEvents.slice(0, 3).map((event) => (
+                            {/* Afficher les vacances/fériés/fermetures */}
+                            {dayVacations.slice(0, 2).map((vac) => (
+                              <div 
+                                key={vac.id} 
+                                className="text-xs px-2 py-1 rounded truncate flex items-center gap-1" 
+                                style={{ backgroundColor: `${vac.color}20`, color: vac.color, borderLeft: `3px solid ${vac.color}` }}
+                              >
+                                {vac.type === "vacation" && <User className="h-3 w-3 flex-shrink-0" />}
+                                {vac.type === "holiday" && <PartyPopper className="h-3 w-3 flex-shrink-0" />}
+                                {vac.type === "closure" && <Building2 className="h-3 w-3 flex-shrink-0" />}
+                                <span className="truncate">{vac.title}</span>
+                              </div>
+                            ))}
+                            {/* Afficher les événements réguliers */}
+                            {dayEvents.slice(0, 3 - Math.min(dayVacations.length, 2)).map((event) => (
                               <div key={event.id} onClick={(e) => { e.stopPropagation(); setSelectedEvent(event); }} className="text-xs px-2 py-1 rounded truncate cursor-pointer hover:opacity-80" style={{ backgroundColor: `${event.color || "#6366f1"}20`, color: event.color || "#6366f1", borderLeft: `3px solid ${event.color || "#6366f1"}` }}>
                                 {!event.allDay && <span className="font-medium">{formatTime(event.startDate)} </span>}{event.title}
                               </div>
                             ))}
-                            {dayEvents.length > 3 && <div className="text-xs text-muted-foreground px-2">+{dayEvents.length - 3} autres</div>}
+                            {(dayEvents.length + dayVacations.length) > 3 && <div className="text-xs text-muted-foreground px-2">+{dayEvents.length + dayVacations.length - 3} autres</div>}
                           </div>
                         </>
                       )}
@@ -378,19 +479,40 @@ export default function AgendaPage() {
             <div className="glass-card rounded-xl overflow-hidden">
               <div className="grid grid-cols-8 border-b border-border">
                 <div className="py-3 px-2 text-center text-sm font-medium text-muted-foreground border-r border-border"></div>
-                {getWeekDays().map((date, i) => (
-                  <div key={i} className={`py-3 text-center border-r border-border ${isToday(date) ? "bg-primary/10" : ""}`}>
-                    <div className="text-xs text-muted-foreground">{DAYS[date.getDay()]}</div>
-                    <div className={`text-lg font-semibold ${isToday(date) ? "text-primary" : "text-foreground"}`}>{date.getDate()}</div>
-                    {getAllDayEvents(date).length > 0 && (
-                      <div className="mt-1 space-y-1 px-1">
-                        {getAllDayEvents(date).slice(0, 2).map((event) => (
-                          <div key={event.id} onClick={() => setSelectedEvent(event)} className="text-xs px-1 py-0.5 rounded truncate cursor-pointer" style={{ backgroundColor: event.color || "#6366f1", color: "white" }}>{event.title}</div>
-                        ))}
+                {getWeekDays().map((date, i) => {
+                  const dateVacations = getVacationsForDate(date);
+                  const isHolidayDate = dateVacations.some(v => v.type === "holiday");
+                  const isClosureDate = dateVacations.some(v => v.type === "closure");
+                  return (
+                    <div key={i} className={`py-3 text-center border-r border-border ${isToday(date) ? "bg-primary/10" : ""} ${isHolidayDate ? "bg-red-500/10" : ""} ${isClosureDate && !isHolidayDate ? "bg-violet-500/10" : ""}`}>
+                      <div className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                        {DAYS[date.getDay()]}
+                        {isHolidayDate && <PartyPopper className="h-3 w-3 text-red-500" />}
+                        {isClosureDate && !isHolidayDate && <Building2 className="h-3 w-3 text-violet-500" />}
                       </div>
-                    )}
-                  </div>
-                ))}
+                      <div className={`text-lg font-semibold ${isToday(date) ? "text-primary" : isHolidayDate ? "text-red-500" : "text-foreground"}`}>{date.getDate()}</div>
+                      {/* Afficher les vacances */}
+                      {dateVacations.length > 0 && (
+                        <div className="mt-1 space-y-1 px-1">
+                          {dateVacations.slice(0, 2).map((vac) => (
+                            <div key={vac.id} className="text-xs px-1 py-0.5 rounded truncate flex items-center gap-0.5 justify-center" style={{ backgroundColor: vac.color, color: "white" }}>
+                              {vac.type === "vacation" && <User className="h-2.5 w-2.5" />}
+                              <span className="truncate">{vac.type === "vacation" ? vac.employeeName?.split(" ")[0] : vac.title}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {/* Afficher les événements all-day */}
+                      {getAllDayEvents(date).length > 0 && (
+                        <div className="mt-1 space-y-1 px-1">
+                          {getAllDayEvents(date).slice(0, 2 - Math.min(dateVacations.length, 2)).map((event) => (
+                            <div key={event.id} onClick={() => setSelectedEvent(event)} className="text-xs px-1 py-0.5 rounded truncate cursor-pointer" style={{ backgroundColor: event.color || "#6366f1", color: "white" }}>{event.title}</div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               <div className="max-h-[600px] overflow-y-auto">
                 {HOURS.slice(6, 22).map((hour) => (
@@ -451,29 +573,74 @@ export default function AgendaPage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {events.length === 0 ? (
-                <div className="glass-card rounded-xl p-8 text-center text-muted-foreground">Aucun événement ce mois-ci</div>
-              ) : (
-                events.map((event) => (
-                  <div key={event.id} onClick={() => setSelectedEvent(event)} className="glass-card rounded-xl p-4 cursor-pointer hover:border-primary/30 transition-colors">
-                    <div className="flex items-start gap-4">
-                      <div className="w-1 h-full min-h-[60px] rounded-full" style={{ backgroundColor: event.color || "#6366f1" }} />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: `${event.color || "#6366f1"}20`, color: event.color || "#6366f1" }}>{EVENT_TYPES.find((t) => t.id === event.type)?.name || event.type}</span>
-                          {event.reminder && <Bell className="h-3 w-3 text-amber-500" />}
-                        </div>
-                        <h3 className="font-medium text-foreground">{event.title}</h3>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1"><CalendarIcon className="h-4 w-4" />{formatDate(event.startDate)}</span>
-                          {!event.allDay && <span className="flex items-center gap-1"><Clock className="h-4 w-4" />{formatTime(event.startDate)}{event.endDate && ` - ${formatTime(event.endDate)}`}</span>}
-                          {event.location && <span className="flex items-center gap-1"><MapPin className="h-4 w-4" />{event.location}</span>}
+              {/* Section Vacances, Fériés et Fermetures */}
+              {showVacations && vacationEvents.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                    <Palmtree className="h-4 w-4" />
+                    Vacances, Fériés et Fermetures
+                  </h3>
+                  <div className="space-y-2">
+                    {vacationEvents.map((vac) => (
+                      <div key={vac.id} className="glass-card rounded-xl p-4">
+                        <div className="flex items-start gap-4">
+                          <div className="w-1 h-full min-h-[50px] rounded-full" style={{ backgroundColor: vac.color }} />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs px-2 py-0.5 rounded-full flex items-center gap-1" style={{ backgroundColor: `${vac.color}20`, color: vac.color }}>
+                                {vac.type === "vacation" && <><User className="h-3 w-3" />Vacances</>}
+                                {vac.type === "holiday" && <><PartyPopper className="h-3 w-3" />Férié</>}
+                                {vac.type === "closure" && <><Building2 className="h-3 w-3" />Fermeture</>}
+                              </span>
+                            </div>
+                            <h3 className="font-medium text-foreground">{vac.title}</h3>
+                            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <CalendarIcon className="h-4 w-4" />
+                                {formatDate(vac.startDate)}
+                                {vac.endDate && vac.endDate !== vac.startDate && ` - ${formatDate(vac.endDate)}`}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))
+                </div>
               )}
+              
+              {/* Section Événements */}
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4" />
+                  Événements
+                </h3>
+                {events.length === 0 ? (
+                  <div className="glass-card rounded-xl p-8 text-center text-muted-foreground">Aucun événement ce mois-ci</div>
+                ) : (
+                  <div className="space-y-2">
+                    {events.map((event) => (
+                      <div key={event.id} onClick={() => setSelectedEvent(event)} className="glass-card rounded-xl p-4 cursor-pointer hover:border-primary/30 transition-colors">
+                        <div className="flex items-start gap-4">
+                          <div className="w-1 h-full min-h-[60px] rounded-full" style={{ backgroundColor: event.color || "#6366f1" }} />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: `${event.color || "#6366f1"}20`, color: event.color || "#6366f1" }}>{EVENT_TYPES.find((t) => t.id === event.type)?.name || event.type}</span>
+                              {event.reminder && <Bell className="h-3 w-3 text-amber-500" />}
+                            </div>
+                            <h3 className="font-medium text-foreground">{event.title}</h3>
+                            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1"><CalendarIcon className="h-4 w-4" />{formatDate(event.startDate)}</span>
+                              {!event.allDay && <span className="flex items-center gap-1"><Clock className="h-4 w-4" />{formatTime(event.startDate)}{event.endDate && ` - ${formatTime(event.endDate)}`}</span>}
+                              {event.location && <span className="flex items-center gap-1"><MapPin className="h-4 w-4" />{event.location}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

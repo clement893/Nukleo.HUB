@@ -654,3 +654,16 @@
 - [x] Créer composant OptimizedImage avec skeleton
 
 - [x] Pousser vers GitHub
+
+
+## Intégration Vacances et Jours Fériés dans l'Agenda
+
+- [x] Analyser la page agenda existante
+- [x] Créer API pour récupérer les vacances approuvées
+- [x] Ajouter les jours fériés du Canada (2024-2026)
+- [x] Ajouter la fermeture du bureau (24 déc - 1er jan)
+- [x] Afficher les vacances dans le calendrier (vues mois, semaine, liste)
+- [x] Afficher les jours fériés dans le calendrier
+- [x] Afficher la fermeture du bureau
+- [x] Bouton toggle pour afficher/masquer les vacances
+- [ ] Pousser vers GitHub
