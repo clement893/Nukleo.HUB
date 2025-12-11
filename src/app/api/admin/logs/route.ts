@@ -69,14 +69,11 @@ export async function POST(request: NextRequest) {
       data: {
         action: body.action,
         entityType: body.entityType,
-        entityId: body.entityId,
-        entityName: body.entityName,
+        entityId: body.entityId || "",
+        description: body.entityName || body.description,
         userId: body.userId,
         userName: body.userName,
-        userEmail: body.userEmail,
-        details: body.details ? JSON.stringify(body.details) : null,
-        ipAddress: body.ipAddress,
-        userAgent: body.userAgent,
+        oldValue: body.details ? JSON.stringify(body.details) : null,
       },
     });
 

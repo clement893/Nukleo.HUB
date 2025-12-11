@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
       id: string;
       action: string;
       entityType: string;
-      entityName: string | null;
+      description: string | null;
       userName: string | null;
       createdAt: Date;
     }> = [];
@@ -147,7 +147,7 @@ export async function GET(request: NextRequest) {
           id: true,
           action: true,
           entityType: true,
-          entityName: true,
+          description: true,
           userName: true,
           createdAt: true,
         },

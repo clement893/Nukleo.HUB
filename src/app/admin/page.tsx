@@ -48,7 +48,7 @@ interface ActivityLog {
   id: string;
   action: string;
   entityType: string;
-  entityName: string | null;
+  description: string | null;
   userName: string | null;
   createdAt: string;
 }
@@ -368,7 +368,7 @@ export default function AdminPage() {
                               </span>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm text-foreground truncate">
-                                  {log.entityName || log.entityType}
+                                  {log.description || log.entityType}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                   {log.userName || "Système"} • {new Date(log.createdAt).toLocaleString("fr-CA")}
@@ -815,7 +815,7 @@ function LogsTab() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">{log.entityType}</td>
-                  <td className="px-4 py-3 text-sm text-foreground">{log.entityName || "-"}</td>
+                  <td className="px-4 py-3 text-sm text-foreground">{log.description || "-"}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">{log.userName || "Système"}</td>
                   <td className="px-4 py-3 text-sm text-muted-foreground">
                     {new Date(log.createdAt).toLocaleString("fr-CA")}
