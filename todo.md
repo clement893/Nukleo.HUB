@@ -675,4 +675,4 @@
 - [x] Créer script de mise à jour des dates d'anniversaire
 - [x] Modifier l'API agenda/vacations pour inclure les anniversaires
 - [x] Afficher les anniversaires dans le calendrier avec icône gâteau
-- [ ] Pousser vers GitHub et exécuter le script de mise à jour
+- [x] Pousser vers GitHub et exécuter le script de mise à jour

@@ -143,46 +143,42 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 3. Ajouter les anniversaires des employés
-    const employees = await prisma.employee.findMany({
-      where: {
-        birthDate: { not: null },
-      },
-      select: {
-        id: true,
-        name: true,
-        birthDate: true,
-        photoUrl: true,
-      },
-    });
+    // 3. Ajouter les anniversaires des employés (dates fixes, répétées chaque année)
+    const EMPLOYEE_BIRTHDAYS = [
+      { name: "Alexei Bissonnette", month: 1, day: 16 },
+      { name: "Antoine Doray", month: 9, day: 4 },
+      { name: "Margaux Geothals", month: 8, day: 13 },
+      { name: "Sarah Katerji", month: 2, day: 23 },
+      { name: "Clément Roy", month: 11, day: 13 },
+      { name: "Meriem Kouidri", month: 5, day: 22 },
+      { name: "Omar Hamdi", month: 7, day: 4 },
+      { name: "Timothé Lacoste", month: 3, day: 6 },
+      { name: "Camille Gauthier", month: 9, day: 17 },
+      { name: "Marie-Claire Lajeunesse", month: 6, day: 8 },
+      { name: "Hind Djebien", month: 11, day: 11 },
+      { name: "Maxime Besnier", month: 12, day: 30 },
+      { name: "Séverine Di Mambro", month: 11, day: 3 },
+      { name: "Jean-François Lemieux", month: 10, day: 20 },
+    ];
 
-    for (const employee of employees) {
-      if (!employee.birthDate) continue;
-      
-      // Générer l'anniversaire pour chaque année dans la plage
-      const startYear = startDate.getFullYear();
-      const endYear = endDate.getFullYear();
-      
-      for (let year = startYear; year <= endYear; year++) {
-        const birthdayThisYear = new Date(
-          year,
-          employee.birthDate.getMonth(),
-          employee.birthDate.getDate()
-        );
+    // Générer les anniversaires pour chaque année dans la plage
+    const startYear = startDate.getFullYear();
+    const endYear = endDate.getFullYear();
+    
+    for (let year = startYear; year <= endYear; year++) {
+      for (const birthday of EMPLOYEE_BIRTHDAYS) {
+        const birthdayDate = new Date(year, birthday.month - 1, birthday.day);
         
-        if (birthdayThisYear >= startDate && birthdayThisYear <= endDate) {
-          const age = year - employee.birthDate.getFullYear();
+        if (birthdayDate >= startDate && birthdayDate <= endDate) {
           events.push({
-            id: `birthday-${employee.id}-${year}`,
-            title: `🎂 ${employee.name} (${age} ans)`,
-            startDate: birthdayThisYear.toISOString(),
-            endDate: birthdayThisYear.toISOString(),
+            id: `birthday-${birthday.name.replace(/\s/g, "-")}-${year}`,
+            title: `🎂 Fête de ${birthday.name}`,
+            startDate: birthdayDate.toISOString(),
+            endDate: birthdayDate.toISOString(),
             allDay: true,
             type: "birthday",
             color: "#ec4899", // Rose pour les anniversaires
-            employeeId: employee.id,
-            employeeName: employee.name,
-            employeePhoto: employee.photoUrl,
+            employeeName: birthday.name,
           });
         }
       }
