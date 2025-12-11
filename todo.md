@@ -375,12 +375,12 @@
 - [x] Pousser vers GitHub
 
 ## Connexion Google OAuth
-- [ ] Ajouter modèle User/Session au schéma Prisma
-- [ ] Créer API /api/auth/google pour initier OAuth
-- [ ] Créer API /api/auth/google/callback pour le callback
-- [ ] Créer API /api/auth/me pour récupérer l'utilisateur connecté
-- [ ] Créer API /api/auth/logout pour la déconnexion
-- [ ] Page de connexion avec bouton Google
-- [ ] Middleware de protection des routes
-- [ ] Afficher l'utilisateur connecté dans le header
-- [ ] Pousser vers GitHub
+- [x] Ajouter modèle User/Session au schéma Prisma
+- [x] Créer API /api/auth/login pour initier OAuth
+- [x] Créer API /api/auth/login/callback pour le callback
+- [x] Créer API /api/auth/me pour récupérer l'utilisateur connecté
+- [x] Créer API /api/auth/logout pour la déconnexion
+- [x] Page de connexion avec bouton Google
+- [x] Afficher l'utilisateur connecté dans le Sidebar
+- [x] Bouton de déconnexion dans le Sidebar
+- [x] Pousser vers GitHub

@@ -40,6 +40,7 @@ export default function LoginPage() {
         server: "Erreur serveur. Veuillez réessayer.",
         token_exchange: "Erreur lors de l'échange du token.",
         user_info: "Impossible de récupérer vos informations.",
+        domain_not_allowed: "Seuls les comptes @nukleo.com sont autorisés.",
       };
       setError(errorMessages[errorParam] || "Une erreur est survenue.");
     }
@@ -116,10 +117,14 @@ export default function LoginPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Continuer avec Google
+            Se connecter avec Google Workspace
           </button>
 
-          <p className="mt-6 text-center text-sm text-slate-500">
+          <p className="mt-4 text-center text-xs text-slate-500">
+            Connexion réservée aux employés Nukleo (@nukleo.com)
+          </p>
+
+          <p className="mt-4 text-center text-sm text-slate-500">
             En vous connectant, vous acceptez nos conditions d&apos;utilisation.
           </p>
         </div>

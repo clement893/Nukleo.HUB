@@ -67,6 +67,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${baseUrl}/login?error=no_email`);
     }
 
+    // Vérifier que l'email est du domaine @nukleo.com
+    const allowedDomains = ["nukleo.com", "nukleo.ca"];
+    const emailDomain = googleUser.email.split("@")[1]?.toLowerCase();
+    
+    if (!emailDomain || !allowedDomains.includes(emailDomain)) {
+      return NextResponse.redirect(`${baseUrl}/login?error=domain_not_allowed`);
+    }
+
     // Chercher ou créer l'utilisateur
     let user = await prisma.user.findFirst({
       where: {
