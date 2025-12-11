@@ -5,6 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
+    const includeStats = searchParams.get("includeStats") === "true";
 
     const where: Record<string, unknown> = {};
     if (status) {
@@ -30,11 +31,19 @@ export async function GET(request: NextRequest) {
             accesses: true,
             messages: true,
             tasks: true,
+            contentCalendar: true,
+            briefs: true,
+            strategies: true,
+            contentIdeas: true,
           },
         },
       },
       orderBy: { updatedAt: "desc" },
     });
+
+    if (includeStats) {
+      return NextResponse.json({ clients });
+    }
 
     return NextResponse.json(clients);
   } catch (error) {

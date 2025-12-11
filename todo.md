@@ -439,16 +439,24 @@
 - [x] Pousser vers GitHub
 
 ## Hub de Communication - Agence du Futur
-- [ ] Analyser la structure actuelle du Hub de Comm
-- [ ] Créer modèles DB : ContentCalendar, CommunicationBrief, Strategy, Campaign
-- [ ] API calendrier éditorial (CRUD + vue mensuelle)
-- [ ] API briefs de projets de communication
-- [ ] API stratégies de communication
-- [ ] API campagnes et analytics
-- [ ] Interface Dashboard Hub de Comm
-- [ ] Interface Calendrier Éditorial
-- [ ] Interface Briefs de Projets
-- [ ] Interface Stratégies
-- [ ] Interface Campagnes
-- [ ] Interface Analytics et Reporting
+- [x] Analyser la structure actuelle du Hub de Comm
+- [x] Créer modèles DB : ContentCalendar, CommunicationBrief, Strategy, ContentIdea
+- [x] API calendrier éditorial (CRUD + vue mensuelle)
+- [x] API briefs de projets de communication
+- [x] API stratégies de communication
+- [x] API idées de contenu
+- [x] Interface Dashboard Hub de Comm
+- [x] Interface Calendrier Éditorial
+- [x] Interface Briefs de Projets
+- [x] Interface Stratégies
+- [x] Interface Banque d'Idées
+- [ ] Interface Analytics et Reporting (phase 2)
+- [x] Pousser vers GitHub
+
+## Page d'accueil Hubs de Communication
+- [ ] Créer page d'accueil /communication avec liste des clients
+- [ ] Cartes clients avec aperçu du hub (stats, dernière activité)
+- [ ] Formulaire de création de nouveau client communication
+- [ ] Déplacer le hub actuel vers /communication/[clientId]
+- [ ] Filtres et recherche de clients
 - [ ] Pousser vers GitHub
