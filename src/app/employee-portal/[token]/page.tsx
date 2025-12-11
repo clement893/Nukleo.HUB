@@ -279,13 +279,13 @@ export default function EmployeePortalPage() {
 
   function getStatusColor(status: string) {
     switch (status) {
-      case "pending": return "bg-yellow-100 text-yellow-800";
-      case "approved": return "bg-green-100 text-green-800";
-      case "rejected": return "bg-red-100 text-red-800";
-      case "in_progress": return "bg-blue-100 text-blue-800";
-      case "todo": return "bg-gray-100 text-gray-800";
-      case "done": return "bg-green-100 text-green-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "pending": return "bg-yellow-600/20 text-yellow-300";
+      case "approved": return "bg-green-600/20 text-green-300";
+      case "rejected": return "bg-red-600/20 text-red-300";
+      case "in_progress": return "bg-blue-600/20 text-blue-300";
+      case "todo": return "bg-slate-700/50 text-white";
+      case "done": return "bg-green-600/20 text-green-300";
+      default: return "bg-slate-700/50 text-white";
     }
   }
 
@@ -294,13 +294,13 @@ export default function EmployeePortalPage() {
       case "high": return "text-red-600";
       case "medium": return "text-yellow-600";
       case "low": return "text-green-600";
-      default: return "text-gray-600";
+      default: return "text-slate-400";
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -308,11 +308,11 @@ export default function EmployeePortalPage() {
 
   if (error || !employee) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
+        <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700-lg p-8 text-center max-w-md">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Accès refusé</h1>
-          <p className="text-gray-600">{error || "Portail non trouvé"}</p>
+          <h1 className="text-2xl font-bold text-white mb-2">Accès refusé</h1>
+          <p className="text-slate-400">{error || "Portail non trouvé"}</p>
         </div>
       </div>
     );
@@ -329,9 +329,9 @@ export default function EmployeePortalPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             {employee.photoUrl ? (
@@ -340,29 +340,29 @@ export default function EmployeePortalPage() {
                 alt={employee.name}
                 width={48}
                 height={48}
-                className="rounded-full object-cover"
+                className="rounded-full object-cover ring-2 ring-blue-500"
               />
             ) : (
-              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                <User className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 rounded-full bg-blue-600/20 flex items-center justify-center ring-2 ring-blue-500">
+                <User className="w-6 h-6 text-blue-400" />
               </div>
             )}
             <div>
-              <h1 className="text-xl font-bold text-gray-900">{employee.name}</h1>
-              <p className="text-sm text-gray-500">{employee.role || employee.department}</p>
+              <h1 className="text-xl font-bold text-white">{employee.name}</h1>
+              <p className="text-sm text-slate-400">{employee.role || employee.department}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-sm text-gray-500">Département</p>
-              <p className="font-medium text-gray-900">{employee.department}</p>
+              <p className="text-sm text-slate-400">Département</p>
+              <p className="font-medium text-white">{employee.department}</p>
             </div>
           </div>
         </div>
       </header>
 
       {/* Navigation */}
-      <nav className="bg-white border-b sticky top-0 z-10">
+      <nav className="bg-slate-800/80 backdrop-blur-sm border-b border-slate-700 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-1 overflow-x-auto">
             {tabs.map(tab => (
@@ -371,8 +371,8 @@ export default function EmployeePortalPage() {
                 onClick={() => setActiveTab(tab.id as typeof activeTab)}
                 className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.id
-                    ? "border-blue-600 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
+                    ? "border-blue-500 text-blue-400 bg-blue-500/10"
+                    : "border-transparent text-slate-400 hover:text-white hover:bg-slate-700/50"
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -390,82 +390,82 @@ export default function EmployeePortalPage() {
           <div className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              <div className="bg-white rounded-xl shadow-sm p-4">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
+                  <div className="p-2 bg-blue-600/20 rounded-lg">
                     <Clock className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">{stats.hoursThisWeek}h</p>
-                    <p className="text-xs text-gray-500">Cette semaine</p>
+                    <p className="text-2xl font-bold text-white">{stats.hoursThisWeek}h</p>
+                    <p className="text-xs text-slate-400">Cette semaine</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-white rounded-xl shadow-sm p-4">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-yellow-100 rounded-lg">
+                  <div className="p-2 bg-yellow-600/20 rounded-lg">
                     <Play className="w-5 h-5 text-yellow-600" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">{stats.tasksInProgress}</p>
-                    <p className="text-xs text-gray-500">En cours</p>
+                    <p className="text-2xl font-bold text-white">{stats.tasksInProgress}</p>
+                    <p className="text-xs text-slate-400">En cours</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-white rounded-xl shadow-sm p-4">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <Target className="w-5 h-5 text-gray-600" />
+                  <div className="p-2 bg-slate-700/50 rounded-lg">
+                    <Target className="w-5 h-5 text-slate-400" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">{stats.tasksTodo}</p>
-                    <p className="text-xs text-gray-500">À faire</p>
+                    <p className="text-2xl font-bold text-white">{stats.tasksTodo}</p>
+                    <p className="text-xs text-slate-400">À faire</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-white rounded-xl shadow-sm p-4">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-100 rounded-lg">
+                  <div className="p-2 bg-purple-600/20 rounded-lg">
                     <FolderKanban className="w-5 h-5 text-purple-600" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">{stats.projectsActive}</p>
-                    <p className="text-xs text-gray-500">Projets</p>
+                    <p className="text-2xl font-bold text-white">{stats.projectsActive}</p>
+                    <p className="text-xs text-slate-400">Projets</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-white rounded-xl shadow-sm p-4">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-orange-100 rounded-lg">
+                  <div className="p-2 bg-orange-600/20 rounded-lg">
                     <Send className="w-5 h-5 text-orange-600" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">{stats.pendingRequests}</p>
-                    <p className="text-xs text-gray-500">Demandes</p>
+                    <p className="text-2xl font-bold text-white">{stats.pendingRequests}</p>
+                    <p className="text-xs text-slate-400">Demandes</p>
                   </div>
                 </div>
               </div>
-              <div className="bg-white rounded-xl shadow-sm p-4">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
+                  <div className="p-2 bg-green-600/20 rounded-lg">
                     <Calendar className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">{stats.upcomingEvents}</p>
-                    <p className="text-xs text-gray-500">Événements</p>
+                    <p className="text-2xl font-bold text-white">{stats.upcomingEvents}</p>
+                    <p className="text-xs text-slate-400">Événements</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Timer Widget */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-6">
+              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <Timer className="w-5 h-5 text-blue-600" />
                 Chronomètre
               </h2>
               <div className="flex items-center gap-4">
-                <div className="text-4xl font-mono font-bold text-gray-900">
+                <div className="text-4xl font-mono font-bold text-white">
                   {formatTime(timerSeconds)}
                 </div>
                 <input
@@ -529,21 +529,21 @@ export default function EmployeePortalPage() {
               )}
 
               {/* Tasks List */}
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-6">
+                <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-blue-600" />
                   Mes tâches
                 </h2>
                 <div className="space-y-3 max-h-64 overflow-y-auto">
                   {tasks.slice(0, 5).map(task => (
-                    <div key={task.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div key={task.id} className="flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg">
                       <div className={`w-2 h-2 rounded-full ${
                         task.status === "done" ? "bg-green-500" :
                         task.status === "in_progress" ? "bg-blue-500" : "bg-gray-400"
                       }`} />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 truncate">{task.title}</p>
-                        <p className="text-sm text-gray-500 truncate">
+                        <p className="font-medium text-white truncate">{task.title}</p>
+                        <p className="text-sm text-slate-400 truncate">
                           {task.project?.name || "Sans projet"}
                         </p>
                       </div>
@@ -553,26 +553,26 @@ export default function EmployeePortalPage() {
                     </div>
                   ))}
                   {tasks.length === 0 && (
-                    <p className="text-gray-500 text-center py-4">Aucune tâche assignée</p>
+                    <p className="text-slate-400 text-center py-4">Aucune tâche assignée</p>
                   )}
                 </div>
               </div>
             </div>
 
             {/* Projects */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-6">
+              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <FolderKanban className="w-5 h-5 text-purple-600" />
                 Projets actifs
               </h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {projects.map(project => (
                   <div key={project.id} className="p-4 border rounded-lg hover:border-blue-300 transition-colors">
-                    <h3 className="font-medium text-gray-900">{project.name}</h3>
-                    <p className="text-sm text-gray-500">{project.client || "Client interne"}</p>
+                    <h3 className="font-medium text-white">{project.name}</h3>
+                    <p className="text-sm text-slate-400">{project.client || "Client interne"}</p>
                     <div className="mt-3">
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="text-gray-500">Progression</span>
+                        <span className="text-slate-400">Progression</span>
                         <span className="font-medium">{project.progress || 0}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -585,7 +585,7 @@ export default function EmployeePortalPage() {
                   </div>
                 ))}
                 {projects.length === 0 && (
-                  <p className="text-gray-500 col-span-full text-center py-4">Aucun projet actif</p>
+                  <p className="text-slate-400 col-span-full text-center py-4">Aucun projet actif</p>
                 )}
               </div>
             </div>
@@ -596,10 +596,10 @@ export default function EmployeePortalPage() {
         {activeTab === "time" && (
           <div className="space-y-6">
             {/* Timer */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Chronomètre</h2>
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-6">
+              <h2 className="text-lg font-semibold text-white mb-4">Chronomètre</h2>
               <div className="flex items-center gap-4">
-                <div className="text-5xl font-mono font-bold text-gray-900">
+                <div className="text-5xl font-mono font-bold text-white">
                   {formatTime(timerSeconds)}
                 </div>
                 <input
@@ -640,21 +640,21 @@ export default function EmployeePortalPage() {
             </div>
 
             {/* Time Entries */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Entrées de temps récentes</h2>
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-6">
+              <h2 className="text-lg font-semibold text-white mb-4">Entrées de temps récentes</h2>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Date</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Description</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Durée</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Facturable</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Date</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Description</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Durée</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Facturable</th>
                     </tr>
                   </thead>
                   <tbody>
                     {timeEntries.map(entry => (
-                      <tr key={entry.id} className="border-b hover:bg-gray-50">
+                      <tr key={entry.id} className="border-b hover:bg-slate-800/30">
                         <td className="py-3 px-4 text-sm">
                           {new Date(entry.startTime).toLocaleDateString("fr-CA")}
                         </td>
@@ -673,7 +673,7 @@ export default function EmployeePortalPage() {
                     ))}
                     {timeEntries.length === 0 && (
                       <tr>
-                        <td colSpan={4} className="py-8 text-center text-gray-500">
+                        <td colSpan={4} className="py-8 text-center text-slate-400">
                           Aucune entrée de temps
                         </td>
                       </tr>
@@ -687,8 +687,8 @@ export default function EmployeePortalPage() {
 
         {/* Calendar Tab */}
         {activeTab === "calendar" && (
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Événements à venir</h2>
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-6">
+            <h2 className="text-lg font-semibold text-white mb-4">Événements à venir</h2>
             <div className="space-y-4">
               {events.map(event => (
                 <div
@@ -697,27 +697,27 @@ export default function EmployeePortalPage() {
                   style={{ borderLeftColor: event.color || "#3b82f6", borderLeftWidth: "4px" }}
                 >
                   <div className="text-center min-w-[60px]">
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-white">
                       {new Date(event.startDate).getDate()}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-slate-400">
                       {new Date(event.startDate).toLocaleDateString("fr-CA", { month: "short" })}
                     </p>
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{event.title}</h3>
+                    <h3 className="font-medium text-white">{event.title}</h3>
                     {event.description && (
-                      <p className="text-sm text-gray-500 mt-1">{event.description}</p>
+                      <p className="text-sm text-slate-400 mt-1">{event.description}</p>
                     )}
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                    <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
                       <span>{event.allDay ? "Journée complète" : new Date(event.startDate).toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" })}</span>
-                      <span className="px-2 py-0.5 bg-gray-100 rounded text-xs">{event.type}</span>
+                      <span className="px-2 py-0.5 bg-slate-700/50 rounded text-xs">{event.type}</span>
                     </div>
                   </div>
                 </div>
               ))}
               {events.length === 0 && (
-                <p className="text-gray-500 text-center py-8">Aucun événement à venir</p>
+                <p className="text-slate-400 text-center py-8">Aucun événement à venir</p>
               )}
             </div>
           </div>
@@ -725,18 +725,18 @@ export default function EmployeePortalPage() {
 
         {/* Documents Tab */}
         {activeTab === "documents" && (
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Mes documents</h2>
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-6">
+            <h2 className="text-lg font-semibold text-white mb-4">Mes documents</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {documents.map(doc => (
                 <div key={doc.id} className="p-4 border rounded-lg hover:border-blue-300 transition-colors">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
+                    <div className="p-2 bg-blue-600/20 rounded-lg">
                       <FileText className="w-5 h-5 text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 truncate">{doc.name}</h3>
-                      <p className="text-sm text-gray-500">{doc.category || "Général"}</p>
+                      <h3 className="font-medium text-white truncate">{doc.name}</h3>
+                      <p className="text-sm text-slate-400">{doc.category || "Général"}</p>
                       <p className="text-xs text-gray-400 mt-1">
                         {new Date(doc.createdAt).toLocaleDateString("fr-CA")}
                       </p>
@@ -764,7 +764,7 @@ export default function EmployeePortalPage() {
                 </div>
               ))}
               {documents.length === 0 && (
-                <p className="text-gray-500 col-span-full text-center py-8">Aucun document</p>
+                <p className="text-slate-400 col-span-full text-center py-8">Aucun document</p>
               )}
             </div>
           </div>
@@ -774,7 +774,7 @@ export default function EmployeePortalPage() {
         {activeTab === "requests" && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-gray-900">Mes demandes</h2>
+              <h2 className="text-lg font-semibold text-white">Mes demandes</h2>
               <button
                 onClick={() => setShowRequestModal(true)}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
@@ -784,29 +784,29 @@ export default function EmployeePortalPage() {
               </button>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 overflow-hidden">
               <table className="w-full">
-                <thead className="bg-gray-50">
+                <thead className="bg-slate-800/30">
                   <tr>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Type</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Titre</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Dates</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Statut</th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">Créée le</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Type</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Titre</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Dates</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Statut</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-slate-400">Créée le</th>
                   </tr>
                 </thead>
                 <tbody>
                   {requests.map(req => (
-                    <tr key={req.id} className="border-t hover:bg-gray-50">
+                    <tr key={req.id} className="border-t hover:bg-slate-800/30">
                       <td className="py-3 px-4">
-                        <span className="px-2 py-1 bg-gray-100 rounded text-sm capitalize">
+                        <span className="px-2 py-1 bg-slate-700/50 rounded text-sm capitalize">
                           {req.type === "leave" ? "Congé" :
                            req.type === "training" ? "Formation" :
                            req.type === "equipment" ? "Équipement" : req.type}
                         </span>
                       </td>
-                      <td className="py-3 px-4 font-medium text-gray-900">{req.title}</td>
-                      <td className="py-3 px-4 text-sm text-gray-500">
+                      <td className="py-3 px-4 font-medium text-white">{req.title}</td>
+                      <td className="py-3 px-4 text-sm text-slate-400">
                         {req.startDate && new Date(req.startDate).toLocaleDateString("fr-CA")}
                         {req.endDate && ` - ${new Date(req.endDate).toLocaleDateString("fr-CA")}`}
                       </td>
@@ -817,14 +817,14 @@ export default function EmployeePortalPage() {
                            req.status === "rejected" ? "Refusée" : req.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-500">
+                      <td className="py-3 px-4 text-sm text-slate-400">
                         {new Date(req.createdAt).toLocaleDateString("fr-CA")}
                       </td>
                     </tr>
                   ))}
                   {requests.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="py-8 text-center text-gray-500">
+                      <td colSpan={5} className="py-8 text-center text-slate-400">
                         Aucune demande
                       </td>
                     </tr>
@@ -837,7 +837,7 @@ export default function EmployeePortalPage() {
 
         {/* Profile Tab */}
         {activeTab === "profile" && (
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-6">
             <div className="flex items-start gap-6">
               {employee.photoUrl ? (
                 <Image
@@ -848,28 +848,28 @@ export default function EmployeePortalPage() {
                   className="rounded-xl object-cover"
                 />
               ) : (
-                <div className="w-[120px] h-[120px] rounded-xl bg-blue-100 flex items-center justify-center">
+                <div className="w-[120px] h-[120px] rounded-xl bg-blue-600/20 flex items-center justify-center">
                   <User className="w-12 h-12 text-blue-600" />
                 </div>
               )}
               <div className="flex-1">
-                <h2 className="text-2xl font-bold text-gray-900">{employee.name}</h2>
-                <p className="text-lg text-gray-500">{employee.role || "Employé"}</p>
+                <h2 className="text-2xl font-bold text-white">{employee.name}</h2>
+                <p className="text-lg text-slate-400">{employee.role || "Employé"}</p>
                 <div className="mt-4 grid md:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Email</p>
+                    <p className="text-sm text-slate-400">Email</p>
                     <p className="font-medium">{employee.email || "-"}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Téléphone</p>
+                    <p className="text-sm text-slate-400">Téléphone</p>
                     <p className="font-medium">{employee.phone || "-"}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Département</p>
+                    <p className="text-sm text-slate-400">Département</p>
                     <p className="font-medium">{employee.department}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Capacité hebdomadaire</p>
+                    <p className="text-sm text-slate-400">Capacité hebdomadaire</p>
                     <p className="font-medium">{employee.capacityHoursPerWeek}h/semaine</p>
                   </div>
                 </div>
@@ -880,7 +880,7 @@ export default function EmployeePortalPage() {
 
         {/* Leo IA Tab */}
         {activeTab === "leo" && (
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden h-[calc(100vh-200px)] flex flex-col">
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 overflow-hidden h-[calc(100vh-200px)] flex flex-col">
             <div className="p-4 border-b bg-gradient-to-r from-purple-600 to-indigo-600">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-white/20 rounded-lg">
@@ -897,8 +897,8 @@ export default function EmployeePortalPage() {
               {chatMessages.length === 0 && (
                 <div className="text-center py-12">
                   <Brain className="w-16 h-16 text-purple-200 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Bonjour {employee.name} !</h3>
-                  <p className="text-gray-500 max-w-md mx-auto">
+                  <h3 className="text-lg font-medium text-white mb-2">Bonjour {employee.name} !</h3>
+                  <p className="text-slate-400 max-w-md mx-auto">
                     Je suis Leo, ton assistant IA personnel. Je peux t&apos;aider avec tes tâches, 
                     répondre à tes questions sur l&apos;entreprise, et bien plus encore.
                   </p>
@@ -907,7 +907,7 @@ export default function EmployeePortalPage() {
                       <button
                         key={q}
                         onClick={() => setChatInput(q)}
-                        className="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm hover:bg-purple-200"
+                        className="px-4 py-2 bg-purple-600/20 text-purple-700 rounded-full text-sm hover:bg-purple-200"
                       >
                         {q}
                       </button>
@@ -925,7 +925,7 @@ export default function EmployeePortalPage() {
                     className={`max-w-[80%] p-4 rounded-2xl ${
                       msg.role === "user"
                         ? "bg-blue-600 text-white rounded-br-md"
-                        : "bg-gray-100 text-gray-900 rounded-bl-md"
+                        : "bg-slate-700/50 text-white rounded-bl-md"
                     }`}
                   >
                     <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -935,7 +935,7 @@ export default function EmployeePortalPage() {
 
               {chatLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-gray-100 p-4 rounded-2xl rounded-bl-md">
+                  <div className="bg-slate-700/50 p-4 rounded-2xl rounded-bl-md">
                     <div className="flex gap-1">
                       <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
                       <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} />
@@ -974,17 +974,17 @@ export default function EmployeePortalPage() {
       {/* Request Modal */}
       {showRequestModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700-xl max-w-lg w-full p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Nouvelle demande</h2>
-              <button onClick={() => setShowRequestModal(false)} className="text-gray-400 hover:text-gray-600">
+              <h2 className="text-xl font-bold text-white">Nouvelle demande</h2>
+              <button onClick={() => setShowRequestModal(false)} className="text-gray-400 hover:text-slate-400">
                 <X className="w-6 h-6" />
               </button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Type</label>
                 <select
                   value={newRequest.type}
                   onChange={(e) => setNewRequest({ ...newRequest, type: e.target.value })}
@@ -998,7 +998,7 @@ export default function EmployeePortalPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Titre</label>
                 <input
                   type="text"
                   value={newRequest.title}
@@ -1009,7 +1009,7 @@ export default function EmployeePortalPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Description</label>
                 <textarea
                   value={newRequest.description}
                   onChange={(e) => setNewRequest({ ...newRequest, description: e.target.value })}
@@ -1021,7 +1021,7 @@ export default function EmployeePortalPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date début</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Date début</label>
                   <input
                     type="date"
                     value={newRequest.startDate}
@@ -1030,7 +1030,7 @@ export default function EmployeePortalPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date fin</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">Date fin</label>
                   <input
                     type="date"
                     value={newRequest.endDate}
@@ -1044,7 +1044,7 @@ export default function EmployeePortalPage() {
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setShowRequestModal(false)}
-                className="px-4 py-2 text-gray-700 border rounded-lg hover:bg-gray-50"
+                className="px-4 py-2 text-slate-300 border rounded-lg hover:bg-slate-800/30"
               >
                 Annuler
               </button>
