@@ -435,6 +435,8 @@ model TimeEntry {
   billable    Boolean   @default(true)
   status      String    @default("running") // running, completed, paused
   notes       String?   @db.Text
+  timesheetId String?   // Lien vers la feuille de temps hebdomadaire
+  timesheet   WeeklyTimesheet? @relation(fields: [timesheetId], references: [id])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -442,6 +444,36 @@ model TimeEntry {
   @@index([taskId])
   @@index([projectId])
   @@index([startTime])
+  @@index([timesheetId])
+}
+
+// Feuille de temps hebdomadaire avec approbation
+model WeeklyTimesheet {
+  id            String    @id @default(cuid())
+  employeeId    String
+  weekStartDate DateTime  // Lundi de la semaine (date sans heure)
+  weekEndDate   DateTime  // Dimanche de la semaine
+  totalHours    Float     @default(0) // Total des heures de la semaine
+  status        String    @default("draft") // draft, submitted, approved, rejected
+  submittedAt   DateTime?
+  approvedAt    DateTime?
+  approvedBy    String?   // ID de l'admin qui a approuvé
+  approverName  String?   // Nom de l'admin qui a approuvé
+  rejectedAt    DateTime?
+  rejectedBy    String?
+  rejectionReason String? @db.Text
+  notes         String?   @db.Text // Notes de l'employé
+  adminNotes    String?   @db.Text // Notes de l'admin
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  entries       TimeEntry[]
+
+  @@unique([employeeId, weekStartDate])
+  @@index([employeeId])
+  @@index([weekStartDate])
+  @@index([status])
 }
 
 

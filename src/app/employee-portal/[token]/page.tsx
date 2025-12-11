@@ -7,6 +7,7 @@ import {
   User,
   Clock,
   Calendar,
+  CalendarDays,
   FileText,
   Send,
   FolderKanban,
@@ -18,6 +19,7 @@ import {
   Plus,
   Brain,
   ChevronRight,
+  ChevronLeft,
   Timer,
   Target,
   TrendingUp,
@@ -26,6 +28,13 @@ import {
   X,
   Download,
   Eye,
+  Edit2,
+  Trash2,
+  Save,
+  SendHorizontal,
+  CheckCheck,
+  XCircle,
+  ClockIcon,
 } from "lucide-react";
 
 interface Employee {
@@ -68,6 +77,27 @@ interface TimeEntry {
   duration: number | null;
   billable: boolean;
   status: string;
+  projectId?: string | null;
+  taskId?: string | null;
+  timesheetId?: string | null;
+  notes?: string | null;
+}
+
+interface WeeklyTimesheet {
+  id: string;
+  employeeId: string;
+  weekStartDate: string;
+  weekEndDate: string;
+  totalHours: number;
+  status: "draft" | "submitted" | "approved" | "rejected";
+  submittedAt: string | null;
+  approvedAt: string | null;
+  approverName: string | null;
+  rejectedAt: string | null;
+  rejectionReason: string | null;
+  notes: string | null;
+  adminNotes: string | null;
+  entries: TimeEntry[];
 }
 
 interface EmployeeRequest {
@@ -115,6 +145,46 @@ interface ChatMessage {
   content: string;
 }
 
+// Obtenir le lundi de la semaine pour une date donnée
+function getWeekStart(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+// Obtenir le dimanche de la semaine
+function getWeekEnd(date: Date): Date {
+  const start = getWeekStart(date);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  end.setHours(23, 59, 59, 999);
+  return end;
+}
+
+// Formater une date en YYYY-MM-DD
+function formatDateISO(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
+// Formater une date en français
+function formatDateFR(date: Date): string {
+  return date.toLocaleDateString("fr-CA", { day: "numeric", month: "short", year: "numeric" });
+}
+
+// Obtenir les jours de la semaine
+function getWeekDays(weekStart: Date): Date[] {
+  const days: Date[] = [];
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(weekStart);
+    day.setDate(day.getDate() + i);
+    days.push(day);
+  }
+  return days;
+}
+
 export default function EmployeePortalPage() {
   const params = useParams();
   const token = params.token as string;
@@ -130,7 +200,16 @@ export default function EmployeePortalPage() {
   const [events, setEvents] = useState<EmployeeEvent[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "time" | "calendar" | "documents" | "requests" | "profile" | "leo">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "time" | "timesheets" | "calendar" | "documents" | "requests" | "profile" | "leo">("dashboard");
+
+  // Timesheet state
+  const [selectedWeek, setSelectedWeek] = useState<Date>(getWeekStart(new Date()));
+  const [weeklyTimesheet, setWeeklyTimesheet] = useState<WeeklyTimesheet | null>(null);
+  const [weekEntries, setWeekEntries] = useState<TimeEntry[]>([]);
+  const [canEditTimesheet, setCanEditTimesheet] = useState(true);
+  const [timesheetLoading, setTimesheetLoading] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
+  const [timesheetNotes, setTimesheetNotes] = useState("");
 
   // Timer state
   const [timerRunning, setTimerRunning] = useState(false);
@@ -175,6 +254,12 @@ export default function EmployeePortalPage() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
+  useEffect(() => {
+    if (token && activeTab === "timesheets") {
+      fetchTimesheetData();
+    }
+  }, [token, selectedWeek, activeTab]);
+
   async function fetchPortalData() {
     try {
       const res = await fetch(`/api/employee-portal/${token}`);
@@ -199,6 +284,28 @@ export default function EmployeePortalPage() {
       setError("Erreur de connexion");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchTimesheetData() {
+    setTimesheetLoading(true);
+    try {
+      const res = await fetch(`/api/employee-portal/${token}/timesheets?week=${formatDateISO(selectedWeek)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setWeeklyTimesheet(data.timesheet);
+        setWeekEntries(data.entries || []);
+        setCanEditTimesheet(data.canEdit);
+        if (data.timesheet?.notes) {
+          setTimesheetNotes(data.timesheet.notes);
+        } else {
+          setTimesheetNotes("");
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching timesheet:", error);
+    } finally {
+      setTimesheetLoading(false);
     }
   }
 
@@ -321,6 +428,7 @@ export default function EmployeePortalPage() {
   const tabs = [
     { id: "dashboard", label: "Tableau de bord", icon: Target },
     { id: "time", label: "Temps", icon: Clock },
+    { id: "timesheets", label: "Feuilles de temps", icon: CalendarDays },
     { id: "calendar", label: "Calendrier", icon: Calendar },
     { id: "documents", label: "Documents", icon: FileText },
     { id: "requests", label: "Demandes", icon: Send },
@@ -680,6 +788,354 @@ export default function EmployeePortalPage() {
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Timesheets Tab */}
+        {activeTab === "timesheets" && (
+          <div className="space-y-6">
+            {/* Week Navigation */}
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-white">Feuille de temps</h2>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => {
+                      const prev = new Date(selectedWeek);
+                      prev.setDate(prev.getDate() - 7);
+                      setSelectedWeek(prev);
+                    }}
+                    className="p-2 rounded-lg hover:bg-slate-700 transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <div className="text-center">
+                    <p className="font-medium text-white">
+                      {formatDateFR(selectedWeek)} - {formatDateFR(getWeekEnd(selectedWeek))}
+                    </p>
+                    <p className="text-sm text-slate-400">
+                      Semaine {Math.ceil((selectedWeek.getTime() - new Date(selectedWeek.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000))}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const next = new Date(selectedWeek);
+                      next.setDate(next.getDate() + 7);
+                      setSelectedWeek(next);
+                    }}
+                    className="p-2 rounded-lg hover:bg-slate-700 transition-colors"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setSelectedWeek(getWeekStart(new Date()))}
+                    className="px-3 py-1.5 text-sm bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Aujourd'hui
+                  </button>
+                </div>
+              </div>
+
+              {/* Status Badge */}
+              {weeklyTimesheet && (
+                <div className="flex items-center gap-3 mb-4">
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    weeklyTimesheet.status === "approved" ? "bg-green-500/20 text-green-400" :
+                    weeklyTimesheet.status === "submitted" ? "bg-blue-500/20 text-blue-400" :
+                    weeklyTimesheet.status === "rejected" ? "bg-red-500/20 text-red-400" :
+                    "bg-slate-500/20 text-slate-400"
+                  }`}>
+                    {weeklyTimesheet.status === "approved" ? "Approuvée" :
+                     weeklyTimesheet.status === "submitted" ? "Soumise" :
+                     weeklyTimesheet.status === "rejected" ? "Rejetée" :
+                     "Brouillon"}
+                  </span>
+                  {weeklyTimesheet.status === "approved" && weeklyTimesheet.approverName && (
+                    <span className="text-sm text-slate-400">
+                      Approuvée par {weeklyTimesheet.approverName} le {new Date(weeklyTimesheet.approvedAt!).toLocaleDateString("fr-CA")}
+                    </span>
+                  )}
+                  {weeklyTimesheet.status === "rejected" && weeklyTimesheet.rejectionReason && (
+                    <span className="text-sm text-red-400">
+                      Raison: {weeklyTimesheet.rejectionReason}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Total Hours */}
+              <div className="flex items-center gap-6 p-4 bg-slate-900/50 rounded-lg">
+                <div>
+                  <p className="text-3xl font-bold text-white">
+                    {weekEntries.reduce((sum, e) => sum + (e.duration || 0), 0) / 60}h
+                  </p>
+                  <p className="text-sm text-slate-400">Total de la semaine</p>
+                </div>
+                <div className="h-12 w-px bg-slate-700" />
+                <div>
+                  <p className="text-xl font-semibold text-green-400">
+                    {weekEntries.filter(e => e.billable).reduce((sum, e) => sum + (e.duration || 0), 0) / 60}h
+                  </p>
+                  <p className="text-sm text-slate-400">Facturables</p>
+                </div>
+                <div className="flex-1" />
+                {canEditTimesheet && weekEntries.length > 0 && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch(`/api/employee-portal/${token}/timesheets`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            weekStartDate: formatDateISO(selectedWeek),
+                            notes: timesheetNotes,
+                          }),
+                        });
+                        if (res.ok) {
+                          fetchTimesheetData();
+                        }
+                      } catch (error) {
+                        console.error("Error submitting timesheet:", error);
+                      }
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                  >
+                    <SendHorizontal className="w-4 h-4" />
+                    Soumettre pour approbation
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Week Grid */}
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-6">
+              <div className="grid grid-cols-7 gap-2 mb-4">
+                {getWeekDays(selectedWeek).map((day, idx) => {
+                  const dayEntries = weekEntries.filter(e => {
+                    const entryDate = new Date(e.startTime);
+                    return entryDate.toDateString() === day.toDateString();
+                  });
+                  const dayTotal = dayEntries.reduce((sum, e) => sum + (e.duration || 0), 0) / 60;
+                  const isToday = day.toDateString() === new Date().toDateString();
+                  
+                  return (
+                    <div
+                      key={idx}
+                      className={`p-3 rounded-lg border ${
+                        isToday ? "border-blue-500 bg-blue-500/10" : "border-slate-700 bg-slate-900/30"
+                      }`}
+                    >
+                      <p className="text-xs text-slate-400 uppercase">
+                        {day.toLocaleDateString("fr-CA", { weekday: "short" })}
+                      </p>
+                      <p className={`text-sm font-medium ${isToday ? "text-blue-400" : "text-white"}`}>
+                        {day.getDate()}
+                      </p>
+                      <p className="text-lg font-bold text-white mt-1">{dayTotal.toFixed(1)}h</p>
+                      <p className="text-xs text-slate-500">{dayEntries.length} entrée(s)</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Entries List */}
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Entrées de la semaine</h3>
+              {timesheetLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+                </div>
+              ) : weekEntries.length === 0 ? (
+                <div className="text-center py-8 text-slate-400">
+                  <ClockIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucune entrée de temps pour cette semaine</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {weekEntries.map(entry => (
+                    <div
+                      key={entry.id}
+                      className="flex items-center gap-4 p-4 bg-slate-900/30 rounded-lg border border-slate-700 hover:border-slate-600 transition-colors"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-white">{entry.description || "Sans description"}</p>
+                          {entry.billable && (
+                            <span className="px-2 py-0.5 text-xs bg-green-500/20 text-green-400 rounded">
+                              Facturable
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-400">
+                          {new Date(entry.startTime).toLocaleDateString("fr-CA", { weekday: "long", day: "numeric", month: "short" })}
+                          {" "}•{" "}
+                          {new Date(entry.startTime).toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" })}
+                          {entry.endTime && (
+                            <> - {new Date(entry.endTime).toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" })}</>
+                          )}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-semibold text-white">
+                          {entry.duration ? `${(entry.duration / 60).toFixed(1)}h` : "-"}
+                        </p>
+                      </div>
+                      {canEditTimesheet && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setEditingEntry(entry)}
+                            className="p-2 rounded-lg hover:bg-slate-700 transition-colors"
+                            title="Modifier"
+                          >
+                            <Edit2 className="w-4 h-4 text-slate-400" />
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (confirm("Êtes-vous sûr de vouloir supprimer cette entrée ?")) {
+                                try {
+                                  await fetch(`/api/employee-portal/${token}/timesheets?entryId=${entry.id}`, {
+                                    method: "DELETE",
+                                  });
+                                  fetchTimesheetData();
+                                } catch (error) {
+                                  console.error("Error deleting entry:", error);
+                                }
+                              }
+                            }}
+                            className="p-2 rounded-lg hover:bg-red-500/20 transition-colors"
+                            title="Supprimer"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-400" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Notes */}
+            {canEditTimesheet && (
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Notes</h3>
+                <textarea
+                  value={timesheetNotes}
+                  onChange={(e) => setTimesheetNotes(e.target.value)}
+                  placeholder="Ajoutez des notes pour cette semaine..."
+                  className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={3}
+                />
+              </div>
+            )}
+
+            {/* Admin Notes (if rejected) */}
+            {weeklyTimesheet?.adminNotes && (
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-yellow-500/30 p-6">
+                <h3 className="text-lg font-semibold text-yellow-400 mb-2">Notes de l'administrateur</h3>
+                <p className="text-slate-300">{weeklyTimesheet.adminNotes}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Edit Entry Modal */}
+        {editingEntry && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-slate-800 rounded-xl border border-slate-700 p-6 w-full max-w-md">
+              <h3 className="text-lg font-semibold text-white mb-4">Modifier l'entrée</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Description</label>
+                  <input
+                    type="text"
+                    value={editingEntry.description || ""}
+                    onChange={(e) => setEditingEntry({ ...editingEntry, description: e.target.value })}
+                    className="w-full px-4 py-2 bg-slate-900/50 border border-slate-700 rounded-lg text-white"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-400 mb-1">Début</label>
+                    <input
+                      type="datetime-local"
+                      value={editingEntry.startTime.slice(0, 16)}
+                      onChange={(e) => setEditingEntry({ ...editingEntry, startTime: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-900/50 border border-slate-700 rounded-lg text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-400 mb-1">Fin</label>
+                    <input
+                      type="datetime-local"
+                      value={editingEntry.endTime?.slice(0, 16) || ""}
+                      onChange={(e) => setEditingEntry({ ...editingEntry, endTime: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-900/50 border border-slate-700 rounded-lg text-white"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={editingEntry.billable}
+                      onChange={(e) => setEditingEntry({ ...editingEntry, billable: e.target.checked })}
+                      className="rounded border-slate-600"
+                    />
+                    <span className="text-sm text-slate-400">Facturable</span>
+                  </label>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-400 mb-1">Notes</label>
+                  <textarea
+                    value={editingEntry.notes || ""}
+                    onChange={(e) => setEditingEntry({ ...editingEntry, notes: e.target.value })}
+                    className="w-full px-4 py-2 bg-slate-900/50 border border-slate-700 rounded-lg text-white"
+                    rows={2}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={() => setEditingEntry(null)}
+                  className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const startTime = new Date(editingEntry.startTime);
+                      const endTime = editingEntry.endTime ? new Date(editingEntry.endTime) : null;
+                      const duration = endTime ? Math.round((endTime.getTime() - startTime.getTime()) / 60000) : null;
+
+                      await fetch(`/api/employee-portal/${token}/timesheets`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          entryId: editingEntry.id,
+                          description: editingEntry.description,
+                          startTime: startTime.toISOString(),
+                          endTime: endTime?.toISOString(),
+                          duration,
+                          billable: editingEntry.billable,
+                          notes: editingEntry.notes,
+                        }),
+                      });
+                      setEditingEntry(null);
+                      fetchTimesheetData();
+                    } catch (error) {
+                      console.error("Error updating entry:", error);
+                    }
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  Enregistrer
+                </button>
               </div>
             </div>
           </div>
