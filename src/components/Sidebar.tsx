@@ -83,11 +83,20 @@ const navigation: NavItem[] = [
   { name: "Agenda", href: "/agenda", icon: Calendar },
   { name: "Facturation", href: "/billing", icon: Receipt },
   { name: "Hub Communication", href: "/communication", icon: Megaphone },
-  { name: "Admin Onboarding", href: "/admin/onboarding", icon: GraduationCap },
-  { name: "Feuilles de temps", href: "/admin/timesheets", icon: CalendarDays },
+
   { name: "Leo IA", href: "/leo", icon: Brain },
   { name: "Tickets", href: "/tickets", icon: Ticket },
-  { name: "Administration", href: "/admin", icon: Shield },
+  {
+    name: "Administration",
+    href: "/admin",
+    icon: Shield,
+    children: [
+      { name: "Tableau de bord", href: "/admin" },
+      { name: "Utilisateurs", href: "/admin/users" },
+      { name: "Feuilles de temps", href: "/admin/timesheets" },
+      { name: "Onboarding", href: "/admin/onboarding" },
+    ],
+  },
 ];
 
 export default function Sidebar() {

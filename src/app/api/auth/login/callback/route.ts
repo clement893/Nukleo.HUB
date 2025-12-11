@@ -14,7 +14,20 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get("code");
     const error = searchParams.get("error");
+    const stateParam = searchParams.get("state");
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://nukleohub-production.up.railway.app";
+
+    // Décoder le state pour récupérer le redirect
+    let redirectAfterLogin = "/";
+    if (stateParam) {
+      try {
+        const stateJson = Buffer.from(stateParam, "base64").toString("utf-8");
+        const state = JSON.parse(stateJson);
+        redirectAfterLogin = state.redirect || "/";
+      } catch (e) {
+        // Ignorer les erreurs de parsing
+      }
+    }
 
     if (error) {
       console.error("Google OAuth error:", error);
@@ -98,13 +111,16 @@ export async function GET(request: NextRequest) {
       });
     } else {
       // Créer un nouvel utilisateur
+      // clement@nukleo.com est le super admin
+      const isSuperAdmin = googleUser.email.toLowerCase() === "clement@nukleo.com";
+      
       user = await prisma.user.create({
         data: {
           email: googleUser.email,
           googleId: googleUser.id,
           name: googleUser.name,
           photoUrl: googleUser.picture,
-          role: "user",
+          role: isSuperAdmin ? "super_admin" : "user",
           lastLoginAt: new Date(),
         },
       });
@@ -140,8 +156,8 @@ export async function GET(request: NextRequest) {
       path: "/",
     });
 
-    // Rediriger vers la page d'accueil
-    return NextResponse.redirect(`${baseUrl}/`);
+    // Rediriger vers la page demandée ou la page d'accueil
+    return NextResponse.redirect(`${baseUrl}${redirectAfterLogin}`);
   } catch (error) {
     console.error("Error in Google OAuth callback:", error);
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://nukleohub-production.up.railway.app";

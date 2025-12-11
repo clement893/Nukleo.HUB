@@ -384,3 +384,21 @@
 - [x] Afficher l'utilisateur connecté dans le Sidebar
 - [x] Bouton de déconnexion dans le Sidebar
 - [x] Pousser vers GitHub
+
+## Système de Permissions Obligatoire
+- [ ] Configurer clement@nukleo.com comme super admin
+- [ ] Créer middleware de protection des routes
+- [ ] Créer page admin de gestion des utilisateurs
+- [ ] Ajouter gestion des rôles (super_admin, admin, user)
+- [ ] Protéger toutes les pages avec le middleware
+- [ ] Rediriger vers /login si non connecté
+- [ ] Pousser vers GitHub
+
+## Système de Permissions Obligatoire
+- [ ] Configurer clement@nukleo.com comme super admin
+- [ ] Créer middleware de protection des routes
+- [ ] Créer page admin de gestion des utilisateurs
+- [ ] Ajouter gestion des rôles (super_admin, admin, user)
+- [ ] Protéger toutes les pages avec le middleware
+- [ ] Rediriger vers /login si non connecté
+- [ ] Pousser vers GitHub

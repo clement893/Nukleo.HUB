@@ -17,7 +17,9 @@ function LoginContent() {
         const res = await fetch("/api/auth/me");
         const data = await res.json();
         if (data.user) {
-          router.push("/");
+          // Rediriger vers la page demandée ou la page d'accueil
+          const redirect = searchParams.get("redirect") || "/";
+          router.push(redirect);
           return;
         }
       } catch (e) {
@@ -47,7 +49,11 @@ function LoginContent() {
   }, [router, searchParams]);
 
   const handleGoogleLogin = () => {
-    window.location.href = "/api/auth/login";
+    const redirect = searchParams.get("redirect");
+    const loginUrl = redirect 
+      ? `/api/auth/login?redirect=${encodeURIComponent(redirect)}`
+      : "/api/auth/login";
+    window.location.href = loginUrl;
   };
 
   if (loading) {

@@ -1,16 +1,22 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
 // GET - Rediriger vers Google pour l'authentification (login)
-export async function GET() {
+export async function GET(request: NextRequest) {
   if (!GOOGLE_CLIENT_ID) {
     return NextResponse.redirect("/login?error=config");
   }
 
+  const { searchParams } = new URL(request.url);
+  const redirectAfterLogin = searchParams.get("redirect") || "/";
+
   const redirectUri = process.env.NEXT_PUBLIC_APP_URL 
     ? `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/login/callback`
     : "https://nukleohub-production.up.railway.app/api/auth/login/callback";
+
+  // Encoder le redirect dans le state pour le récupérer après le callback
+  const state = JSON.stringify({ redirect: redirectAfterLogin });
 
   const params = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID,
@@ -19,7 +25,7 @@ export async function GET() {
     scope: "openid email profile",
     access_type: "offline",
     prompt: "consent",
-    state: "login", // Pour distinguer du callback de calendrier
+    state: Buffer.from(state).toString("base64"),
   });
 
   return NextResponse.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
