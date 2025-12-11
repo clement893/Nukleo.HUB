@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 // Routes publiques qui ne nécessitent pas d'authentification
 const publicRoutes = [
   "/login",
+  "/invite", // Page d'acceptation d'invitation
   "/api/auth/login",
   "/api/auth/login/callback",
   "/api/auth/logout",
@@ -17,6 +18,7 @@ const publicRoutes = [
 const publicApiPrefixes = [
   "/api/auth/",
   "/api/employee-portal/",
+  "/api/invitations/", // API de vérification des invitations
   "/api/cron/",
 ];
 

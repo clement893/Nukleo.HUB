@@ -386,19 +386,30 @@
 - [x] Pousser vers GitHub
 
 ## Système de Permissions Obligatoire
-- [ ] Configurer clement@nukleo.com comme super admin
-- [ ] Créer middleware de protection des routes
-- [ ] Créer page admin de gestion des utilisateurs
-- [ ] Ajouter gestion des rôles (super_admin, admin, user)
-- [ ] Protéger toutes les pages avec le middleware
-- [ ] Rediriger vers /login si non connecté
-- [ ] Pousser vers GitHub
+- [x] Configurer clement@nukleo.com comme super admin
+- [x] Créer middleware de protection des routes
+- [x] Créer page admin de gestion des utilisateurs
+- [x] Ajouter gestion des rôles (super_admin, admin, user)
+- [x] Protéger toutes les pages avec le middleware
+- [x] Rediriger vers /login si non connecté
+- [x] Pousser vers GitHub
 
 ## Système de Permissions Obligatoire
-- [ ] Configurer clement@nukleo.com comme super admin
-- [ ] Créer middleware de protection des routes
-- [ ] Créer page admin de gestion des utilisateurs
-- [ ] Ajouter gestion des rôles (super_admin, admin, user)
-- [ ] Protéger toutes les pages avec le middleware
-- [ ] Rediriger vers /login si non connecté
+- [x] Configurer clement@nukleo.com comme super admin
+- [x] Créer middleware de protection des routes
+- [x] Créer page admin de gestion des utilisateurs
+- [x] Ajouter gestion des rôles (super_admin, admin, user)
+- [x] Protéger toutes les pages avec le middleware
+- [x] Rediriger vers /login si non connecté
+- [x] Pousser vers GitHub
+
+## Invitations et Contrôle d'Accès Granulaire
+- [ ] Créer modèle Invitation dans le schéma DB
+- [ ] Créer modèle UserAccess pour les permissions granulaires
+- [ ] API pour envoyer des invitations par email
+- [ ] API pour accepter une invitation
+- [ ] API pour gérer les accès utilisateur (clients, projets, espaces)
+- [ ] Interface d'invitation dans l'admin
+- [ ] Interface de gestion des accès par utilisateur
+- [ ] Envoi d'email d'invitation avec lien
 - [ ] Pousser vers GitHub

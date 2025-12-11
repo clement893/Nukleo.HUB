@@ -114,14 +114,49 @@ export async function GET(request: NextRequest) {
       // clement@nukleo.com est le super admin
       const isSuperAdmin = googleUser.email.toLowerCase() === "clement@nukleo.com";
       
+      // Vérifier s'il y a une invitation pour cet email
+      const invitation = await prisma.invitation.findFirst({
+        where: {
+          email: googleUser.email.toLowerCase(),
+          acceptedAt: null,
+          expiresAt: { gt: new Date() },
+        },
+      });
+
+      // Déterminer le rôle
+      let role = "user";
+      if (isSuperAdmin) {
+        role = "super_admin";
+      } else if (invitation) {
+        role = invitation.role;
+      }
+      
       user = await prisma.user.create({
         data: {
           email: googleUser.email,
           googleId: googleUser.id,
           name: googleUser.name,
           photoUrl: googleUser.picture,
-          role: isSuperAdmin ? "super_admin" : "user",
+          role,
           lastLoginAt: new Date(),
+        },
+      });
+
+      // Marquer l'invitation comme acceptée
+      if (invitation) {
+        await prisma.invitation.update({
+          where: { id: invitation.id },
+          data: { acceptedAt: new Date() },
+        });
+      }
+
+      // Créer les accès par défaut pour le nouvel utilisateur
+      await prisma.userAccess.create({
+        data: {
+          userId: user.id,
+          clientsAccess: "all",
+          projectsAccess: "all",
+          spacesAccess: "all",
         },
       });
     }
