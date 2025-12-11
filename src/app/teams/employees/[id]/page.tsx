@@ -24,6 +24,8 @@ import {
   Link2,
   Copy,
   Check,
+  Calendar,
+  Settings,
 } from "lucide-react";
 
 interface Employee {
@@ -35,6 +37,19 @@ interface Employee {
   role: string | null;
   department: string;
   capacity: number | null;
+  googleCalendarId: string | null;
+  googleCalendarSync: boolean;
+}
+
+interface GoogleCalendarEvent {
+  id: string;
+  title: string;
+  description: string | null;
+  location: string | null;
+  start: string;
+  end: string;
+  allDay: boolean;
+  htmlLink: string;
 }
 
 interface TimeEntry {
@@ -90,6 +105,11 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
   const [portalUrl, setPortalUrl] = useState<string | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [calendarEvents, setCalendarEvents] = useState<GoogleCalendarEvent[]>([]);
+  const [showCalendarConfig, setShowCalendarConfig] = useState(false);
+  const [calendarId, setCalendarId] = useState("");
+  const [calendarSync, setCalendarSync] = useState(false);
+  const [savingCalendar, setSavingCalendar] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -105,6 +125,58 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
       return () => clearInterval(interval);
     }
   }, [timeStats?.runningEntry]);
+
+  const fetchCalendarEvents = async () => {
+    try {
+      const res = await fetch(`/api/employees/${resolvedParams.id}/calendar`);
+      if (res.ok) {
+        const data = await res.json();
+        setCalendarEvents(data.events || []);
+      }
+    } catch (error) {
+      console.error("Error fetching calendar:", error);
+    }
+  };
+
+  const saveCalendarConfig = async () => {
+    setSavingCalendar(true);
+    try {
+      const res = await fetch(`/api/employees/${resolvedParams.id}/calendar`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          googleCalendarId: calendarId,
+          googleCalendarSync: calendarSync,
+        }),
+      });
+      if (res.ok) {
+        setShowCalendarConfig(false);
+        fetchCalendarEvents();
+        // Mettre à jour l'employé local
+        if (employee) {
+          setEmployee({
+            ...employee,
+            googleCalendarId: calendarId,
+            googleCalendarSync: calendarSync,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error saving calendar config:", error);
+    } finally {
+      setSavingCalendar(false);
+    }
+  };
+
+  useEffect(() => {
+    if (employee?.googleCalendarSync) {
+      fetchCalendarEvents();
+    }
+    if (employee) {
+      setCalendarId(employee.googleCalendarId || "");
+      setCalendarSync(employee.googleCalendarSync || false);
+    }
+  }, [employee]);
 
   const fetchPortal = async () => {
     try {
@@ -374,6 +446,78 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
                     >
                       {portalLoading ? "Génération..." : "Générer le portail"}
                     </button>
+                  )}
+                </div>
+
+                {/* Google Calendar */}
+                <div className="mt-6 pt-6 border-t border-border">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-blue-500" />
+                      <span className="text-sm font-medium text-foreground">Google Calendar</span>
+                    </div>
+                    <button
+                      onClick={() => setShowCalendarConfig(!showCalendarConfig)}
+                      className="p-1 rounded hover:bg-muted"
+                    >
+                      <Settings className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                  </div>
+                  
+                  {showCalendarConfig && (
+                    <div className="space-y-3 mb-3 p-3 bg-muted/50 rounded-lg">
+                      <div>
+                        <label className="text-xs text-muted-foreground">ID Calendrier (email)</label>
+                        <input
+                          type="text"
+                          value={calendarId}
+                          onChange={(e) => setCalendarId(e.target.value)}
+                          placeholder="exemple@gmail.com"
+                          className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="calendarSync"
+                          checked={calendarSync}
+                          onChange={(e) => setCalendarSync(e.target.checked)}
+                          className="rounded"
+                        />
+                        <label htmlFor="calendarSync" className="text-sm">Activer la synchronisation</label>
+                      </div>
+                      <button
+                        onClick={saveCalendarConfig}
+                        disabled={savingCalendar}
+                        className="w-full px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                      >
+                        {savingCalendar ? "Enregistrement..." : "Enregistrer"}
+                      </button>
+                    </div>
+                  )}
+
+                  {employee.googleCalendarSync && calendarEvents.length > 0 ? (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {calendarEvents.slice(0, 5).map((event) => (
+                        <a
+                          key={event.id}
+                          href={event.htmlLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block p-2 bg-blue-500/10 rounded-lg hover:bg-blue-500/20 transition-colors"
+                        >
+                          <p className="text-sm font-medium text-foreground truncate">{event.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(event.start).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                            {!event.allDay && ` - ${new Date(event.start).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`}
+                          </p>
+                        </a>
+                      ))}
+                    </div>
+                  ) : employee.googleCalendarSync ? (
+                    <p className="text-sm text-muted-foreground">Aucun événement à venir</p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Non configuré</p>
                   )}
                 </div>
 

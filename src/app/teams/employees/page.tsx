@@ -19,6 +19,7 @@ import {
   MoreVertical,
   Camera,
   Loader2,
+  ExternalLink,
 } from "lucide-react";
 
 interface Employee {
@@ -401,6 +402,31 @@ export default function EmployeesPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <a
+                        href={`/employee-portal/${employee.id}`}
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          try {
+                            const res = await fetch(`/api/employees/${employee.id}/portal`);
+                            if (res.ok) {
+                              const data = await res.json();
+                              window.open(data.url, '_blank');
+                            } else {
+                              const createRes = await fetch(`/api/employees/${employee.id}/portal`, { method: 'POST' });
+                              if (createRes.ok) {
+                                const data = await createRes.json();
+                                window.open(data.url, '_blank');
+                              }
+                            }
+                          } catch (error) {
+                            console.error('Error opening portal:', error);
+                          }
+                        }}
+                        className="p-1.5 rounded-lg hover:bg-purple-500/10 transition-colors"
+                        title="Ouvrir le portail"
+                      >
+                        <ExternalLink className="w-4 h-4 text-purple-500" />
+                      </a>
                       <button
                         onClick={() => handleEdit(employee)}
                         className="p-1.5 rounded-lg hover:bg-muted transition-colors"

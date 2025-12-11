@@ -178,6 +178,8 @@ model Employee {
   onboardingCompleted   Boolean   @default(false)
   onboardingStartedAt   DateTime?
   onboardingCompletedAt DateTime?
+  googleCalendarId      String?   // ID du calendrier Google (email ou ID)
+  googleCalendarSync    Boolean   @default(false) // Activer la sync
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
