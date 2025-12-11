@@ -57,7 +57,7 @@ interface CommunicationClient {
 
 const STATUS_OPTIONS = [
   { value: "active", label: "Actif", color: "bg-emerald-500" },
-  { value: "inactive", label: "Inactif", color: "bg-gray-500" },
+  { value: "inactive", label: "Inactif", color: "bg-[#0a0a0f]0" },
   { value: "pending", label: "En attente", color: "bg-amber-500" },
   { value: "paused", label: "En pause", color: "bg-blue-500" },
 ];
@@ -213,7 +213,7 @@ export default function CommunicationHubsPage() {
               </div>
               <button
                 onClick={() => setShowAddModal(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-white/90 text-violet-600 rounded-lg transition-colors font-medium"
+                className="flex items-center gap-2 px-4 py-2 bg-[#12121a] hover:bg-[#12121a]/90 text-violet-600 rounded-lg transition-colors font-medium"
               >
                 <Plus className="w-4 h-4" />
                 Nouveau client
@@ -222,7 +222,7 @@ export default function CommunicationHubsPage() {
 
             {/* Stats */}
             <div className="grid grid-cols-4 gap-4 mt-6">
-              <div className="bg-white/10 backdrop-blur rounded-xl p-4">
+              <div className="bg-[#12121a]/10 backdrop-blur rounded-xl p-4">
                 <div className="flex items-center gap-3">
                   <Building2 className="w-5 h-5 text-white/80" />
                   <div>
@@ -231,7 +231,7 @@ export default function CommunicationHubsPage() {
                   </div>
                 </div>
               </div>
-              <div className="bg-white/10 backdrop-blur rounded-xl p-4">
+              <div className="bg-[#12121a]/10 backdrop-blur rounded-xl p-4">
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-white/80" />
                   <div>
@@ -240,7 +240,7 @@ export default function CommunicationHubsPage() {
                   </div>
                 </div>
               </div>
-              <div className="bg-white/10 backdrop-blur rounded-xl p-4">
+              <div className="bg-[#12121a]/10 backdrop-blur rounded-xl p-4">
                 <div className="flex items-center gap-3">
                   <TrendingUp className="w-5 h-5 text-white/80" />
                   <div>
@@ -249,7 +249,7 @@ export default function CommunicationHubsPage() {
                   </div>
                 </div>
               </div>
-              <div className="bg-white/10 backdrop-blur rounded-xl p-4">
+              <div className="bg-[#12121a]/10 backdrop-blur rounded-xl p-4">
                 <div className="flex items-center gap-3">
                   <Calendar className="w-5 h-5 text-white/80" />
                   <div>
