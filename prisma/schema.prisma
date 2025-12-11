@@ -180,6 +180,9 @@ model Employee {
   onboardingCompletedAt DateTime?
   googleCalendarId      String?   // ID du calendrier Google (email ou ID)
   googleCalendarSync    Boolean   @default(false) // Activer la sync
+  googleAccessToken     String?   @db.Text // OAuth access token
+  googleRefreshToken    String?   @db.Text // OAuth refresh token
+  googleTokenExpiry     DateTime? // Expiration du token
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
