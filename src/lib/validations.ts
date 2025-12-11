@@ -188,8 +188,10 @@ export function validateBody<T>(schema: z.ZodSchema<T>, data: unknown): { succes
     return { success: true, data: result };
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const messages = error.errors.map(e => `${e.path.join(".")}: ${e.message}`).join(", ");
-      return { success: false, error: messages };
+      // Zod 4 utilise 'issues' au lieu de 'errors'
+      const issues = (error as { issues?: Array<{ path: (string | number)[]; message: string }> }).issues || [];
+      const messages = issues.map(e => `${e.path.join(".")}: ${e.message}`).join(", ");
+      return { success: false, error: messages || "Validation échouée" };
     }
     return { success: false, error: "Données invalides" };
   }
