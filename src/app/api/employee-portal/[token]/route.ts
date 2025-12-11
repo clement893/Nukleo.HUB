@@ -84,9 +84,7 @@ export async function GET(
         name: true,
         client: true,
         status: true,
-        startDate: true,
-        endDate: true,
-        progress: true,
+        timeline: true,
       },
       take: 10,
     });
