@@ -633,4 +633,4 @@
 - [x] Valider types de fichiers sur uploads
 - [x] Limiter taille des fichiers
 
-- [ ] Pousser vers GitHub
+- [x] Pousser vers GitHub
