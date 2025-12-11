@@ -123,8 +123,10 @@ export async function GET(request: NextRequest) {
     // Pipeline des opportunités
     const pipelineValue = await prisma.opportunity.aggregate({
       where: {
-        stage: { not: { contains: "Perdu" } },
-        stage: { not: { contains: "Gagn" } },
+        AND: [
+          { stage: { not: { contains: "Perdu" } } },
+          { stage: { not: { contains: "Gagn" } } },
+        ],
       },
       _sum: { value: true },
     });
