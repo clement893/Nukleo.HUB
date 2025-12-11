@@ -12,6 +12,7 @@ const publicRoutes = [
   "/api/auth/google",
   "/api/auth/google/callback",
   "/employee-portal", // Le portail employé a son propre système d'auth par token
+  "/portal", // Le portail client a son propre système d'auth par token
 ];
 
 // Routes API qui ne nécessitent pas d'authentification
@@ -20,6 +21,7 @@ const publicApiPrefixes = [
   "/api/employee-portal/",
   "/api/invitations/", // API de vérification des invitations
   "/api/cron/",
+  "/api/portal/", // API du portail client
 ];
 
 export async function middleware(request: NextRequest) {
