@@ -373,3 +373,14 @@
 - [x] Intégrer notifications aux nouvelles tâches assignées
 - [x] Badge de compteur de notifications non lues
 - [x] Pousser vers GitHub
+
+## Connexion Google OAuth
+- [ ] Ajouter modèle User/Session au schéma Prisma
+- [ ] Créer API /api/auth/google pour initier OAuth
+- [ ] Créer API /api/auth/google/callback pour le callback
+- [ ] Créer API /api/auth/me pour récupérer l'utilisateur connecté
+- [ ] Créer API /api/auth/logout pour la déconnexion
+- [ ] Page de connexion avec bouton Google
+- [ ] Middleware de protection des routes
+- [ ] Afficher l'utilisateur connecté dans le header
+- [ ] Pousser vers GitHub

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
 import {
   Home,
@@ -26,7 +26,17 @@ import {
   Brain,
   Ticket,
   Shield,
+  LogOut,
+  Loader2,
 } from "lucide-react";
+
+interface AuthUser {
+  id: string;
+  email: string;
+  name: string | null;
+  photoUrl: string | null;
+  role: string;
+}
 import { useTheme } from "@/components/ThemeProvider";
 
 interface NavItem {
@@ -82,8 +92,38 @@ const navigation: NavItem[] = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [expandedItems, setExpandedItems] = useState<string[]>(["Commercial", "Réseau"]);
   const { theme, toggleTheme } = useTheme();
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        setUser(data.user);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
+    } catch (error) {
+      console.error("Error logging out:", error);
+      setLoggingOut(false);
+    }
+  };
 
   const toggleExpand = (name: string) => {
     setExpandedItems((prev) =>
@@ -184,25 +224,59 @@ export default function Sidebar() {
 
         {/* User section */}
         <div className="border-t border-border p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary">
-              <span className="text-sm font-medium text-white">AD</span>
+          {loadingUser ? (
+            <div className="flex items-center justify-center py-2">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">Admin</p>
-              <p className="text-xs text-muted-foreground truncate">admin@nukleo.io</p>
+          ) : user ? (
+            <div className="flex items-center gap-3">
+              {user.photoUrl ? (
+                <img
+                  src={user.photoUrl}
+                  alt={user.name || "User"}
+                  className="h-9 w-9 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary">
+                  <span className="text-sm font-medium text-white">
+                    {user.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground truncate">
+                  {user.name || "Utilisateur"}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              </div>
+              <button
+                onClick={toggleTheme}
+                className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                title={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
+              >
+                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+              <button
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="p-2 text-muted-foreground hover:text-red-500 transition-colors"
+                title="Se déconnecter"
+              >
+                {loggingOut ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LogOut className="h-4 w-4" />
+                )}
+              </button>
             </div>
-            <button
-              onClick={toggleTheme}
-              className="p-2 text-muted-foreground hover:text-foreground transition-colors"
-              title={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
+          ) : (
+            <Link
+              href="/login"
+              className="flex items-center justify-center gap-2 w-full py-2 px-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium"
             >
-              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
-            <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
-              <Settings className="h-4 w-4" />
-            </button>
-          </div>
+              Se connecter
+            </Link>
+          )}
         </div>
       </div>
     </aside>
