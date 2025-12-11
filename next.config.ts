@@ -30,6 +30,21 @@ const nextConfig: NextConfig = {
         hostname: "icons.duckduckgo.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "nukleo-hub-photos.s3.us-east-2.amazonaws.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.s3.*.amazonaws.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/**",
+      },
     ],
   },
 };

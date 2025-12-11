@@ -537,3 +537,8 @@
 - [x] Afficher l'employé lié dans la liste des utilisateurs
 - [x] Permettre la sélection d'un employé lors de la modification d'un utilisateur
 - [x] Pousser vers GitHub
+
+
+## Corrections Portail Employé
+
+- [ ] Corriger l'affichage des photos des employés sur le portail
