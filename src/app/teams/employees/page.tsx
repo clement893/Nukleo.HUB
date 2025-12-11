@@ -20,7 +20,9 @@ import {
   Camera,
   Loader2,
   ExternalLink,
+  User,
 } from "lucide-react";
+import Link from "next/link";
 
 interface Employee {
   id: string;
@@ -402,6 +404,13 @@ export default function EmployeesPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Link
+                        href={`/teams/employees/${employee.id}`}
+                        className="p-1.5 rounded-lg hover:bg-blue-500/10 transition-colors"
+                        title="Voir le profil"
+                      >
+                        <User className="w-4 h-4 text-blue-500" />
+                      </Link>
                       <a
                         href={`/employee-portal/${employee.id}`}
                         onClick={async (e) => {
