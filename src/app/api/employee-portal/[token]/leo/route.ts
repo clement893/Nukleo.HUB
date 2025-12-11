@@ -138,7 +138,6 @@ async function getEmployeeContext(employeeId: string, leoContext: LeoContext | n
   }) : [];
 
   const financials = leoContext?.canAccessFinancials ? {
-    invoices: await prisma.invoice.count(),
     quotes: await prisma.quote.count(),
   } : null;
 
@@ -248,7 +247,6 @@ ${context.opportunities.map(o => `- **${o.name}** | ${o.company || 'N/A'} | ${o.
   if (leoContext?.canAccessFinancials && context.financials) {
     prompt += `
 ## FINANCES
-- Nombre de factures: ${context.financials.invoices}
 - Nombre de devis: ${context.financials.quotes}
 `;
   }
