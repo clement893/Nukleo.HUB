@@ -49,7 +49,7 @@ export async function GET(
     const tasks = await prisma.task.findMany({
       where: {
         OR: [
-          { currentEmployee: { id: employee.id } },
+          { assignedEmployee: { id: employee.id } },
           { zone: { in: ["shelf", "current"] }, department: employee.department },
         ],
       },
@@ -75,7 +75,7 @@ export async function GET(
         ],
         tasks: {
           some: {
-            currentEmployee: { id: employee.id },
+            assignedEmployee: { id: employee.id },
           },
         },
       },

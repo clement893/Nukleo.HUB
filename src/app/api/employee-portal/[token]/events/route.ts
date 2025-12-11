@@ -51,7 +51,7 @@ export async function GET(
     // Ajouter les deadlines des tâches comme événements
     const taskDeadlines = await prisma.task.findMany({
       where: {
-        currentEmployee: { id: employee.id },
+        assignedEmployee: { id: employee.id },
         dueDate: {
           gte: startDate,
           lte: endDate,

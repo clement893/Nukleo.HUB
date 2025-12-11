@@ -43,7 +43,7 @@ async function getEmployeeContext(employeeId: string) {
     prisma.task.findMany({
       where: {
         OR: [
-          { currentEmployee: { id: employeeId } },
+          { assignedEmployee: { id: employeeId } },
           { assignedEmployee: { id: employeeId } },
         ],
       },
