@@ -45,6 +45,24 @@ export async function GET(
 
     const employee = portal.employee;
 
+    // Récupérer les accès de l'employé
+    const employeeAccess = await prisma.employeeAccess.findUnique({
+      where: { employeeId: employee.id },
+    });
+
+    // Déterminer les projets autorisés
+    let allowedProjectIds: string[] | null = null;
+    let allowedClientIds: string[] | null = null;
+    
+    if (employeeAccess && employeeAccess.accessType === "selected") {
+      if (employeeAccess.projectAccess && employeeAccess.projectAccess !== "*") {
+        allowedProjectIds = employeeAccess.projectAccess.split(",").filter(Boolean);
+      }
+      if (employeeAccess.clientAccess && employeeAccess.clientAccess !== "*") {
+        allowedClientIds = employeeAccess.clientAccess.split(",").filter(Boolean);
+      }
+    }
+
     // Récupérer les tâches assignées
     const tasks = await prisma.task.findMany({
       where: {
@@ -66,19 +84,31 @@ export async function GET(
       take: 20,
     });
 
-    // Récupérer les projets en cours
-    const projects = await prisma.project.findMany({
-      where: {
-        OR: [
-          { status: "Actif" },
-          { status: "En cours" },
-        ],
-        tasks: {
-          some: {
-            assignedEmployee: { id: employee.id },
-          },
+    // Récupérer les projets en cours (filtrés selon les accès)
+    const projectWhereClause: Record<string, unknown> = {
+      OR: [
+        { status: "Actif" },
+        { status: "En cours" },
+      ],
+      tasks: {
+        some: {
+          assignedEmployee: { id: employee.id },
         },
       },
+    };
+    
+    // Appliquer le filtre par projet si défini
+    if (allowedProjectIds) {
+      projectWhereClause.id = { in: allowedProjectIds };
+    }
+    
+    // Appliquer le filtre par client si défini
+    if (allowedClientIds) {
+      projectWhereClause.companyId = { in: allowedClientIds };
+    }
+    
+    const projects = await prisma.project.findMany({
+      where: projectWhereClause,
       select: {
         id: true,
         name: true,

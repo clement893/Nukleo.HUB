@@ -60,7 +60,7 @@ interface AdminStats {
   period: string;
 }
 
-type TabType = "overview" | "users" | "logs" | "settings" | "stats" | "employees";
+type TabType = "overview" | "users" | "logs" | "settings" | "stats" | "employees" | "access";
 
 const TABS = [
   { id: "overview" as TabType, label: "Vue d'ensemble", icon: BarChart3 },
@@ -69,6 +69,7 @@ const TABS = [
   { id: "stats" as TabType, label: "Statistiques", icon: TrendingUp },
   { id: "logs" as TabType, label: "Logs d'activité", icon: Activity },
   { id: "settings" as TabType, label: "Paramètres", icon: Settings },
+  { id: "access" as TabType, label: "Gestion des accès", icon: Shield },
 ];
 
 export default function AdminPage() {
@@ -423,6 +424,9 @@ export default function AdminPage() {
 
               {/* Settings Tab */}
               {activeTab === "settings" && <SettingsTab />}
+
+              {/* Access Tab */}
+              {activeTab === "access" && <AccessTab />}
             </>
           )}
         </div>
@@ -980,6 +984,21 @@ function SettingsTab() {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+
+// Access Tab Component - Redirects to dedicated page
+function AccessTab() {
+  useEffect(() => {
+    window.location.href = "/admin/access";
+  }, []);
+
+  return (
+    <div className="text-center py-12">
+      <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4 animate-pulse" />
+      <p className="text-muted-foreground">Redirection vers la gestion des accès...</p>
     </div>
   );
 }

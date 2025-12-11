@@ -196,6 +196,10 @@ model Employee {
   requests              EmployeeRequest[]
   documents             EmployeeDocument[]
   events                EmployeeEvent[]
+  
+  // Relations accès et contexte Leo
+  access                EmployeeAccess?
+  leoContext            EmployeeLeoContext?
 
   @@index([department])
 }
@@ -887,4 +891,55 @@ model EmployeeEvent {
 
   @@index([employeeId])
   @@index([startDate])
+}
+
+
+// Accès employé aux clients et projets
+model EmployeeAccess {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  // Type d'accès: "all" = tout, "selected" = sélection spécifique
+  accessType  String   @default("all") // all, selected
+  
+  // Accès aux clients (companyIds séparés par virgule, ou "*" pour tous)
+  clientAccess String? @db.Text
+  
+  // Accès aux projets (projectIds séparés par virgule, ou "*" pour tous)
+  projectAccess String? @db.Text
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([employeeId])
+  @@index([employeeId])
+}
+
+// Configuration du contexte Leo IA par employé
+model EmployeeLeoContext {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  // Contextes activés pour Leo
+  canAccessTasks       Boolean @default(true)  // Accès aux tâches assignées
+  canAccessProjects    Boolean @default(true)  // Accès aux projets
+  canAccessClients     Boolean @default(false) // Accès aux informations clients
+  canAccessContacts    Boolean @default(false) // Accès aux contacts
+  canAccessFinancials  Boolean @default(false) // Accès aux données financières (factures, devis)
+  canAccessTeam        Boolean @default(false) // Accès aux infos équipe
+  canAccessOpportunities Boolean @default(false) // Accès au pipeline commercial
+  
+  // Instructions personnalisées pour Leo
+  customInstructions String? @db.Text
+  
+  // Restrictions
+  restrictedTopics String? @db.Text // Sujets interdits (séparés par virgule)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([employeeId])
+  @@index([employeeId])
 }
