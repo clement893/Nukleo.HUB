@@ -55,7 +55,7 @@ interface AgendaEvent {
   startDate: string;
   endDate: string | null;
   allDay: boolean;
-  type: "vacation" | "holiday" | "closure";
+  type: "vacation" | "holiday" | "closure" | "birthday";
   color: string;
   employeeId?: string;
   employeeName?: string;
@@ -143,7 +143,52 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 3. Ajouter les fermetures du bureau
+    // 3. Ajouter les anniversaires des employés
+    const employees = await prisma.employee.findMany({
+      where: {
+        birthDate: { not: null },
+      },
+      select: {
+        id: true,
+        name: true,
+        birthDate: true,
+        photoUrl: true,
+      },
+    });
+
+    for (const employee of employees) {
+      if (!employee.birthDate) continue;
+      
+      // Générer l'anniversaire pour chaque année dans la plage
+      const startYear = startDate.getFullYear();
+      const endYear = endDate.getFullYear();
+      
+      for (let year = startYear; year <= endYear; year++) {
+        const birthdayThisYear = new Date(
+          year,
+          employee.birthDate.getMonth(),
+          employee.birthDate.getDate()
+        );
+        
+        if (birthdayThisYear >= startDate && birthdayThisYear <= endDate) {
+          const age = year - employee.birthDate.getFullYear();
+          events.push({
+            id: `birthday-${employee.id}-${year}`,
+            title: `🎂 ${employee.name} (${age} ans)`,
+            startDate: birthdayThisYear.toISOString(),
+            endDate: birthdayThisYear.toISOString(),
+            allDay: true,
+            type: "birthday",
+            color: "#ec4899", // Rose pour les anniversaires
+            employeeId: employee.id,
+            employeeName: employee.name,
+            employeePhoto: employee.photoUrl,
+          });
+        }
+      }
+    }
+
+    // 4. Ajouter les fermetures du bureau
     for (const closure of OFFICE_CLOSURES) {
       const closureStart = new Date(closure.startDate);
       const closureEnd = new Date(closure.endDate);

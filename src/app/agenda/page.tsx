@@ -19,6 +19,7 @@ import {
   Building2,
   PartyPopper,
   User,
+  Cake,
 } from "lucide-react";
 
 interface Event {
@@ -45,7 +46,7 @@ interface VacationEvent {
   startDate: string;
   endDate: string | null;
   allDay: boolean;
-  type: "vacation" | "holiday" | "closure";
+  type: "vacation" | "holiday" | "closure" | "birthday";
   color: string;
   employeeId?: string;
   employeeName?: string;
@@ -457,6 +458,7 @@ export default function AgendaPage() {
                                 {vac.type === "vacation" && <User className="h-3 w-3 flex-shrink-0" />}
                                 {vac.type === "holiday" && <PartyPopper className="h-3 w-3 flex-shrink-0" />}
                                 {vac.type === "closure" && <Building2 className="h-3 w-3 flex-shrink-0" />}
+                                {vac.type === "birthday" && <Cake className="h-3 w-3 flex-shrink-0" />}
                                 <span className="truncate">{vac.title}</span>
                               </div>
                             ))}
@@ -497,7 +499,8 @@ export default function AgendaPage() {
                           {dateVacations.slice(0, 2).map((vac) => (
                             <div key={vac.id} className="text-xs px-1 py-0.5 rounded truncate flex items-center gap-0.5 justify-center" style={{ backgroundColor: vac.color, color: "white" }}>
                               {vac.type === "vacation" && <User className="h-2.5 w-2.5" />}
-                              <span className="truncate">{vac.type === "vacation" ? vac.employeeName?.split(" ")[0] : vac.title}</span>
+                              {vac.type === "birthday" && <Cake className="h-2.5 w-2.5" />}
+                              <span className="truncate">{vac.type === "vacation" ? vac.employeeName?.split(" ")[0] : vac.type === "birthday" ? vac.employeeName?.split(" ")[0] : vac.title}</span>
                             </div>
                           ))}
                         </div>
@@ -591,6 +594,7 @@ export default function AgendaPage() {
                                 {vac.type === "vacation" && <><User className="h-3 w-3" />Vacances</>}
                                 {vac.type === "holiday" && <><PartyPopper className="h-3 w-3" />Férié</>}
                                 {vac.type === "closure" && <><Building2 className="h-3 w-3" />Fermeture</>}
+                                {vac.type === "birthday" && <><Cake className="h-3 w-3" />Anniversaire</>}
                               </span>
                             </div>
                             <h3 className="font-medium text-foreground">{vac.title}</h3>

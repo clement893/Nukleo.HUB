@@ -667,3 +667,12 @@
 - [x] Afficher la fermeture du bureau
 - [x] Bouton toggle pour afficher/masquer les vacances
 - [x] Pousser vers GitHub
+
+
+## Anniversaires des Employés dans l'Agenda
+
+- [x] Ajouter le champ birthDate au modèle Employee
+- [x] Créer script de mise à jour des dates d'anniversaire
+- [x] Modifier l'API agenda/vacations pour inclure les anniversaires
+- [x] Afficher les anniversaires dans le calendrier avec icône gâteau
+- [ ] Pousser vers GitHub et exécuter le script de mise à jour
