@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
+import { cache, CACHE_TTL } from "@/lib/cache";
 
 // Stages considered as "won"
 const WON_STAGES = ["Gagné", "Closed Won", "Won"];
@@ -21,11 +22,19 @@ const ACTIVE_STAGES = [
   "Renouvellements potentiels",
 ];
 
+const CACHE_KEY = "dashboard:stats";
+
 export async function GET() {
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
   try {
+    // Vérifier le cache
+    const cached = cache.get<object>(CACHE_KEY);
+    if (cached) {
+      return NextResponse.json(cached);
+    }
+
     // Get all opportunities
     const opportunities = await prisma.opportunity.findMany({
       select: {
@@ -126,7 +135,7 @@ export async function GET() {
       updatedAt: opp.updatedAt,
     }));
 
-    return NextResponse.json({
+    const result = {
       summary: {
         totalOpportunities,
         activeCount,
@@ -139,7 +148,12 @@ export async function GET() {
       },
       stageData,
       recentOpportunities,
-    });
+    };
+
+    // Mettre en cache pour 2 minutes
+    cache.set(CACHE_KEY, result, CACHE_TTL.MEDIUM);
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Error fetching dashboard stats:", error);
     return NextResponse.json(

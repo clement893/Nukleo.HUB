@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 import { contactUpdateSchema, validateBody } from "@/lib/validations";
+import { cache } from "@/lib/cache";
+
+const CACHE_KEY = "contacts:list";
 
 export async function GET(
   request: NextRequest,
@@ -58,6 +61,9 @@ export async function PATCH(
       data: validation.data,
     });
 
+    // Invalider le cache après mise à jour
+    cache.delete(CACHE_KEY);
+
     return NextResponse.json(contact);
   } catch (error) {
     console.error("Error updating contact:", error);
@@ -80,6 +86,9 @@ export async function DELETE(
     await prisma.contact.delete({
       where: { id },
     });
+
+    // Invalider le cache après suppression
+    cache.delete(CACHE_KEY);
 
     return NextResponse.json({ success: true });
   } catch (error) {

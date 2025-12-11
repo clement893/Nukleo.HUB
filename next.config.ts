@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
   output: "standalone",
+  
+  // Activer la compression
+  compress: true,
+  
+  // Optimisation des images
   images: {
     remotePatterns: [
       {
@@ -46,10 +51,19 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+    // Formats d'images optimisés
+    formats: ["image/avif", "image/webp"],
+    // Tailles d'images prédéfinies pour optimisation
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Minimiser le temps de génération
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 jours
   },
-  // Headers de sécurité HTTP
+  
+  // Headers de sécurité et de cache HTTP
   async headers() {
     return [
+      // Headers de sécurité pour toutes les pages
       {
         source: "/(.*)",
         headers: [
@@ -79,7 +93,53 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      // Cache long pour les assets statiques (JS, CSS)
+      {
+        source: "/_next/static/(.*)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      // Cache pour les images optimisées
+      {
+        source: "/_next/image(.*)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
+        ],
+      },
+      // Cache pour les fichiers statiques publics
+      {
+        source: "/(.*)\\.(ico|png|jpg|jpeg|gif|svg|webp|avif|woff|woff2|ttf|eot)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=2592000, stale-while-revalidate=86400",
+          },
+        ],
+      },
+      // Cache court pour les APIs (avec revalidation)
+      {
+        source: "/api/(.*)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "private, no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
     ];
+  },
+  
+  // Optimisations expérimentales
+  experimental: {
+    // Optimiser le chargement des packages
+    optimizePackageImports: ["lucide-react", "@prisma/client"],
   },
 };
 

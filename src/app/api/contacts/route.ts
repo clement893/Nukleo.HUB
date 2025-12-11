@@ -2,15 +2,27 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 import { contactCreateSchema, validateBody } from "@/lib/validations";
+import { cache, CACHE_TTL } from "@/lib/cache";
+
+const CACHE_KEY = "contacts:list";
 
 export async function GET() {
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
   try {
+    // Vérifier le cache
+    const cached = cache.get<object[]>(CACHE_KEY);
+    if (cached) {
+      return NextResponse.json(cached);
+    }
+
     const contacts = await prisma.contact.findMany({
       orderBy: { fullName: "asc" },
     });
+
+    // Mettre en cache pour 2 minutes
+    cache.set(CACHE_KEY, contacts, CACHE_TTL.MEDIUM);
 
     return NextResponse.json(contacts);
   } catch (error) {
@@ -41,6 +53,10 @@ export async function POST(request: Request) {
     const contact = await prisma.contact.create({
       data: validation.data,
     });
+
+    // Invalider le cache après création
+    cache.delete(CACHE_KEY);
+
     return NextResponse.json(contact, { status: 201 });
   } catch (error) {
     console.error("Error creating contact:", error);

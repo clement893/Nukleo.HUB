@@ -634,3 +634,23 @@
 - [x] Limiter taille des fichiers
 
 - [x] Pousser vers GitHub
+
+
+## Améliorations de Performance
+
+### Phase 1 - Compression et Cache
+- [x] Configurer les headers de cache dans next.config.ts
+- [x] Activer la compression gzip/brotli
+- [x] Ajouter des headers Cache-Control pour les assets statiques
+
+### Phase 2 - Cache API
+- [x] Créer un système de cache en mémoire (src/lib/cache.ts)
+- [x] Appliquer le cache aux APIs fréquemment utilisées (dashboard, contacts)
+- [x] Ajouter une invalidation du cache
+
+### Phase 3 - Optimisation Images
+- [x] Configurer Next.js Image optimization (AVIF, WebP)
+- [x] Ajouter le lazy loading aux images
+- [x] Créer composant OptimizedImage avec skeleton
+
+- [ ] Pousser vers GitHub
