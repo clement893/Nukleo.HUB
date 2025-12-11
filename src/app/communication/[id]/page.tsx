@@ -44,12 +44,12 @@ import {
 interface CommunicationClient {
   id: string;
   name: string;
-  logo: string | null;
+  logoUrl: string | null;
   description: string | null;
   industry: string | null;
   website: string | null;
-  contactEmail: string | null;
-  contactPhone: string | null;
+  email: string | null;
+  phone: string | null;
   monthlyBudget: number | null;
   status: string;
 }
@@ -463,8 +463,8 @@ export default function ClientHubPage({ params }: { params: Promise<{ id: string
             </button>
             
             <div className="flex items-center gap-6">
-              {client.logo ? (
-                <img src={client.logo} alt={client.name} className="w-20 h-20 rounded-xl object-cover bg-white" />
+              {client.logoUrl ? (
+                <img src={client.logoUrl} alt={client.name} className="w-20 h-20 rounded-xl object-cover bg-white" />
               ) : (
                 <div className="w-20 h-20 rounded-xl bg-white/20 flex items-center justify-center text-3xl font-bold">
                   {client.name.charAt(0)}
