@@ -10,27 +10,33 @@ export async function GET() {
   }
 
   try {
-    // Récupérer l'utilisateur avec son employé lié
-    const user = await prisma.user.findUnique({
-      where: { id: auth.id },
-      include: {
-        employee: {
-          include: {
-            access: true,
-            leoContext: true,
-          },
-        },
-      },
+    // Récupérer les permissions d'accès de l'utilisateur
+    let userAccess = await prisma.userAccess.findUnique({
+      where: { userId: auth.id },
     });
 
-    if (!user || !user.employee) {
-      return NextResponse.json({ access: null });
+    // Si pas d'accès défini, créer un accès par défaut (tout)
+    if (!userAccess) {
+      userAccess = await prisma.userAccess.create({
+        data: {
+          userId: auth.id,
+          clientsAccess: "all",
+          projectsAccess: "all",
+          spacesAccess: "all",
+        },
+      });
     }
 
-    // Retourner les permissions d'accès de l'employé
+    // Parser les JSON arrays
+    const parsedAccess = {
+      ...userAccess,
+      allowedClients: userAccess.allowedClients ? JSON.parse(userAccess.allowedClients) : [],
+      allowedProjects: userAccess.allowedProjects ? JSON.parse(userAccess.allowedProjects) : [],
+      allowedSpaces: userAccess.allowedSpaces ? JSON.parse(userAccess.allowedSpaces) : [],
+    };
+
     return NextResponse.json({
-      access: user.employee.access,
-      leoContext: user.employee.leoContext,
+      access: parsedAccess,
     });
   } catch (error) {
     console.error("Error fetching user access:", error);

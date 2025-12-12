@@ -308,7 +308,7 @@ export default function UsersPage() {
       // Charger les accès de l'utilisateur et les listes de clients/projets en parallèle
       const [accessRes, clientsRes, projectsRes] = await Promise.all([
         fetch(`/api/admin/users/access?userId=${user.id}`),
-        fetch("/api/clients"),
+        fetch("/api/companies?isClient=true"),
         fetch("/api/projects"),
       ]);
       

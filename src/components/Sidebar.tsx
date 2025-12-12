@@ -168,28 +168,50 @@ export default function Sidebar() {
 
   // Vérifier si l'utilisateur a accès à une page
   const hasAccessToPage = (href: string): boolean => {
-    // Si pas de restriction d'accès, accés complet
-    if (!userAccess || userAccess.accessType === "all") return true;
+    // Si pas de restriction d'accès, accès complet
+    if (!userAccess) return true;
 
-    // Si accès spécifique, vérifier les permissions
-    if (userAccess.accessType === "specific") {
-      // Pages toujours accessibles
-      const alwaysAccessible = ["/", "/profile", "/settings", "/agenda"];
-      if (alwaysAccessible.includes(href)) return true;
+    // Pages toujours accessibles
+    const alwaysAccessible = ["/", "/profile", "/settings", "/agenda"];
+    if (alwaysAccessible.includes(href)) return true;
 
-      // Pages liées aux clients
-      const clientPages = ["/reseau", "/reseau/clients", "/reseau/contacts", "/reseau/entreprises"];
-      const hasClientAccess = userAccess.clientAccess && userAccess.clientAccess !== "*";
-      if (clientPages.some(page => href.startsWith(page)) && !hasClientAccess) return false;
+    // Vérifier l'accès aux clients
+    const clientPages = ["/reseau", "/reseau/clients", "/reseau/contacts", "/reseau/entreprises"];
+    if (clientPages.some(page => href.startsWith(page))) {
+      if (userAccess.clientsAccess === "none") return false;
+      return true;
+    }
 
-      // Pages liées aux projets
-      const projectPages = ["/projects", "/commercial"];
-      const hasProjectAccess = userAccess.projectAccess && userAccess.projectAccess !== "*";
-      if (projectPages.some(page => href.startsWith(page)) && !hasProjectAccess) return false;
+    // Vérifier l'accès aux projets
+    const projectPages = ["/projects", "/commercial"];
+    if (projectPages.some(page => href.startsWith(page))) {
+      if (userAccess.projectsAccess === "none") return false;
+      return true;
+    }
 
-      // Pages d'administration
-      const adminPages = ["/admin"];
-      if (adminPages.some(page => href.startsWith(page))) return false;
+    // Vérifier l'accès aux espaces
+    if (href.startsWith("/billing")) {
+      if (userAccess.spacesAccess === "none") return false;
+      if (userAccess.spacesAccess === "specific") {
+        return userAccess.allowedSpaces?.includes("billing") || false;
+      }
+      return true;
+    }
+
+    if (href.startsWith("/teams")) {
+      if (userAccess.spacesAccess === "none") return false;
+      if (userAccess.spacesAccess === "specific") {
+        return userAccess.allowedSpaces?.includes("teams") || false;
+      }
+      return true;
+    }
+
+    if (href.startsWith("/admin")) {
+      if (userAccess.spacesAccess === "none") return false;
+      if (userAccess.spacesAccess === "specific") {
+        return userAccess.allowedSpaces?.includes("admin") || false;
+      }
+      return true;
     }
 
     return true;
@@ -197,7 +219,7 @@ export default function Sidebar() {
 
   // Filtrer le menu en fonction des permissions
   const getAccessibleNavigation = () => {
-    if (!userAccess || userAccess.accessType === "all") return navigation;
+    if (!userAccess) return navigation;
 
     return navigation.filter(item => hasAccessToPage(item.href)).map(item => ({
       ...item,
