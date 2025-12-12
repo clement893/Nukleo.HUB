@@ -799,3 +799,16 @@
 - [x] Afficher un message de confirmation
 
 - [x] Pousser vers GitHub
+
+
+## Changement de rôle utilisateur
+
+### Phase 1 - API
+- [ ] Créer l'API PATCH pour changer le rôle d'un utilisateur
+- [ ] Vérifier les permissions (seul super_admin peut promouvoir en super_admin)
+
+### Phase 2 - Interface admin
+- [ ] Ajouter un dropdown de sélection du rôle dans la liste des utilisateurs
+- [ ] Ajouter un bouton pour sauvegarder le changement de rôle
+
+- [ ] Pousser vers GitHub
