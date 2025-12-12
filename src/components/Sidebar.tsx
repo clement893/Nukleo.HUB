@@ -73,7 +73,15 @@ const navigation: NavItem[] = [
       { name: "Témoignages", href: "/reseau/temoignages" },
     ],
   },
-  { name: "Projets", href: "/projects", icon: FolderKanban },
+  {
+    name: "Projets",
+    href: "/projects",
+    icon: FolderKanban,
+    children: [
+      { name: "Liste", href: "/projects" },
+      { name: "Importer", href: "/projects/import" },
+    ],
+  },
   { name: "Transformation", href: "/transformation", icon: Sparkles },
   {
     name: "Équipes",
