@@ -2060,8 +2060,12 @@ export default function EmployeePortalPage() {
                             <User className="w-3 h-3" />
                             {rec.isOwn ? "Vous" : rec.employee?.name || "Anonyme"}
                           </span>
-                          <span className="px-2 py-0.5 bg-slate-700 rounded">
-                            {rec.category === "process" ? "Processus" :
+                          <span className={`px-2 py-0.5 rounded ${
+                            rec.category === "bug" ? "bg-red-500/20 text-red-400" :
+                            "bg-slate-700 text-slate-400"
+                          }`}>
+                            {rec.category === "bug" ? "🐛 Bug" :
+                             rec.category === "process" ? "Processus" :
                              rec.category === "tools" ? "Outils" :
                              rec.category === "environment" ? "Environnement" :
                              rec.category === "communication" ? "Communication" :
@@ -2112,6 +2116,7 @@ export default function EmployeePortalPage() {
                         className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                       >
                         <option value="general">Général</option>
+                        <option value="bug">Bug / Problème</option>
                         <option value="process">Processus</option>
                         <option value="tools">Outils</option>
                         <option value="environment">Environnement de travail</option>

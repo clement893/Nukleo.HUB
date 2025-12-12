@@ -317,6 +317,16 @@ export default function TicketsPage() {
               Tickets ({tickets.length})
             </button>
             <button
+              onClick={() => setActiveTab("internal")}
+              className={`px-4 py-2 rounded-lg transition-colors ${
+                activeTab === "internal"
+                  ? "bg-violet-600 text-white"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              }`}
+            >
+              Tickets/Recos Internes
+            </button>
+            <button
               onClick={() => setActiveTab("portals")}
               className={`px-4 py-2 rounded-lg transition-colors ${
                 activeTab === "portals"
@@ -608,6 +618,21 @@ export default function TicketsPage() {
                   </div>
                 ))
               )}
+            </div>
+          )}
+
+          {/* Internal Tickets Tab */}
+          {activeTab === "internal" && (
+            <div className="space-y-6">
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
+                <p className="text-blue-200 text-sm">
+                  Onglet pour les tickets et recommandations internes de l'equipe.
+                </p>
+              </div>
+              <div className="text-center py-12">
+                <AlertCircle className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                <p className="text-slate-400">Fonctionnalite en cours de developpement</p>
+              </div>
             </div>
           )}
         </div>
