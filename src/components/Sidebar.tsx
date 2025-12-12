@@ -120,6 +120,7 @@ export default function Sidebar() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [userAccess, setUserAccess] = useState<any>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -127,6 +128,13 @@ export default function Sidebar() {
         const res = await fetch("/api/auth/me");
         const data = await res.json();
         setUser(data.user);
+
+        // Récupérer les permissions d'accès de l'utilisateur
+        if (data.user) {
+          const accessRes = await fetch("/api/user-access");
+          const accessData = await accessRes.json();
+          setUserAccess(accessData.access);
+        }
       } catch (error) {
         console.error("Error fetching user:", error);
       } finally {
@@ -183,7 +191,7 @@ export default function Sidebar() {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-2">
           <ul className="space-y-1">
-            {navigation.map((item) => (
+            {(userAccess?.accessType === "all" ? navigation : navigation).map((item) => (
               <li key={item.name}>
                 {item.children ? (
                   <div>
