@@ -29,6 +29,7 @@ import {
   Image as ImageIcon,
   Video,
   FileEdit,
+  Sparkles,
   Megaphone,
   TrendingUp,
   Users,
