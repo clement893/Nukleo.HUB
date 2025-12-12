@@ -17,11 +17,7 @@ export async function GET(
     include: {
       employee: { select: { id: true, name: true, photoUrl: true, department: true } },
       clientPortal: { select: { id: true, clientName: true } },
-      votes: {
-        include: {
-          employee: { select: { name: true } },
-        },
-      },
+      votes: true,
     },
   });
 
