@@ -782,7 +782,7 @@
 - [x] Mettre à jour le template texte pour les invitations
 
 ### Phase 3 - Tests et validation
-- [ ] Tester l'envoi d'invitation
-- [ ] Vérifier les logs SendGrid
+- [x] Tester l'envoi d'invitation
+- [x] Vérifier les logs SendGrid
 
-- [ ] Pousser vers GitHub
+- [x] Pousser vers GitHub
