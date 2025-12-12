@@ -1,0 +1,117 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getSession();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: { employee: true },
+    });
+
+    if (!user?.employee) {
+      return NextResponse.json(
+        { error: "Employee not found" },
+        { status: 404 }
+      );
+    }
+
+    // Vérifier que la tâche appartient à l'employé
+    const task = await prisma.personalTask.findUnique({
+      where: { id: params.id },
+    });
+
+    if (!task || task.employeeId !== user.employee.id) {
+      return NextResponse.json(
+        { error: "Task not found or unauthorized" },
+        { status: 404 }
+      );
+    }
+
+    const body = await request.json();
+    const { title, description, status, priority, dueDate, section, order } =
+      body;
+
+    const updatedTask = await prisma.personalTask.update({
+      where: { id: params.id },
+      data: {
+        ...(title && { title }),
+        ...(description !== undefined && { description }),
+        ...(status && {
+          status,
+          completedAt: status === "done" ? new Date() : null,
+        }),
+        ...(priority && { priority }),
+        ...(dueDate !== undefined && {
+          dueDate: dueDate ? new Date(dueDate) : null,
+        }),
+        ...(section && { section }),
+        ...(order !== undefined && { order }),
+      },
+    });
+
+    return NextResponse.json(updatedTask);
+  } catch (error) {
+    console.error("Error updating personal task:", error);
+    return NextResponse.json(
+      { error: "Failed to update task" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getSession();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: { employee: true },
+    });
+
+    if (!user?.employee) {
+      return NextResponse.json(
+        { error: "Employee not found" },
+        { status: 404 }
+      );
+    }
+
+    // Vérifier que la tâche appartient à l'employé
+    const task = await prisma.personalTask.findUnique({
+      where: { id: params.id },
+    });
+
+    if (!task || task.employeeId !== user.employee.id) {
+      return NextResponse.json(
+        { error: "Task not found or unauthorized" },
+        { status: 404 }
+      );
+    }
+
+    await prisma.personalTask.delete({
+      where: { id: params.id },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting personal task:", error);
+    return NextResponse.json(
+      { error: "Failed to delete task" },
+      { status: 500 }
+    );
+  }
+}

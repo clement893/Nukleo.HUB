@@ -242,6 +242,9 @@ model Employee {
   // Relations recommandations et sondages
   recommendations       Recommendation[]
   surveyResponses       SurveyResponse[]
+  
+  // Relations tâches personnelles
+  personalTasks         PersonalTask[]
 
   @@index([department])
 }
@@ -1917,4 +1920,35 @@ model MenuPermission {
   @@unique([userId, menuItemId])
   @@index([userId])
   @@index([menuItemId])
+}
+
+
+// Personal Tasks - Tâches personnelles des employés
+model PersonalTask {
+  id              String    @id @default(cuid())
+  employeeId      String
+  employee        Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  
+  title           String
+  description     String?   @db.Text
+  status          String    @default("todo") // todo, in_progress, done
+  priority        String    @default("medium") // low, medium, high
+  dueDate         DateTime?
+  
+  // Sections (comme dans Asana)
+  section         String?   @default("My Tasks") // My Tasks, In Progress, Done, etc.
+  
+  // Ordre dans la section
+  order           Int       @default(0)
+  
+  // Métadonnées
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  completedAt     DateTime?
+  
+  @@index([employeeId])
+  @@index([status])
+  @@index([priority])
+  @@index([dueDate])
+  @@index([section])
 }

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { ProtectedEmployeePublicPortal } from "@/components/ProtectedEmployeePublicPortal";
+import TaskManager from "@/components/TaskManager";
 import {
   User,
   Clock,
@@ -290,7 +291,7 @@ export default function EmployeePortalPage() {
   const [events, setEvents] = useState<EmployeeEvent[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "time" | "timesheets" | "calendar" | "documents" | "requests" | "vacations" | "recommendations" | "surveys" | "notifications" | "profile" | "leo">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "time" | "timesheets" | "calendar" | "documents" | "requests" | "vacations" | "recommendations" | "surveys" | "notifications" | "profile" | "leo" | "tasks">("dashboard");
 
   // Timesheet state
   const [selectedWeek, setSelectedWeek] = useState<Date>(getWeekStart(new Date()));
@@ -785,6 +786,7 @@ export default function EmployeePortalPage() {
     { id: "calendar", label: "Calendrier", icon: Calendar },
     { id: "documents", label: "Documents", icon: FileText },
     { id: "requests", label: "Demandes", icon: Send },
+    { id: "tasks", label: "Mes tâches", icon: CheckCircle2 },
     { id: "vacations", label: "Vacances", icon: Palmtree },
     { id: "recommendations", label: "Recommandations", icon: Lightbulb },
     { id: "surveys", label: "Sondages", icon: ClipboardList },
@@ -2629,6 +2631,18 @@ export default function EmployeePortalPage() {
                   Envoyer
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "tasks" && (
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700 overflow-hidden h-[calc(100vh-200px)] flex flex-col p-6">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">Mes tâches</h2>
+              <p className="text-slate-400">Gérez vos tâches personnelles</p>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <TaskManager />
             </div>
           </div>
         )}
