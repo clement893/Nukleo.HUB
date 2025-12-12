@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
         notes,
         terms,
         footerNote,
-        createdBy: auth.user.id,
+        createdBy: auth.id,
         items: {
           create: processedItems,
         },

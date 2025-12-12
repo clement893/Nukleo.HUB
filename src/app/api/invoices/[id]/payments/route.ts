@@ -44,7 +44,7 @@ export async function POST(
         paymentMethod: paymentMethod || "virement",
         reference,
         notes,
-        recordedBy: auth.user.id,
+        recordedBy: auth.id,
       },
     });
 
