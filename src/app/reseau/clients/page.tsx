@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Sidebar from "@/components/Sidebar";
+import { ProtectedPage } from "@/components/ProtectedPage";
 import {
   Building2,
   Users,
@@ -150,9 +151,10 @@ export default function ClientsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f]">
-      <Sidebar />
-      <main className="pl-64 overflow-auto">
+    <ProtectedPage requiredAccess="reseau">
+      <div className="min-h-screen bg-[#0a0a0f]">
+        <Sidebar />
+        <main className="pl-64 overflow-auto">
         <div className="p-8">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
@@ -438,7 +440,8 @@ export default function ClientsPage() {
             )}
           </div>
         </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </ProtectedPage>
   );
 }

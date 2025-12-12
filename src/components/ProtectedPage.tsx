@@ -6,14 +6,12 @@ import { Loader2 } from "lucide-react";
 
 interface ProtectedPageProps {
   children: React.ReactNode;
-  requiredAccess?: "clients" | "projects" | "billing" | "teams" | "admin";
-  requiredSpaces?: string[];
+  requiredAccess?: "clients" | "projects" | "billing" | "teams" | "admin" | "reseau" | "commercial" | "agenda" | "transformation" | "communication" | "leo" | "tickets";
 }
 
 export function ProtectedPage({
   children,
   requiredAccess,
-  requiredSpaces,
 }: ProtectedPageProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -36,38 +34,75 @@ export function ProtectedPage({
           return;
         }
 
-        // Vérifier l'accès aux clients
-        if (requiredAccess === "clients") {
-          if (userAccess.clientsAccess === "none") {
-            router.push("/");
-            return;
-          }
-        }
+        let hasRequiredAccess = false;
 
-        // Vérifier l'accès aux projets
-        if (requiredAccess === "projects") {
-          if (userAccess.projectsAccess === "none") {
-            router.push("/");
-            return;
-          }
-        }
+        // Vérifier l'accès selon le type
+        switch (requiredAccess) {
+          case "clients":
+            hasRequiredAccess = userAccess.clientsAccess !== "none";
+            break;
 
-        // Vérifier l'accès aux espaces
-        if (requiredSpaces && requiredSpaces.length > 0) {
-          if (userAccess.spacesAccess === "none") {
-            router.push("/");
-            return;
-          }
-
-          if (userAccess.spacesAccess === "specific") {
-            const hasRequiredSpace = requiredSpaces.some(space =>
-              userAccess.allowedSpaces?.includes(space)
-            );
-            if (!hasRequiredSpace) {
-              router.push("/");
-              return;
+          case "reseau":
+            // Réseau : spacesAccess "specific" prime, sinon clientsAccess
+            if (userAccess.spacesAccess === "specific") {
+              hasRequiredAccess = userAccess.allowedSpaces?.includes("reseau") || false;
+            } else if (userAccess.spacesAccess === "none") {
+              hasRequiredAccess = userAccess.clientsAccess !== "none";
+            } else {
+              hasRequiredAccess = true;
             }
-          }
+            break;
+
+          case "projects":
+            hasRequiredAccess = userAccess.projectsAccess !== "none";
+            break;
+
+          case "commercial":
+            // Commercial : spacesAccess "specific" prime, sinon projectsAccess
+            if (userAccess.spacesAccess === "specific") {
+              hasRequiredAccess = userAccess.allowedSpaces?.includes("commercial") || false;
+            } else if (userAccess.spacesAccess === "none") {
+              hasRequiredAccess = userAccess.projectsAccess !== "none";
+            } else {
+              hasRequiredAccess = true;
+            }
+            break;
+
+          case "agenda":
+            // Agenda : contrôlé par spacesAccess
+            if (userAccess.spacesAccess === "none") {
+              hasRequiredAccess = false;
+            } else if (userAccess.spacesAccess === "specific") {
+              hasRequiredAccess = userAccess.allowedSpaces?.includes("agenda") || false;
+            } else {
+              hasRequiredAccess = true;
+            }
+            break;
+
+          case "transformation":
+          case "teams":
+          case "billing":
+          case "communication":
+          case "leo":
+          case "tickets":
+          case "admin":
+            // Autres espaces : contrôlés par spacesAccess
+            if (userAccess.spacesAccess === "none") {
+              hasRequiredAccess = false;
+            } else if (userAccess.spacesAccess === "specific") {
+              hasRequiredAccess = userAccess.allowedSpaces?.includes(requiredAccess) || false;
+            } else {
+              hasRequiredAccess = true;
+            }
+            break;
+
+          default:
+            hasRequiredAccess = true;
+        }
+
+        if (!hasRequiredAccess) {
+          router.push("/");
+          return;
         }
 
         setHasAccess(true);
@@ -80,7 +115,7 @@ export function ProtectedPage({
     };
 
     checkAccess();
-  }, [requiredAccess, requiredSpaces, router]);
+  }, [requiredAccess, router]);
 
   if (loading) {
     return (
