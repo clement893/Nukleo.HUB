@@ -188,11 +188,15 @@ export default function Sidebar() {
     // Vérifier l'accès aux clients (Réseau)
     const clientPages = ["/reseau", "/reseau/clients", "/reseau/contacts", "/reseau/entreprises"];
     if (clientPages.some(page => href.startsWith(page))) {
-      // Vérifier clientsAccess OU spacesAccess pour "reseau"
-      const hasClientAccess = userAccess.clientsAccess !== "none";
-      const hasSpaceAccess = userAccess.spacesAccess === "all" || 
-        (userAccess.spacesAccess === "specific" && userAccess.allowedSpaces?.includes("reseau"));
-      if (!hasClientAccess && !hasSpaceAccess) return false;
+      // Si spacesAccess est "specific", vérifier SEULEMENT spacesAccess
+      if (userAccess.spacesAccess === "specific") {
+        return userAccess.allowedSpaces?.includes("reseau") || false;
+      }
+      // Si spacesAccess est "none", vérifier clientsAccess
+      if (userAccess.spacesAccess === "none") {
+        return userAccess.clientsAccess !== "none";
+      }
+      // Si spacesAccess est "all", autoriser
       return true;
     }
 
@@ -200,11 +204,15 @@ export default function Sidebar() {
     const projectPages = ["/projects", "/commercial"];
     if (projectPages.some(page => href.startsWith(page))) {
       const spaceId = href.startsWith("/commercial") ? "commercial" : "projects";
-      // Vérifier projectsAccess OU spacesAccess pour "commercial"/"projects"
-      const hasProjectAccess = userAccess.projectsAccess !== "none";
-      const hasSpaceAccess = userAccess.spacesAccess === "all" || 
-        (userAccess.spacesAccess === "specific" && userAccess.allowedSpaces?.includes(spaceId));
-      if (!hasProjectAccess && !hasSpaceAccess) return false;
+      // Si spacesAccess est "specific", vérifier SEULEMENT spacesAccess
+      if (userAccess.spacesAccess === "specific") {
+        return userAccess.allowedSpaces?.includes(spaceId) || false;
+      }
+      // Si spacesAccess est "none", vérifier projectsAccess
+      if (userAccess.spacesAccess === "none") {
+        return userAccess.projectsAccess !== "none";
+      }
+      // Si spacesAccess est "all", autoriser
       return true;
     }
 
