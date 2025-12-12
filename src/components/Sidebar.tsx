@@ -190,12 +190,10 @@ export default function Sidebar() {
     }
 
     // Vérifier l'accès aux espaces
+    // Note: /commercial, /reseau, /projects et /agenda sont déjà vérifiés ci-dessus
     const spaceMap: Record<string, string> = {
-      "/commercial": "commercial",
-      "/reseau": "reseau",
       "/transformation": "transformation",
       "/teams": "teams",
-      "/agenda": "agenda",
       "/billing": "billing",
       "/communication": "communication",
       "/leo": "leo",
