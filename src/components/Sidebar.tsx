@@ -192,6 +192,30 @@ export default function Sidebar() {
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
+    
+    // Logique spéciale pour les sections avec enfants
+    const pathToSection: Record<string, string> = {
+      "/admin/vacations": "/admin",
+      "/admin/timesheets": "/admin",
+      "/admin/onboarding": "/admin",
+      "/admin/recommendations": "/admin",
+      "/admin/surveys": "/admin",
+      "/admin/access": "/admin",
+      "/admin/menu-permissions": "/admin",
+      "/admin/notifications": "/admin",
+      "/admin/users": "/admin",
+      "/billing": "/finances",
+      "/billing/invoices": "/finances",
+      "/billing/quotes": "/finances",
+    };
+    
+    // Vérifier si le chemin actuel correspond à une section
+    const section = pathToSection[pathname];
+    if (section) {
+      return href === section;
+    }
+    
+    // Sinon, utiliser la logique par défaut
     return pathname.startsWith(href);
   };
 
