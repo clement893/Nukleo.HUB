@@ -3,6 +3,8 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
+import LeoWritingAssistant from "@/components/LeoWritingAssistant";
+import CommunicationContextDocuments from "@/components/CommunicationContextDocuments";
 import {
   ArrowLeft,
   Plus,
@@ -140,7 +142,7 @@ export default function ClientHubPage({ params }: { params: Promise<{ id: string
   const resolvedParams = use(params);
   const router = useRouter();
   const [client, setClient] = useState<CommunicationClient | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "calendar" | "briefs" | "strategies" | "ideas">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "calendar" | "briefs" | "strategies" | "ideas" | "leo" | "documents">("dashboard");
   const [loading, setLoading] = useState(true);
   
   // Calendar state
@@ -499,6 +501,8 @@ export default function ClientHubPage({ params }: { params: Promise<{ id: string
                 { id: "briefs", label: "Briefs", icon: FileText },
                 { id: "strategies", label: "Stratégies", icon: Target },
                 { id: "ideas", label: "Idées", icon: Lightbulb },
+                { id: "leo", label: "Leo", icon: Sparkles },
+                { id: "documents", label: "Documents", icon: FileEdit },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -925,6 +929,23 @@ export default function ClientHubPage({ params }: { params: Promise<{ id: string
                   </button>
                 </div>
               )}
+            </div>
+          )}
+          
+          {/* Leo Tab */}
+          {activeTab === "leo" && client && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-white">Leo - Assistant de rédaction</h2>
+              </div>
+              <LeoWritingAssistant clientId={client.id} />
+            </div>
+          )}
+          
+          {/* Documents Tab */}
+          {activeTab === "documents" && client && (
+            <div className="space-y-6">
+              <CommunicationContextDocuments clientId={client.id} />
             </div>
           )}
         </div>
