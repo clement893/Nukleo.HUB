@@ -7,7 +7,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authResult = await requireAuth(request);
+  const authResult = await requireAuth();
   if (authResult instanceof NextResponse) return authResult;
 
   const { id } = await params;
@@ -37,7 +37,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authResult = await requireAuth(request);
+  const authResult = await requireAuth();
   if (authResult instanceof NextResponse) return authResult;
 
   const { id } = await params;
@@ -60,7 +60,7 @@ export async function PUT(
       startDate: data.startDate ? new Date(data.startDate) : null,
       endDate: data.endDate ? new Date(data.endDate) : null,
       questions: {
-        create: data.questions.map((q: any, index: number) => ({
+        create: data.questions.map((q: Record<string, unknown>, index: number) => ({
           questionText: q.questionText,
           questionType: q.questionType,
           options: q.options || null,
@@ -86,7 +86,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authResult = await requireAuth(request);
+  const authResult = await requireAuth();
   if (authResult instanceof NextResponse) return authResult;
 
   const { id } = await params;

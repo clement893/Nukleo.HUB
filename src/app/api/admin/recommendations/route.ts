@@ -3,8 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 
 // GET - Liste toutes les recommandations (admin)
-export async function GET(request: NextRequest) {
-  const authResult = await requireAuth(request);
+export async function GET() {
+  const authResult = await requireAuth();
   if (authResult instanceof NextResponse) return authResult;
 
   const recommendations = await prisma.recommendation.findMany({
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
 // POST - Créer une recommandation (admin)
 export async function POST(request: NextRequest) {
-  const authResult = await requireAuth(request);
+  const authResult = await requireAuth();
   if (authResult instanceof NextResponse) return authResult;
 
   const data = await request.json();

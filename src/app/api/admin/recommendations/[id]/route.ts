@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/api-auth";
+import { requireAuth, AuthUser } from "@/lib/api-auth";
 
 // GET - Détails d'une recommandation
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authResult = await requireAuth(request);
+  const authResult = await requireAuth();
   if (authResult instanceof NextResponse) return authResult;
 
   const { id } = await params;
@@ -37,13 +37,14 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authResult = await requireAuth(request);
+  const authResult = await requireAuth();
   if (authResult instanceof NextResponse) return authResult;
+  const user = authResult as AuthUser;
 
   const { id } = await params;
   const data = await request.json();
 
-  const updateData: any = {};
+  const updateData: Record<string, unknown> = {};
   
   if (data.status) {
     updateData.status = data.status;
@@ -52,7 +53,7 @@ export async function PATCH(
   if (data.adminResponse !== undefined) {
     updateData.adminResponse = data.adminResponse;
     updateData.respondedAt = new Date();
-    updateData.respondedBy = authResult.user?.name || "Admin";
+    updateData.respondedBy = user.name || "Admin";
   }
 
   if (data.priority) {
@@ -76,7 +77,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const authResult = await requireAuth(request);
+  const authResult = await requireAuth();
   if (authResult instanceof NextResponse) return authResult;
 
   const { id } = await params;

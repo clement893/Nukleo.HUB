@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/api-auth";
+import { requireAuth, AuthUser } from "@/lib/api-auth";
 
 // GET - Liste tous les sondages (admin)
-export async function GET(request: NextRequest) {
-  const authResult = await requireAuth(request);
+export async function GET() {
+  const authResult = await requireAuth();
   if (authResult instanceof NextResponse) return authResult;
 
   const surveys = await prisma.survey.findMany({
@@ -30,8 +30,9 @@ export async function GET(request: NextRequest) {
 
 // POST - Créer un nouveau sondage
 export async function POST(request: NextRequest) {
-  const authResult = await requireAuth(request);
+  const authResult = await requireAuth();
   if (authResult instanceof NextResponse) return authResult;
+  const user = authResult as AuthUser;
 
   const data = await request.json();
 
@@ -45,9 +46,9 @@ export async function POST(request: NextRequest) {
       startDate: data.startDate ? new Date(data.startDate) : null,
       endDate: data.endDate ? new Date(data.endDate) : null,
       status: "draft",
-      createdBy: authResult.user?.id,
+      createdBy: user.id,
       questions: {
-        create: data.questions.map((q: any, index: number) => ({
+        create: data.questions.map((q: Record<string, unknown>, index: number) => ({
           questionText: q.questionText,
           questionType: q.questionType,
           options: q.options || null,
