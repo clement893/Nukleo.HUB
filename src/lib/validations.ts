@@ -182,7 +182,7 @@ export const userUpdateSchema = z.object({
 // ============================================
 // Helper function to validate and parse
 // ============================================
-export function validateBody<T>(schema: z.ZodSchema<T>, data: unknown): { success: true; data: T } | { success: false; error: string } {
+export function validateBody<T>(schema: z.ZodType<T>, data: unknown): { success: true; data: T } | { success: false; error: string } {
   try {
     const result = schema.parse(data);
     return { success: true, data: result };
@@ -196,3 +196,95 @@ export function validateBody<T>(schema: z.ZodSchema<T>, data: unknown): { succes
     return { success: false, error: "Données invalides" };
   }
 }
+
+// ============================================
+// Client Portal Schemas
+// ============================================
+export const clientPortalCreateSchema = z.object({
+  clientName: z.string().min(1, "Client name is required").max(255),
+  clientEmail: z.string().email("Invalid email").optional().nullable(),
+  companyId: z.string().optional().nullable(),
+  welcomeMessage: z.string().max(5000).optional().nullable(),
+});
+
+export const clientPortalUpdateSchema = clientPortalCreateSchema.partial();
+
+// ============================================
+// Activity Schemas
+// ============================================
+export const activityCreateSchema = z.object({
+  entityType: z.string().min(1).max(50),
+  entityId: z.string().min(1),
+  type: z.enum(["created", "updated", "deleted", "commented", "assigned"]),
+  description: z.string().max(1000),
+  metadata: z.record(z.any()).optional(),
+});
+
+// ============================================
+// Billing Report Schemas
+// ============================================
+export const billingReportQuerySchema = z.object({
+  month: z.string().regex(/^\d{4}-\d{2}$/).optional(),
+  projectId: z.string().optional(),
+  employeeId: z.string().optional(),
+  groupBy: z.enum(["project", "employee"]).optional(),
+});
+
+// ============================================
+// Communication Client Schemas
+// ============================================
+export const communicationClientCreateSchema = z.object({
+  name: z.string().min(1).max(255),
+  email: z.string().email().optional().nullable(),
+  phone: z.string().max(20).optional().nullable(),
+  company: z.string().max(255).optional().nullable(),
+  description: z.string().max(5000).optional().nullable(),
+});
+
+export const communicationClientUpdateSchema = communicationClientCreateSchema.partial();
+
+// ============================================
+// Recommendation Schemas
+// ============================================
+export const recommendationCreateSchema = z.object({
+  employeeId: z.string().min(1),
+  category: z.enum(["improvement", "bug", "feature", "general"]),
+  title: z.string().min(1).max(255),
+  description: z.string().min(1).max(5000),
+  priority: z.enum(["low", "medium", "high"]).optional(),
+});
+
+export const recommendationUpdateSchema = recommendationCreateSchema.partial();
+
+// ============================================
+// Invitation Schemas
+// ============================================
+export const invitationCreateSchema = z.object({
+  email: z.string().email("Invalid email"),
+  role: z.enum(["user", "admin", "super_admin"]),
+  message: z.string().max(1000).optional().nullable(),
+});
+
+// ============================================
+// Menu Permission Schemas
+// ============================================
+export const menuPermissionSchema = z.object({
+  userId: z.string().min(1),
+  menuItem: z.string().min(1).max(100),
+  canView: z.boolean().optional(),
+  canCreate: z.boolean().optional(),
+  canEdit: z.boolean().optional(),
+  canDelete: z.boolean().optional(),
+});
+
+// ============================================
+// User Access Schemas
+// ============================================
+export const userAccessUpdateSchema = z.object({
+  clientsAccess: z.enum(["all", "specific", "none"]).optional(),
+  projectsAccess: z.enum(["all", "specific", "none"]).optional(),
+  spacesAccess: z.enum(["all", "specific", "none"]).optional(),
+  specificClients: z.array(z.string()).optional(),
+  specificProjects: z.array(z.string()).optional(),
+  specificSpaces: z.array(z.string()).optional(),
+});
