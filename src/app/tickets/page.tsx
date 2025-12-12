@@ -88,7 +88,7 @@ export default function TicketsPage() {
   const [portals, setPortals] = useState<ClientPortal[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"tickets" | "portals">("tickets");
+  const [activeTab, setActiveTab] = useState<"tickets" | "portals" | "internal">("tickets");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
