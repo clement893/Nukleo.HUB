@@ -38,6 +38,7 @@ export async function GET() {
         name: session.user.name,
         photoUrl: session.user.photoUrl,
         role: session.user.role,
+        employeeId: session.user.employeeId,
       },
     });
   } catch (error) {
