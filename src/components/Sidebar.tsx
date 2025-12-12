@@ -166,6 +166,47 @@ export default function Sidebar() {
     return pathname.startsWith(href);
   };
 
+  // Vérifier si l'utilisateur a accès à une page
+  const hasAccessToPage = (href: string): boolean => {
+    // Si pas de restriction d'accès, accés complet
+    if (!userAccess || userAccess.accessType === "all") return true;
+
+    // Si accès spécifique, vérifier les permissions
+    if (userAccess.accessType === "specific") {
+      // Pages toujours accessibles
+      const alwaysAccessible = ["/", "/profile", "/settings", "/agenda"];
+      if (alwaysAccessible.includes(href)) return true;
+
+      // Pages liées aux clients
+      const clientPages = ["/reseau", "/reseau/clients", "/reseau/contacts", "/reseau/entreprises"];
+      const hasClientAccess = userAccess.clientAccess && userAccess.clientAccess !== "*";
+      if (clientPages.some(page => href.startsWith(page)) && !hasClientAccess) return false;
+
+      // Pages liées aux projets
+      const projectPages = ["/projects", "/commercial"];
+      const hasProjectAccess = userAccess.projectAccess && userAccess.projectAccess !== "*";
+      if (projectPages.some(page => href.startsWith(page)) && !hasProjectAccess) return false;
+
+      // Pages d'administration
+      const adminPages = ["/admin"];
+      if (adminPages.some(page => href.startsWith(page))) return false;
+    }
+
+    return true;
+  };
+
+  // Filtrer le menu en fonction des permissions
+  const getAccessibleNavigation = () => {
+    if (!userAccess || userAccess.accessType === "all") return navigation;
+
+    return navigation.filter(item => hasAccessToPage(item.href)).map(item => ({
+      ...item,
+      children: item.children?.filter(child => hasAccessToPage(child.href)),
+    }));
+  };
+
+  const accessibleNav = getAccessibleNavigation();
+
   return (
     <aside className="fixed left-0 top-0 z-40 h-screen w-64 bg-sidebar border-r border-border">
       <div className="flex h-full flex-col">
@@ -191,7 +232,7 @@ export default function Sidebar() {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto px-3 py-2">
           <ul className="space-y-1">
-            {(userAccess?.accessType === "all" ? navigation : navigation).map((item) => (
+            {accessibleNav.map((item) => (
               <li key={item.name}>
                 {item.children ? (
                   <div>
