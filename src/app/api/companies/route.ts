@@ -2,12 +2,18 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
-export async function GET() {
+export async function GET(request: Request) {
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
   try {
+    const { searchParams } = new URL(request.url);
+    const isClient = searchParams.get("isClient");
+
+    const where = isClient === "true" ? { isClient: true } : {};
+
     const companies = await prisma.company.findMany({
+      where,
       orderBy: { name: "asc" },
     });
     return NextResponse.json(companies);
