@@ -30,6 +30,7 @@ import {
   Loader2,
   Palmtree,
   User,
+  ExternalLink,
 } from "lucide-react";
 
 interface AuthUser {
@@ -121,6 +122,8 @@ export default function Sidebar() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
   const [userAccess, setUserAccess] = useState<any>(null);
+  const [portalUrl, setPortalUrl] = useState<string | null>(null);
+  const [loadingPortal, setLoadingPortal] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -134,6 +137,19 @@ export default function Sidebar() {
           const accessRes = await fetch("/api/user-access");
           const accessData = await accessRes.json();
           setUserAccess(accessData.access);
+
+          // Récupérer le portail employé si l'utilisateur n'est pas admin
+          if (data.user.role !== "admin" && data.user.role !== "super_admin") {
+            try {
+              const portalRes = await fetch(`/api/employees/${data.user.id}/portal`);
+              if (portalRes.ok) {
+                const portalData = await portalRes.json();
+                setPortalUrl(portalData.url);
+              }
+            } catch (error) {
+              console.error("Error fetching employee portal:", error);
+            }
+          }
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -373,14 +389,27 @@ export default function Sidebar() {
               </button>
               
               <div className="flex items-center gap-2 px-1">
-                <button
-                  onClick={() => router.push("/settings")}
-                  className="flex-1 flex items-center justify-center gap-2 px-2 py-1.5 text-muted-foreground hover:text-foreground hover:bg-sidebar-hover rounded transition-colors text-xs"
-                  title="Paramétrer"
-                >
-                  <Settings className="h-4 w-4" />
-                  <span>Paramétrer</span>
-                </button>
+                {portalUrl && user?.role !== "admin" && user?.role !== "super_admin" ? (
+                  <a
+                    href={portalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-2 px-2 py-1.5 text-muted-foreground hover:text-foreground hover:bg-sidebar-hover rounded transition-colors text-xs"
+                    title="Accéder à mon portail"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span>Mon portail</span>
+                  </a>
+                ) : (
+                  <button
+                    onClick={() => router.push("/settings")}
+                    className="flex-1 flex items-center justify-center gap-2 px-2 py-1.5 text-muted-foreground hover:text-foreground hover:bg-sidebar-hover rounded transition-colors text-xs"
+                    title="Paramétrer"
+                  >
+                    <Settings className="h-4 w-4" />
+                    <span>Paramétrer</span>
+                  </button>
+                )}
                 <button
                   onClick={toggleTheme}
                   className="flex items-center justify-center p-1.5 text-muted-foreground hover:text-foreground hover:bg-sidebar-hover rounded transition-colors"
