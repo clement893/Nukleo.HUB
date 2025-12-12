@@ -4,7 +4,7 @@ import { useState } from "react";
 import React from "react";
 import Sidebar from "@/components/Sidebar";
 import AIChatWidget from "@/components/AIChatWidget";
-import UserProfile from "@/components/UserProfile";
+
 import {
   KPICards,
   PipelineChart,
@@ -17,23 +17,6 @@ import { Settings2, GripVertical } from "lucide-react";
 
 export default function Home() {
   const [isEditing, setIsEditing] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  
-  // Récupérer l'utilisateur connecté
-  React.useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await fetch("/api/auth/me");
-        if (response.ok) {
-          const userData = await response.json();
-          setUser(userData);
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    };
-    fetchUser();
-  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -50,7 +33,6 @@ export default function Home() {
               </p>
             </div>
             <div className="flex items-center gap-4">
-              {user && <UserProfile user={user} />}
               <button
                 onClick={() => setIsEditing(!isEditing)}
                 className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${

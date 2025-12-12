@@ -29,6 +29,7 @@ import {
   LogOut,
   Loader2,
   Palmtree,
+  User,
 } from "lucide-react";
 
 interface AuthUser {
@@ -250,45 +251,61 @@ export default function Sidebar() {
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
           ) : user ? (
-            <div className="flex items-center gap-3">
-              {user.photoUrl ? (
-                <img
-                  src={user.photoUrl}
-                  alt={user.name || "User"}
-                  className="h-9 w-9 rounded-full object-cover"
-                />
-              ) : (
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary">
-                  <span className="text-sm font-medium text-white">
-                    {user.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">
-                  {user.name || "Utilisateur"}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-              </div>
+            <div className="space-y-2">
               <button
-                onClick={toggleTheme}
-                className="p-2 text-muted-foreground hover:text-foreground transition-colors"
-                title={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
+                onClick={() => router.push("/profile")}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-sidebar-hover transition-colors"
               >
-                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </button>
-              <button
-                onClick={handleLogout}
-                disabled={loggingOut}
-                className="p-2 text-muted-foreground hover:text-red-500 transition-colors"
-                title="Se déconnecter"
-              >
-                {loggingOut ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                {user.photoUrl ? (
+                  <img
+                    src={user.photoUrl}
+                    alt={user.name || "User"}
+                    className="h-9 w-9 rounded-full object-cover"
+                  />
                 ) : (
-                  <LogOut className="h-4 w-4" />
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary">
+                    <span className="text-sm font-medium text-white">
+                      {user.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
                 )}
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {user.name || "Utilisateur"}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                </div>
               </button>
+              
+              <div className="flex items-center gap-2 px-1">
+                <button
+                  onClick={() => router.push("/settings")}
+                  className="flex-1 flex items-center justify-center gap-2 px-2 py-1.5 text-muted-foreground hover:text-foreground hover:bg-sidebar-hover rounded transition-colors text-xs"
+                  title="Paramétrer"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span>Paramétrer</span>
+                </button>
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center justify-center p-1.5 text-muted-foreground hover:text-foreground hover:bg-sidebar-hover rounded transition-colors"
+                  title={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
+                >
+                  {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </button>
+                <button
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                  className="flex items-center justify-center p-1.5 text-muted-foreground hover:text-red-500 hover:bg-sidebar-hover rounded transition-colors"
+                  title="Se déconnecter"
+                >
+                  {loggingOut ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <LogOut className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
           ) : (
             <Link
