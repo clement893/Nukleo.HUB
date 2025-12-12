@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSession();
-    if (!session?.user) {
+    const user = await getCurrentUser();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Récupérer l'employé associé à l'utilisateur
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    const userWithEmployee = await prisma.user.findUnique({
+      where: { id: user.id },
       include: { employee: true },
     });
 
-    if (!user?.employee) {
+    if (!userWithEmployee?.employee) {
       return NextResponse.json(
         { error: "Employee not found" },
         { status: 404 }
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     // Récupérer les tâches personnelles
     const tasks = await prisma.personalTask.findMany({
-      where: { employeeId: user.employee.id },
+      where: { employeeId: userWithEmployee.employee.id },
       orderBy: [{ section: "asc" }, { order: "asc" }],
     });
 
@@ -40,17 +40,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSession();
-    if (!session?.user) {
+    const user = await getCurrentUser();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    const userWithEmployee = await prisma.user.findUnique({
+      where: { id: user.id },
       include: { employee: true },
     });
 
-    if (!user?.employee) {
+    if (!userWithEmployee?.employee) {
       return NextResponse.json(
         { error: "Employee not found" },
         { status: 404 }
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     // Obtenir le prochain ordre dans la section
     const lastTask = await prisma.personalTask.findFirst({
       where: {
-        employeeId: user.employee.id,
+        employeeId: userWithEmployee.employee.id,
         section: section || "My Tasks",
       },
       orderBy: { order: "desc" },
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 
     const task = await prisma.personalTask.create({
       data: {
-        employeeId: user.employee.id,
+        employeeId: userWithEmployee.employee.id,
         title,
         description,
         priority: priority || "medium",

@@ -1,23 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getSession();
-    if (!session?.user) {
+    const user = await getCurrentUser();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    const userWithEmployee = await prisma.user.findUnique({
+      where: { id: user.id },
       include: { employee: true },
     });
 
-    if (!user?.employee) {
+    if (!userWithEmployee?.employee) {
       return NextResponse.json(
         { error: "Employee not found" },
         { status: 404 }
@@ -29,7 +29,7 @@ export async function PATCH(
       where: { id: params.id },
     });
 
-    if (!task || task.employeeId !== user.employee.id) {
+    if (!task || task.employeeId !== userWithEmployee.employee.id) {
       return NextResponse.json(
         { error: "Task not found or unauthorized" },
         { status: 404 }
@@ -73,17 +73,17 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getSession();
-    if (!session?.user) {
+    const user = await getCurrentUser();
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    const userWithEmployee = await prisma.user.findUnique({
+      where: { id: user.id },
       include: { employee: true },
     });
 
-    if (!user?.employee) {
+    if (!userWithEmployee?.employee) {
       return NextResponse.json(
         { error: "Employee not found" },
         { status: 404 }
@@ -95,7 +95,7 @@ export async function DELETE(
       where: { id: params.id },
     });
 
-    if (!task || task.employeeId !== user.employee.id) {
+    if (!task || task.employeeId !== userWithEmployee.employee.id) {
       return NextResponse.json(
         { error: "Task not found or unauthorized" },
         { status: 404 }
