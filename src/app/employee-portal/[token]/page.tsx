@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
+import { ProtectedEmployeePublicPortal } from "@/components/ProtectedEmployeePublicPortal";
 import {
   User,
   Clock,
@@ -793,7 +794,8 @@ export default function EmployeePortalPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+    <ProtectedEmployeePublicPortal token={token}>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 text-white">
       {/* Header */}
       <header className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -2712,6 +2714,7 @@ export default function EmployeePortalPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </ProtectedEmployeePublicPortal>
   );
 }
