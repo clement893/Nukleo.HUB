@@ -841,24 +841,24 @@
 ## Profil utilisateur et permissions du menu
 
 ### Phase 1 - Modèle de données
-- [ ] Ajouter le modèle MenuPermission au schéma Prisma
-- [ ] Ajouter les relations avec User et MenuItem
+- [x] Ajouter le modèle MenuPermission au schéma Prisma
+- [x] Ajouter les relations avec User et MenuItem
 
 ### Phase 2 - API
-- [ ] Créer l'API pour récupérer les permissions de l'utilisateur
-- [ ] Créer l'API pour gérer les permissions (admin)
+- [x] Créer l'API pour récupérer les permissions de l'utilisateur
+- [x] Créer l'API pour gérer les permissions (admin)
 
 ### Phase 3 - Composant profil
-- [ ] Créer le composant UserProfile avec avatar et menu
-- [ ] Afficher le nom et l'email de l'utilisateur
-- [ ] Ajouter les options de profil et déconnexion
+- [x] Créer le composant UserProfile avec avatar et menu
+- [x] Afficher le nom et l'email de l'utilisateur
+- [x] Ajouter les options de profil et déconnexion
 
 ### Phase 4 - Intégration menu
-- [ ] Filtrer le menu basé sur les permissions
-- [ ] Afficher/masquer les éléments du menu
+- [x] Filtrer le menu basé sur les permissions
+- [x] Afficher/masquer les éléments du menu
 
 ### Phase 5 - Interface admin
-- [ ] Créer la page admin pour gérer les permissions
-- [ ] Ajouter un formulaire pour assigner les permissions par utilisateur
+- [x] Créer la page admin pour gérer les permissions
+- [x] Ajouter un formulaire pour assigner les permissions par utilisateur
 
-- [ ] Pousser vers GitHub
+- [x] Pousser vers GitHub
