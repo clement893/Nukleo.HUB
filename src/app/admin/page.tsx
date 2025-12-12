@@ -26,6 +26,9 @@ import {
   Palmtree,
   CalendarDays,
   Bell,
+  Mail,
+  RotateCw,
+  Trash2,
 } from "lucide-react";
 
 interface KPIs {
@@ -65,12 +68,13 @@ interface AdminStats {
   period: string;
 }
 
-type TabType = "overview" | "users" | "logs" | "settings" | "stats" | "employees" | "access";
+type TabType = "overview" | "users" | "logs" | "settings" | "stats" | "employees" | "access" | "invitations";
 
 const TABS = [
   { id: "overview" as TabType, label: "Vue d'ensemble", icon: BarChart3 },
   { id: "users" as TabType, label: "Utilisateurs", icon: UserCog },
   { id: "employees" as TabType, label: "Employés", icon: Users },
+  { id: "invitations" as TabType, label: "Invitations", icon: Mail },
   { id: "stats" as TabType, label: "Statistiques", icon: TrendingUp },
   { id: "logs" as TabType, label: "Logs d'activité", icon: Activity },
   { id: "settings" as TabType, label: "Paramètres", icon: Settings },
@@ -462,6 +466,9 @@ export default function AdminPage() {
 
               {/* Employees Tab */}
               {activeTab === "employees" && <EmployeesTab />}
+
+              {/* Invitations Tab */}
+              {activeTab === "invitations" && <InvitationsTab />}
 
               {/* Stats Tab */}
               {activeTab === "stats" && stats && <StatsTab stats={stats} />}
@@ -1035,6 +1042,224 @@ function SettingsTab() {
   );
 }
 
+
+// Invitations Tab Component
+function InvitationsTab() {
+  const [invitations, setInvitations] = useState<Array<{ id: string; email: string; role: string; createdAt: string; expiresAt: string; acceptedAt: string | null; inviter: { name: string | null; email: string } }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [newEmail, setNewEmail] = useState("");
+  const [newRole, setNewRole] = useState("user");
+  const [creating, setCreating] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  useEffect(() => {
+    fetchInvitations();
+  }, []);
+
+  const fetchInvitations = async () => {
+    try {
+      const response = await fetch("/api/admin/invitations");
+      if (response.ok) {
+        const data = await response.json();
+        setInvitations(data.invitations);
+      }
+    } catch (error) {
+      console.error("Error fetching invitations:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateInvitation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch("/api/admin/invitations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newEmail, role: newRole }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setMessage({ type: "success", text: data.message });
+        setNewEmail("");
+        setNewRole("user");
+        fetchInvitations();
+      } else {
+        const error = await response.json();
+        setMessage({ type: "error", text: error.error });
+      }
+    } catch (error) {
+      setMessage({ type: "error", text: "Erreur lors de la création de l'invitation" });
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleResendInvitation = async (invitationId: string) => {
+    try {
+      const response = await fetch("/api/admin/invitations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invitationId }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setMessage({ type: "success", text: data.message });
+        fetchInvitations();
+      } else {
+        const error = await response.json();
+        setMessage({ type: "error", text: error.error });
+      }
+    } catch (error) {
+      setMessage({ type: "error", text: "Erreur lors du renvoi de l'invitation" });
+    }
+  };
+
+  const handleDeleteInvitation = async (invitationId: string) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cette invitation ?")) return;
+
+    try {
+      const response = await fetch(`/api/admin/invitations?id=${invitationId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setMessage({ type: "success", text: "Invitation supprimée" });
+        fetchInvitations();
+      } else {
+        setMessage({ type: "error", text: "Erreur lors de la suppression" });
+      }
+    } catch (error) {
+      setMessage({ type: "error", text: "Erreur lors de la suppression" });
+    }
+  };
+
+  const getRoleLabel = (role: string) => {
+    const labels: Record<string, string> = {
+      super_admin: "Super Administrateur",
+      admin: "Administrateur",
+      user: "Utilisateur",
+    };
+    return labels[role] || role;
+  };
+
+  const isExpired = (expiresAt: string) => new Date(expiresAt) < new Date();
+  const isAccepted = (acceptedAt: string | null) => acceptedAt !== null;
+
+  return (
+    <div className="space-y-6">
+      {message && (
+        <div className={`p-4 rounded-lg ${message.type === "success" ? "bg-green-500/10 text-green-400" : "bg-red-500/10 text-red-400"}`}>
+          {message.text}
+        </div>
+      )}
+
+      {/* Create Invitation Form */}
+      <div className="glass-card rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-foreground mb-4">Nouvelle invitation</h3>
+        <form onSubmit={handleCreateInvitation} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input
+              type="email"
+              placeholder="Email du nouvel utilisateur"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              required
+              className="px-4 py-2 bg-muted border border-border rounded-lg text-sm"
+            />
+            <select
+              value={newRole}
+              onChange={(e) => setNewRole(e.target.value)}
+              className="px-4 py-2 bg-muted border border-border rounded-lg text-sm"
+            >
+              <option value="user">Utilisateur</option>
+              <option value="admin">Administrateur</option>
+              <option value="super_admin">Super Administrateur</option>
+            </select>
+            <button
+              type="submit"
+              disabled={creating}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+            >
+              {creating ? "Création..." : "Inviter"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Invitations List */}
+      <div className="glass-card rounded-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-border">
+          <h3 className="text-lg font-semibold text-foreground">Invitations en attente</h3>
+        </div>
+        {loading ? (
+          <div className="px-6 py-8 text-center text-muted-foreground">Chargement...</div>
+        ) : invitations.length === 0 ? (
+          <div className="px-6 py-8 text-center text-muted-foreground">Aucune invitation</div>
+        ) : (
+          <table className="w-full">
+            <thead className="bg-muted/50">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Email</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Rôle</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Invité par</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Statut</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-muted-foreground">Expire le</th>
+                <th className="px-6 py-3 text-right text-sm font-medium text-muted-foreground">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {invitations.map((invitation) => (
+                <tr key={invitation.id} className="hover:bg-muted/30">
+                  <td className="px-6 py-3 text-sm text-foreground">{invitation.email}</td>
+                  <td className="px-6 py-3 text-sm text-foreground">{getRoleLabel(invitation.role)}</td>
+                  <td className="px-6 py-3 text-sm text-muted-foreground">{invitation.inviter.name || invitation.inviter.email}</td>
+                  <td className="px-6 py-3 text-sm">
+                    {isAccepted(invitation.acceptedAt) ? (
+                      <span className="text-green-400">Acceptée</span>
+                    ) : isExpired(invitation.expiresAt) ? (
+                      <span className="text-red-400">Expirée</span>
+                    ) : (
+                      <span className="text-yellow-400">En attente</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-3 text-sm text-muted-foreground">
+                    {new Date(invitation.expiresAt).toLocaleDateString("fr-FR")}
+                  </td>
+                  <td className="px-6 py-3 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      {!isAccepted(invitation.acceptedAt) && !isExpired(invitation.expiresAt) && (
+                        <button
+                          onClick={() => handleResendInvitation(invitation.id)}
+                          className="p-2 hover:bg-muted rounded-lg text-blue-400 hover:text-blue-300 transition"
+                          title="Renvoyer l'invitation"
+                        >
+                          <RotateCw className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDeleteInvitation(invitation.id)}
+                        className="p-2 hover:bg-muted rounded-lg text-red-400 hover:text-red-300 transition"
+                        title="Supprimer l'invitation"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // Access Tab Component - Redirects to dedicated page
 function AccessTab() {

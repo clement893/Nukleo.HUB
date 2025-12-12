@@ -786,3 +786,16 @@
 - [x] Vérifier les logs SendGrid
 
 - [x] Pousser vers GitHub
+
+
+## Renvoi d'invitations
+
+### Phase 1 - API
+- [ ] Créer l'API de renvoi d'invitation
+- [ ] Vérifier que l'invitation existe et n'est pas expirée
+
+### Phase 2 - Interface admin
+- [ ] Ajouter un bouton "Renvoyer l'invitation" dans la liste des invitations
+- [ ] Afficher un message de confirmation
+
+- [ ] Pousser vers GitHub

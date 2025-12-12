@@ -160,6 +160,78 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// PATCH - Renvoyer une invitation
+export async function PATCH(request: NextRequest) {
+  try {
+    const admin = await checkAdminAccess();
+    if (!admin) {
+      return NextResponse.json({ error: "Accès non autorisé" }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const { invitationId } = body;
+
+    if (!invitationId) {
+      return NextResponse.json({ error: "ID d'invitation requis" }, { status: 400 });
+    }
+
+    // Récupérer l'invitation
+    const invitation = await prisma.invitation.findUnique({
+      where: { id: invitationId },
+      include: {
+        inviter: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+    });
+
+    if (!invitation) {
+      return NextResponse.json({ error: "Invitation non trouvée" }, { status: 404 });
+    }
+
+    // Vérifier que l'invitation n'a pas expiré
+    if (invitation.expiresAt < new Date()) {
+      return NextResponse.json({ error: "Cette invitation a expiré" }, { status: 400 });
+    }
+
+    // Vérifier que l'invitation n'a pas déjà été acceptée
+    if (invitation.acceptedAt) {
+      return NextResponse.json({ error: "Cette invitation a déjà été acceptée" }, { status: 400 });
+    }
+
+    // Construire le lien d'invitation
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://nukleohub-production.up.railway.app";
+    const invitationLink = `${baseUrl}/invite/${invitation.token}`;
+
+    // Envoyer l'email d'invitation
+    const emailParams = {
+      inviterName: invitation.inviter.name || invitation.inviter.email,
+      inviteeEmail: invitation.email,
+      role: invitation.role,
+      invitationLink,
+      expiresAt: invitation.expiresAt,
+    };
+
+    const emailSent = await sendEmail({
+      to: invitation.email,
+      subject: `${invitation.inviter.name || invitation.inviter.email} vous invite à rejoindre Nukleo.HUB`,
+      html: getInvitationEmailHtml(emailParams),
+      text: getInvitationEmailText(emailParams),
+    });
+
+    return NextResponse.json({
+      invitation,
+      emailSent,
+      message: emailSent
+        ? `Invitation renvoyée à ${invitation.email}`
+        : `Erreur lors de l'envoi de l'email (partagez le lien manuellement)`,
+    });
+  } catch (error) {
+    console.error("Error resending invitation:", error);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
+}
+
 // DELETE - Supprimer/annuler une invitation
 export async function DELETE(request: NextRequest) {
   try {
