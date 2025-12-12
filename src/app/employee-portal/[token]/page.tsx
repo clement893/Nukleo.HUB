@@ -800,6 +800,13 @@ export default function EmployeePortalPage() {
       <header className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
+            <a
+              href="/"
+              className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors text-slate-400 hover:text-white"
+              title="Retour à la plateforme"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </a>
             {employee.photoUrl ? (
               <Image
                 src={employee.photoUrl}
