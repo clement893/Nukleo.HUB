@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
-import { storagePut, storageGet } from "@/server/storage";
+import { storagePut } from "@/lib/storage";
 
 // GET - Récupérer les documents de contexte d'un client
 export async function GET(
@@ -148,9 +148,6 @@ export async function DELETE(request: NextRequest) {
     if (!document) {
       return NextResponse.json({ error: "Document non trouvé" }, { status: 404 });
     }
-
-    // Supprimer le fichier de S3 (optionnel, selon votre implémentation)
-    // await storageDelete(document.fileKey);
 
     // Supprimer le document de la base de données
     await prisma.communicationContextDocument.delete({
