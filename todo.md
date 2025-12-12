@@ -812,3 +812,27 @@
 - [x] Ajouter un bouton pour sauvegarder le changement de rôle
 
 - [x] Pousser vers GitHub
+
+
+## Intégration Leo aux hubs de communication client
+
+### Phase 1 - Analyse
+- [x] Analyser la structure des hubs de communication
+- [x] Identifier où ajouter l'espace de documents
+
+### Phase 2 - Espace de documents
+- [x] Créer un modèle pour les documents de contexte
+- [x] Créer l'API pour uploader les documents
+- [x] Créer l'interface pour gérer les documents
+
+### Phase 3 - Intégration Leo
+- [x] Créer l'API pour récupérer le contexte client
+- [x] Intégrer Leo dans le hub de communication
+- [x] Charger le contexte des documents
+
+### Phase 4 - Interface de rédaction
+- [x] Créer un bouton "Assister la rédaction"
+- [x] Créer le modal avec Leo pour la rédaction
+- [x] Implémenter le streaming des réponses
+
+- [ ] Pousser vers GitHub

@@ -573,6 +573,7 @@ model CommunicationClient {
   brandAssets     BrandAsset[]
   reports         CommunicationReport[]
   contentIdeas    ContentIdea[]
+  contextDocuments CommunicationContextDocument[]
   @@index([status])
   @@index([projectId])
   @@index([companyId])
@@ -1847,4 +1848,34 @@ model SurveyAnswer {
   
   @@index([responseId])
   @@index([questionId])
+}
+
+
+model CommunicationContextDocument {
+  id              String    @id @default(cuid())
+  clientId        String
+  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // Document metadata
+  title           String
+  description     String?   @db.Text
+  documentType    String    // brand_guide, company_profile, product_info, audience_data, etc.
+  
+  // File storage
+  fileUrl         String    @db.Text // URL du fichier stocké (S3)
+  fileKey         String    @db.Text // Clé S3 pour accès/suppression
+  fileName        String
+  fileSize        Int       // Taille en bytes
+  mimeType        String    // application/pdf, text/plain, etc.
+  
+  // Content extraction (pour le contexte IA)
+  extractedText   String?   @db.Text // Texte extrait du document pour Leo
+  
+  // Metadata
+  uploadedBy      String    // Email de la personne qui a uploadé
+  uploadedAt      DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([clientId])
+  @@index([documentType])
 }
