@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
+import { ProtectedEmployeePortal } from "@/components/ProtectedEmployeePortal";
 import {
   ArrowLeft,
   User,
@@ -374,9 +375,10 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Sidebar />
-      <main className="pl-64">
+    <ProtectedEmployeePortal employeeId={resolvedParams.id}>
+      <div className="min-h-screen bg-background">
+        <Sidebar />
+        <main className="pl-64">
         {/* Header */}
         <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-sm">
           <div className="flex h-16 items-center gap-4 px-8">
@@ -846,7 +848,8 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
             </div>
           </div>
         </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </ProtectedEmployeePortal>
   );
 }
