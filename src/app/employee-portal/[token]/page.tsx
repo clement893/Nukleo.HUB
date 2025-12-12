@@ -40,6 +40,10 @@ import {
   Check,
   Palmtree,
   Loader2,
+  Lightbulb,
+  ClipboardList,
+  ThumbsUp,
+  MessageCircle,
 } from "lucide-react";
 
 interface Employee {
@@ -185,6 +189,51 @@ interface VacationBalance {
   sickDaysAllowed: number;
 }
 
+interface Recommendation {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  priority: string;
+  status: string;
+  sourceType: string;
+  employee: { id: string; name: string; photoUrl: string | null; department: string } | null;
+  clientPortal: { id: string; clientName: string } | null;
+  adminResponse: string | null;
+  respondedAt: string | null;
+  respondedBy: string | null;
+  voteCount: number;
+  hasVoted: boolean;
+  isOwn: boolean;
+  createdAt: string;
+}
+
+interface Survey {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  isAnonymous: boolean;
+  startDate: string | null;
+  endDate: string | null;
+  questions: SurveyQuestion[];
+  hasResponded: boolean;
+  questionCount: number;
+}
+
+interface SurveyQuestion {
+  id: string;
+  questionText: string;
+  questionType: string;
+  options: string | null;
+  isRequired: boolean;
+  order: number;
+  scaleMin: number | null;
+  scaleMax: number | null;
+  scaleMinLabel: string | null;
+  scaleMaxLabel: string | null;
+}
+
 // Obtenir le lundi de la semaine pour une date donnée
 function getWeekStart(date: Date): Date {
   const d = new Date(date);
@@ -240,7 +289,7 @@ export default function EmployeePortalPage() {
   const [events, setEvents] = useState<EmployeeEvent[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
 
-  const [activeTab, setActiveTab] = useState<"dashboard" | "time" | "timesheets" | "calendar" | "documents" | "requests" | "vacations" | "notifications" | "profile" | "leo">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "time" | "timesheets" | "calendar" | "documents" | "requests" | "vacations" | "recommendations" | "surveys" | "notifications" | "profile" | "leo">("dashboard");
 
   // Timesheet state
   const [selectedWeek, setSelectedWeek] = useState<Date>(getWeekStart(new Date()));
@@ -282,6 +331,14 @@ export default function EmployeePortalPage() {
   // Vacation state
   const [vacationRequests, setVacationRequests] = useState<VacationRequest[]>([]);
   const [vacationBalance, setVacationBalance] = useState<VacationBalance | null>(null);
+  
+  // Recommandations et sondages
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [surveys, setSurveys] = useState<Survey[]>([]);
+  const [newRecommendation, setNewRecommendation] = useState({ title: "", description: "", category: "general" });
+  const [showNewRecommendation, setShowNewRecommendation] = useState(false);
+  const [activeSurvey, setActiveSurvey] = useState<Survey | null>(null);
+  const [surveyAnswers, setSurveyAnswers] = useState<Record<string, any>>({});
   const [showVacationModal, setShowVacationModal] = useState(false);
   const [vacationLoading, setVacationLoading] = useState(false);
   const [newVacation, setNewVacation] = useState({
@@ -321,6 +378,18 @@ export default function EmployeePortalPage() {
   useEffect(() => {
     if (token && activeTab === "vacations") {
       fetchVacations();
+    }
+  }, [token, activeTab]);
+
+  useEffect(() => {
+    if (token && activeTab === "recommendations") {
+      fetchRecommendations();
+    }
+  }, [token, activeTab]);
+
+  useEffect(() => {
+    if (token && activeTab === "surveys") {
+      fetchSurveys();
     }
   }, [token, activeTab]);
 
@@ -487,6 +556,111 @@ export default function EmployeePortalPage() {
     }
   }
 
+  // ===== RECOMMENDATIONS FUNCTIONS =====
+  async function fetchRecommendations() {
+    try {
+      const res = await fetch(`/api/employee-portal/${token}/recommendations`);
+      if (res.ok) {
+        const data = await res.json();
+        setRecommendations(data.recommendations || []);
+      }
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+    }
+  }
+
+  async function submitRecommendation() {
+    if (!newRecommendation.title.trim() || !newRecommendation.description.trim()) {
+      alert("Veuillez remplir le titre et la description");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/employee-portal/${token}/recommendations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newRecommendation),
+      });
+
+      if (res.ok) {
+        setNewRecommendation({ title: "", description: "", category: "general" });
+        setShowNewRecommendation(false);
+        fetchRecommendations();
+        alert("Recommandation soumise avec succès !");
+      }
+    } catch (error) {
+      console.error("Error submitting recommendation:", error);
+    }
+  }
+
+  async function voteRecommendation(id: string, voteType: "up" | "down") {
+    try {
+      const res = await fetch(`/api/employee-portal/${token}/recommendations/${id}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ voteType }),
+      });
+
+      if (res.ok) {
+        fetchRecommendations();
+      }
+    } catch (error) {
+      console.error("Error voting:", error);
+    }
+  }
+
+  // ===== SURVEYS FUNCTIONS =====
+  async function fetchSurveys() {
+    try {
+      const res = await fetch(`/api/employee-portal/${token}/surveys`);
+      if (res.ok) {
+        const data = await res.json();
+        setSurveys(data.surveys || []);
+      }
+    } catch (error) {
+      console.error("Error fetching surveys:", error);
+    }
+  }
+
+  async function submitSurveyResponse(surveyId: string) {
+    const answers = surveyAnswers[surveyId];
+    if (!answers || Object.keys(answers).length === 0) {
+      alert("Veuillez répondre à au moins une question");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/employee-portal/${token}/surveys/${surveyId}/respond`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answers }),
+      });
+
+      if (res.ok) {
+        setActiveSurvey(null);
+        setSurveyAnswers(prev => {
+          const newAnswers = { ...prev };
+          delete newAnswers[surveyId];
+          return newAnswers;
+        });
+        fetchSurveys();
+        alert("Réponses enregistrées avec succès !");
+      }
+    } catch (error) {
+      console.error("Error submitting survey response:", error);
+    }
+  }
+
+  function updateSurveyAnswer(surveyId: string, questionId: string, answer: string | number) {
+    setSurveyAnswers(prev => ({
+      ...prev,
+      [surveyId]: {
+        ...(prev[surveyId] || {}),
+        [questionId]: answer,
+      },
+    }));
+  }
+
   async function startTimer() {
     setTimerRunning(true);
     setTimerSeconds(0);
@@ -611,6 +785,8 @@ export default function EmployeePortalPage() {
     { id: "documents", label: "Documents", icon: FileText },
     { id: "requests", label: "Demandes", icon: Send },
     { id: "vacations", label: "Vacances", icon: Palmtree },
+    { id: "recommendations", label: "Recommandations", icon: Lightbulb },
+    { id: "surveys", label: "Sondages", icon: ClipboardList },
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "profile", label: "Profil", icon: User },
     { id: "leo", label: "Leo IA", icon: Brain },
@@ -1789,6 +1965,402 @@ export default function EmployeePortalPage() {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Recommendations Tab */}
+        {activeTab === "recommendations" && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Lightbulb className="w-6 h-6 text-amber-400" />
+                Recommandations
+              </h2>
+              <button
+                onClick={() => setShowNewRecommendation(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Nouvelle suggestion
+              </button>
+            </div>
+
+            {/* Info Card */}
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+              <p className="text-amber-200 text-sm">
+                Partagez vos idées pour améliorer nos processus, outils ou environnement de travail. 
+                Vos suggestions sont précieuses pour l'évolution de l'entreprise !
+              </p>
+            </div>
+
+            {/* Recommendations List */}
+            <div className="space-y-4">
+              {recommendations.length === 0 ? (
+                <div className="text-center py-12">
+                  <Lightbulb className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                  <p className="text-slate-400">Aucune recommandation pour le moment</p>
+                  <p className="text-sm text-slate-500 mt-1">Soyez le premier à partager une idée !</p>
+                </div>
+              ) : (
+                recommendations.map((rec) => (
+                  <div key={rec.id} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+                    <div className="flex items-start gap-4">
+                      {/* Vote Column */}
+                      <div className="flex flex-col items-center gap-1">
+                        <button
+                          onClick={() => voteRecommendation(rec.id, "up")}
+                          disabled={rec.isOwn}
+                          className={`p-1.5 rounded transition-colors ${
+                            rec.hasVoted ? "text-amber-400 bg-amber-400/20" : "text-slate-400 hover:text-amber-400 hover:bg-slate-700"
+                          } ${rec.isOwn ? "opacity-50 cursor-not-allowed" : ""}`}
+                        >
+                          <ThumbsUp className="w-5 h-5" />
+                        </button>
+                        <span className={`text-lg font-bold ${rec.voteCount > 0 ? "text-amber-400" : "text-slate-500"}`}>
+                          {rec.voteCount}
+                        </span>
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <h3 className="font-semibold text-white">{rec.title}</h3>
+                            <p className="text-sm text-slate-400 mt-1">{rec.description}</p>
+                          </div>
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            rec.status === "pending" ? "bg-yellow-500/20 text-yellow-400" :
+                            rec.status === "approved" ? "bg-green-500/20 text-green-400" :
+                            rec.status === "rejected" ? "bg-red-500/20 text-red-400" :
+                            rec.status === "implemented" ? "bg-blue-500/20 text-blue-400" :
+                            "bg-slate-500/20 text-slate-400"
+                          }`}>
+                            {rec.status === "pending" ? "En attente" :
+                             rec.status === "approved" ? "Approuvée" :
+                             rec.status === "rejected" ? "Refusée" :
+                             rec.status === "implemented" ? "Implémentée" :
+                             rec.status === "under_review" ? "En étude" : rec.status}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-4 mt-3 text-xs text-slate-500">
+                          <span className="flex items-center gap-1">
+                            <User className="w-3 h-3" />
+                            {rec.isOwn ? "Vous" : rec.employee?.name || "Anonyme"}
+                          </span>
+                          <span className="px-2 py-0.5 bg-slate-700 rounded">
+                            {rec.category === "process" ? "Processus" :
+                             rec.category === "tools" ? "Outils" :
+                             rec.category === "environment" ? "Environnement" :
+                             rec.category === "communication" ? "Communication" :
+                             rec.category === "training" ? "Formation" : "Général"}
+                          </span>
+                          <span>{new Date(rec.createdAt).toLocaleDateString("fr-CA")}</span>
+                        </div>
+
+                        {rec.adminResponse && (
+                          <div className="mt-3 p-3 bg-slate-700/50 rounded-lg border-l-2 border-blue-500">
+                            <p className="text-xs text-blue-400 mb-1">Réponse de l'administration :</p>
+                            <p className="text-sm text-slate-300">{rec.adminResponse}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* New Recommendation Modal */}
+            {showNewRecommendation && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-lg">
+                  <div className="p-6 border-b border-slate-700">
+                    <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                      <Lightbulb className="w-5 h-5 text-amber-400" />
+                      Nouvelle recommandation
+                    </h2>
+                  </div>
+                  <div className="p-6 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">Titre *</label>
+                      <input
+                        type="text"
+                        value={newRecommendation.title}
+                        onChange={(e) => setNewRecommendation({ ...newRecommendation, title: e.target.value })}
+                        placeholder="Résumez votre idée en quelques mots..."
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">Catégorie</label>
+                      <select
+                        value={newRecommendation.category}
+                        onChange={(e) => setNewRecommendation({ ...newRecommendation, category: e.target.value })}
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      >
+                        <option value="general">Général</option>
+                        <option value="process">Processus</option>
+                        <option value="tools">Outils</option>
+                        <option value="environment">Environnement de travail</option>
+                        <option value="communication">Communication</option>
+                        <option value="training">Formation</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-300 mb-2">Description *</label>
+                      <textarea
+                        value={newRecommendation.description}
+                        onChange={(e) => setNewRecommendation({ ...newRecommendation, description: e.target.value })}
+                        rows={4}
+                        placeholder="Décrivez votre suggestion en détail..."
+                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="p-6 border-t border-slate-700 flex justify-end gap-3">
+                    <button
+                      onClick={() => setShowNewRecommendation(false)}
+                      className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={submitRecommendation}
+                      disabled={!newRecommendation.title.trim() || !newRecommendation.description.trim()}
+                      className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <Send className="w-4 h-4" />
+                      Soumettre
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Surveys Tab */}
+        {activeTab === "surveys" && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <ClipboardList className="w-6 h-6 text-indigo-400" />
+                Sondages
+              </h2>
+            </div>
+
+            {/* Info Card */}
+            <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-4">
+              <p className="text-indigo-200 text-sm">
+                Participez aux sondages pour nous aider à améliorer votre expérience de travail.
+                Vos réponses sont importantes pour nous !
+              </p>
+            </div>
+
+            {/* Surveys List */}
+            <div className="space-y-4">
+              {surveys.length === 0 ? (
+                <div className="text-center py-12">
+                  <ClipboardList className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+                  <p className="text-slate-400">Aucun sondage actif pour le moment</p>
+                  <p className="text-sm text-slate-500 mt-1">Vous serez notifié lorsqu'un nouveau sondage sera disponible</p>
+                </div>
+              ) : (
+                surveys.map((survey) => (
+                  <div key={survey.id} className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
+                    <div className="p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h3 className="font-semibold text-white">{survey.title}</h3>
+                          {survey.description && (
+                            <p className="text-sm text-slate-400 mt-1">{survey.description}</p>
+                          )}
+                          <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                            <span>{survey.questionCount} question{survey.questionCount > 1 ? "s" : ""}</span>
+                            {survey.isAnonymous && (
+                              <span className="px-2 py-0.5 bg-slate-700 rounded">Anonyme</span>
+                            )}
+                            {survey.endDate && (
+                              <span>Jusqu'au {new Date(survey.endDate).toLocaleDateString("fr-CA")}</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {survey.hasResponded ? (
+                            <span className="flex items-center gap-1 px-3 py-1.5 bg-green-500/20 text-green-400 rounded-lg text-sm">
+                              <CheckCircle2 className="w-4 h-4" />
+                              Répondu
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => setActiveSurvey(survey)}
+                              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors text-sm"
+                            >
+                              Répondre
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Survey Response Modal */}
+            {activeSurvey && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+                <div className="bg-slate-800 border border-slate-700 rounded-2xl w-full max-w-2xl my-8">
+                  <div className="p-6 border-b border-slate-700">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                        <ClipboardList className="w-5 h-5 text-indigo-400" />
+                        {activeSurvey.title}
+                      </h2>
+                      <button
+                        onClick={() => setActiveSurvey(null)}
+                        className="p-1 text-slate-400 hover:text-white"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                    {activeSurvey.description && (
+                      <p className="text-sm text-slate-400 mt-2">{activeSurvey.description}</p>
+                    )}
+                    {activeSurvey.isAnonymous && (
+                      <p className="text-xs text-indigo-400 mt-2">Ce sondage est anonyme</p>
+                    )}
+                  </div>
+                  <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+                    {activeSurvey.questions.sort((a, b) => a.order - b.order).map((question, idx) => (
+                      <div key={question.id} className="space-y-3">
+                        <label className="block text-sm font-medium text-white">
+                          {idx + 1}. {question.questionText}
+                          {question.isRequired && <span className="text-red-400 ml-1">*</span>}
+                        </label>
+
+                        {question.questionType === "text" && (
+                          <textarea
+                            value={surveyAnswers[activeSurvey.id]?.[question.id] || ""}
+                            onChange={(e) => updateSurveyAnswer(activeSurvey.id, question.id, e.target.value)}
+                            rows={3}
+                            placeholder="Votre réponse..."
+                            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                          />
+                        )}
+
+                        {question.questionType === "multiple_choice" && question.options && (
+                          <div className="space-y-2">
+                            {JSON.parse(question.options).map((option: string, optIdx: number) => (
+                              <label key={optIdx} className="flex items-center gap-3 p-3 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-700 transition-colors">
+                                <input
+                                  type="radio"
+                                  name={`question-${question.id}`}
+                                  value={option}
+                                  checked={surveyAnswers[activeSurvey.id]?.[question.id] === option}
+                                  onChange={() => updateSurveyAnswer(activeSurvey.id, question.id, option)}
+                                  className="w-4 h-4 text-indigo-600"
+                                />
+                                <span className="text-slate-300">{option}</span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+
+                        {question.questionType === "checkbox" && question.options && (
+                          <div className="space-y-2">
+                            {JSON.parse(question.options).map((option: string, optIdx: number) => {
+                              const currentAnswers = surveyAnswers[activeSurvey.id]?.[question.id] || [];
+                              const isChecked = Array.isArray(currentAnswers) && currentAnswers.includes(option);
+                              return (
+                                <label key={optIdx} className="flex items-center gap-3 p-3 bg-slate-700/50 rounded-lg cursor-pointer hover:bg-slate-700 transition-colors">
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => {
+                                      const newAnswers = isChecked
+                                        ? currentAnswers.filter((a: string) => a !== option)
+                                        : [...currentAnswers, option];
+                                      updateSurveyAnswer(activeSurvey.id, question.id, newAnswers);
+                                    }}
+                                    className="w-4 h-4 text-indigo-600 rounded"
+                                  />
+                                  <span className="text-slate-300">{option}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {question.questionType === "rating" && (
+                          <div className="flex items-center gap-2">
+                            {Array.from({ length: (question.scaleMax || 5) - (question.scaleMin || 1) + 1 }, (_, i) => {
+                              const value = (question.scaleMin || 1) + i;
+                              const isSelected = surveyAnswers[activeSurvey.id]?.[question.id] === value;
+                              return (
+                                <button
+                                  key={value}
+                                  onClick={() => updateSurveyAnswer(activeSurvey.id, question.id, value)}
+                                  className={`w-10 h-10 rounded-lg font-medium transition-colors ${
+                                    isSelected
+                                      ? "bg-indigo-600 text-white"
+                                      : "bg-slate-700 text-slate-400 hover:bg-slate-600"
+                                  }`}
+                                >
+                                  {value}
+                                </button>
+                              );
+                            })}
+                            {question.scaleMinLabel && question.scaleMaxLabel && (
+                              <div className="ml-4 text-xs text-slate-500">
+                                {question.scaleMinLabel} - {question.scaleMaxLabel}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {question.questionType === "yes_no" && (
+                          <div className="flex gap-3">
+                            {["Oui", "Non"].map((option) => (
+                              <button
+                                key={option}
+                                onClick={() => updateSurveyAnswer(activeSurvey.id, question.id, option)}
+                                className={`flex-1 py-3 rounded-lg font-medium transition-colors ${
+                                  surveyAnswers[activeSurvey.id]?.[question.id] === option
+                                    ? "bg-indigo-600 text-white"
+                                    : "bg-slate-700 text-slate-400 hover:bg-slate-600"
+                                }`}
+                              >
+                                {option}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-6 border-t border-slate-700 flex justify-end gap-3">
+                    <button
+                      onClick={() => setActiveSurvey(null)}
+                      className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={() => submitSurveyResponse(activeSurvey.id)}
+                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                    >
+                      <Send className="w-4 h-4" />
+                      Soumettre mes réponses
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

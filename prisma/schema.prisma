@@ -237,6 +237,10 @@ model Employee {
   // Relations vacances
   vacationRequests      VacationRequest[]
   vacationBalance       VacationBalance?
+  
+  // Relations recommandations et sondages
+  recommendations       Recommendation[]
+  surveyResponses       SurveyResponse[]
 
   @@index([department])
 }
@@ -832,6 +836,7 @@ model ClientPortal {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   tickets     Ticket[]
+  recommendations Recommendation[]
 
   @@index([token])
   @@index([companyId])
@@ -1687,4 +1692,159 @@ model PaymentReminder {
   
   @@index([invoiceId])
   @@index([sentAt])
+}
+
+
+// ============================================
+// SYSTÈME DE RECOMMANDATIONS
+// ============================================
+
+model Recommendation {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  category    String   @default("general") // general, feature, bug, ux, performance
+  priority    String   @default("medium") // low, medium, high, critical
+  status      String   @default("pending") // pending, reviewing, planned, in_progress, completed, rejected
+  
+  // Source de la recommandation
+  sourceType  String   // employee, client
+  employeeId  String?
+  employee    Employee? @relation(fields: [employeeId], references: [id])
+  clientPortalId String?
+  clientPortal   ClientPortal? @relation(fields: [clientPortalId], references: [id])
+  
+  // Réponse de l'équipe
+  adminResponse String?  @db.Text
+  respondedAt   DateTime?
+  respondedBy   String?
+  
+  // Votes
+  votes       RecommendationVote[]
+  voteCount   Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([status])
+  @@index([sourceType])
+  @@index([employeeId])
+  @@index([clientPortalId])
+}
+
+model RecommendationVote {
+  id               String   @id @default(cuid())
+  recommendationId String
+  recommendation   Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  
+  // Qui a voté
+  voterType        String   // employee, client
+  employeeId       String?
+  clientPortalId   String?
+  
+  createdAt        DateTime @default(now())
+  
+  @@unique([recommendationId, employeeId])
+  @@unique([recommendationId, clientPortalId])
+  @@index([recommendationId])
+}
+
+// ============================================
+// SYSTÈME DE SONDAGES
+// ============================================
+
+model Survey {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  status      String   @default("draft") // draft, active, closed
+  
+  // Période de validité
+  startDate   DateTime?
+  endDate     DateTime?
+  
+  // Cible
+  targetType  String   @default("all") // all, department, specific
+  targetDepartment String?
+  
+  // Anonymat
+  isAnonymous Boolean  @default(false)
+  
+  // Questions et réponses
+  questions   SurveyQuestion[]
+  responses   SurveyResponse[]
+  
+  createdBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+model SurveyQuestion {
+  id          String   @id @default(cuid())
+  surveyId    String
+  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  
+  questionText String  @db.Text
+  questionType String  // text, single_choice, multiple_choice, scale, rating
+  
+  // Options pour les questions à choix
+  options     String?  @db.Text // JSON array des options
+  
+  // Configuration
+  isRequired  Boolean  @default(true)
+  order       Int      @default(0)
+  
+  // Pour les échelles
+  scaleMin    Int?     @default(1)
+  scaleMax    Int?     @default(5)
+  scaleMinLabel String?
+  scaleMaxLabel String?
+  
+  answers     SurveyAnswer[]
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([surveyId])
+}
+
+model SurveyResponse {
+  id          String   @id @default(cuid())
+  surveyId    String
+  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  
+  // Répondant (null si anonyme)
+  employeeId  String?
+  employee    Employee? @relation(fields: [employeeId], references: [id])
+  
+  // Réponses aux questions
+  answers     SurveyAnswer[]
+  
+  completedAt DateTime @default(now())
+  
+  @@index([surveyId])
+  @@index([employeeId])
+}
+
+model SurveyAnswer {
+  id          String   @id @default(cuid())
+  responseId  String
+  response    SurveyResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  
+  questionId  String
+  question    SurveyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  // Réponse
+  textAnswer  String?  @db.Text
+  choiceAnswer String? // Pour single_choice
+  choicesAnswer String? // JSON array pour multiple_choice
+  scaleAnswer Int?     // Pour scale et rating
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([responseId])
+  @@index([questionId])
 }

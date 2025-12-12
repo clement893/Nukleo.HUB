@@ -712,4 +712,59 @@
 - [x] API relances avec niveaux
 - [x] Historique des relances
 
+- [x] Pousser vers GitHub
+
+
+## Système de Recommandations
+
+### Phase 1 - Base de données
+- [x] Modèle Recommendation (idées d'amélioration)
+- [x] Modèle RecommendationVote (votes des utilisateurs)
+- [x] Migration de la base de données
+
+### Phase 2 - APIs
+- [x] API CRUD recommandations
+- [x] API votes
+- [x] API liste par statut
+
+### Phase 3 - Portails
+- [x] Onglet Recommandations dans le portail employé
+- [ ] Onglet Recommandations dans le portail client
+- [x] Formulaire de soumission
+- [x] Liste des recommandations avec votes
+
+### Phase 4 - Administration
+- [x] Page admin de gestion des recommandations
+- [x] Changement de statut (en cours, planifié, terminé, rejeté)
+- [x] Réponses de l'équipe
+
+- [ ] Pousser vers GitHub
+
+
+## Système de Sondages Employés
+
+### Phase 1 - Base de données
+- [x] Modèle Survey (sondages)
+- [x] Modèle SurveyQuestion (questions)
+- [x] Modèle SurveyResponse (réponses)
+- [x] Migration de la base de données
+
+### Phase 2 - APIs
+- [x] API CRUD sondages
+- [x] API questions
+- [x] API soumission réponses
+- [x] API statistiques
+
+### Phase 3 - Portail Employé
+- [x] Onglet Sondages dans le portail employé
+- [x] Liste des sondages actifs
+- [x] Formulaire de réponse aux sondages
+- [x] Historique des sondages complétés
+
+### Phase 4 - Administration
+- [x] Page admin de création de sondages
+- [x] Types de questions (texte, choix unique, choix multiple, échelle)
+- [x] Visualisation des résultats
+- [ ] Export des réponses
+
 - [ ] Pousser vers GitHub

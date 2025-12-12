@@ -21,6 +21,11 @@ import {
   Target,
   Ticket,
   RefreshCw,
+  Lightbulb,
+  ClipboardList,
+  Palmtree,
+  CalendarDays,
+  Bell,
 } from "lucide-react";
 
 interface KPIs {
@@ -405,6 +410,48 @@ export default function AdminPage() {
                           )}
                         </div>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Links */}
+                  <div className="glass-card rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">Accès rapide</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      <a
+                        href="/admin/recommendations"
+                        className="flex flex-col items-center gap-2 p-4 bg-amber-500/10 hover:bg-amber-500/20 rounded-xl transition-colors"
+                      >
+                        <Lightbulb className="w-6 h-6 text-amber-500" />
+                        <span className="text-sm font-medium text-foreground">Recommandations</span>
+                      </a>
+                      <a
+                        href="/admin/surveys"
+                        className="flex flex-col items-center gap-2 p-4 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-xl transition-colors"
+                      >
+                        <ClipboardList className="w-6 h-6 text-indigo-500" />
+                        <span className="text-sm font-medium text-foreground">Sondages</span>
+                      </a>
+                      <a
+                        href="/admin/vacations"
+                        className="flex flex-col items-center gap-2 p-4 bg-emerald-500/10 hover:bg-emerald-500/20 rounded-xl transition-colors"
+                      >
+                        <Palmtree className="w-6 h-6 text-emerald-500" />
+                        <span className="text-sm font-medium text-foreground">Vacances</span>
+                      </a>
+                      <a
+                        href="/admin/timesheets"
+                        className="flex flex-col items-center gap-2 p-4 bg-blue-500/10 hover:bg-blue-500/20 rounded-xl transition-colors"
+                      >
+                        <CalendarDays className="w-6 h-6 text-blue-500" />
+                        <span className="text-sm font-medium text-foreground">Feuilles de temps</span>
+                      </a>
+                      <a
+                        href="/admin/notifications"
+                        className="flex flex-col items-center gap-2 p-4 bg-purple-500/10 hover:bg-purple-500/20 rounded-xl transition-colors"
+                      >
+                        <Bell className="w-6 h-6 text-purple-500" />
+                        <span className="text-sm font-medium text-foreground">Notifications</span>
+                      </a>
                     </div>
                   </div>
                 </div>
