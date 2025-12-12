@@ -738,7 +738,7 @@
 - [x] Changement de statut (en cours, planifié, terminé, rejeté)
 - [x] Réponses de l'équipe
 
-- [ ] Pousser vers GitHub
+- [x] Pousser vers GitHub
 
 
 ## Système de Sondages Employés
@@ -767,4 +767,4 @@
 - [x] Visualisation des résultats
 - [ ] Export des réponses
 
-- [ ] Pousser vers GitHub
+- [x] Pousser vers GitHub
