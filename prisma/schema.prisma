@@ -26,6 +26,7 @@ model User {
   sessions      Session[]
   invitations   Invitation[] @relation("InvitedBy")
   access        UserAccess?
+  menuPermissions MenuPermission[]
 
   @@index([googleId])
   @@index([email])
@@ -1878,4 +1879,42 @@ model CommunicationContextDocument {
   
   @@index([clientId])
   @@index([documentType])
+}
+
+
+model MenuItem {
+  id              String    @id @default(cuid())
+  key             String    @unique // dashboard, employees, projects, etc.
+  label           String
+  icon            String?   // lucide-react icon name
+  path            String?
+  description     String?   @db.Text
+  category        String?   // main, tools, admin, etc.
+  order           Int       @default(0)
+  isActive        Boolean   @default(true)
+  
+  permissions     MenuPermission[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([category])
+}
+
+model MenuPermission {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  menuItemId      String
+  menuItem        MenuItem  @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  
+  hasAccess       Boolean   @default(true)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@unique([userId, menuItemId])
+  @@index([userId])
+  @@index([menuItemId])
 }
