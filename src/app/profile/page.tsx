@@ -18,15 +18,32 @@ export default function ProfilePage() {
         }
 
         const data = await response.json();
-        const user = data.user;
+        const user = data.user || data;
 
         // Si l'utilisateur a un employeeId, rediriger vers le profil employé
         if (user.employeeId) {
           router.push(`/teams/employees/${user.employeeId}`);
-        } else {
-          // Sinon, rediriger vers le tableau de bord
-          router.push("/");
+          return;
         }
+
+        // Sinon, chercher l'employé par email
+        try {
+          const employeeResponse = await fetch(
+            `/api/employees?email=${encodeURIComponent(user.email)}`
+          );
+          if (employeeResponse.ok) {
+            const employeeData = await employeeResponse.json();
+            if (employeeData.employee?.id) {
+              router.push(`/teams/employees/${employeeData.employee.id}`);
+              return;
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching employee:", error);
+        }
+
+        // Si aucun employé trouvé, rediriger vers le tableau de bord
+        router.push("/");
       } catch (error) {
         console.error("Error fetching user:", error);
         router.push("/");
