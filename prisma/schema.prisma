@@ -1558,3 +1558,133 @@ model VacationBalance {
   @@index([employeeId])
   @@index([year])
 }
+
+
+// ==================== MODULE FACTURATION ====================
+
+// Factures
+model Invoice {
+  id              String    @id @default(cuid())
+  invoiceNumber   String    @unique // Format: INV-2024-0001
+  quoteId         String?   // Référence au devis si converti
+  projectId       String?
+  
+  // Informations client
+  clientName      String
+  clientEmail     String?
+  clientCompany   String?
+  clientAddress   String?   @db.Text
+  clientPhone     String?
+  
+  // Informations facture
+  title           String
+  description     String?   @db.Text
+  issueDate       DateTime  @default(now())
+  dueDate         DateTime
+  
+  // Statut
+  status          String    @default("draft") // draft, sent, viewed, paid, partial, overdue, cancelled
+  
+  // Montants
+  subtotal        Float     @default(0)
+  discountPercent Float     @default(0)
+  discountAmount  Float     @default(0)
+  taxRate         Float     @default(0.14975) // TPS 5% + TVQ 9.975%
+  taxAmount       Float     @default(0)
+  total           Float     @default(0)
+  amountPaid      Float     @default(0)
+  amountDue       Float     @default(0)
+  currency        String    @default("CAD")
+  
+  // Métadonnées
+  notes           String?   @db.Text
+  terms           String?   @db.Text
+  footerNote      String?   @db.Text
+  
+  // Suivi
+  sentAt          DateTime?
+  viewedAt        DateTime?
+  paidAt          DateTime?
+  lastReminderAt  DateTime?
+  reminderCount   Int       @default(0)
+  
+  createdBy       String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  items           InvoiceItem[]
+  payments        Payment[]
+  reminders       PaymentReminder[]
+  
+  @@index([projectId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([clientEmail])
+}
+
+// Lignes de facture
+model InvoiceItem {
+  id              String    @id @default(cuid())
+  invoiceId       String
+  invoice         Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  description     String
+  quantity        Float     @default(1)
+  unitPrice       Float
+  unit            String    @default("unité") // heure, jour, unité, forfait
+  amount          Float     // quantity * unitPrice
+  
+  // Optionnel: lien avec projet/phase
+  projectId       String?
+  phaseId         String?
+  
+  sortOrder       Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([invoiceId])
+}
+
+// Paiements
+model Payment {
+  id              String    @id @default(cuid())
+  invoiceId       String
+  invoice         Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  amount          Float
+  paymentDate     DateTime  @default(now())
+  paymentMethod   String    @default("virement") // virement, cheque, carte, especes, paypal, stripe
+  reference       String?   // Numéro de transaction/chèque
+  notes           String?   @db.Text
+  
+  recordedBy      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([invoiceId])
+  @@index([paymentDate])
+}
+
+// Relances de paiement
+model PaymentReminder {
+  id              String    @id @default(cuid())
+  invoiceId       String
+  invoice         Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  type            String    @default("email") // email, phone, letter
+  sentAt          DateTime  @default(now())
+  sentBy          String?
+  message         String?   @db.Text
+  response        String?   @db.Text
+  responseAt      DateTime?
+  
+  // Niveau de relance
+  level           Int       @default(1) // 1: rappel amical, 2: relance ferme, 3: mise en demeure
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([invoiceId])
+  @@index([sentAt])
+}

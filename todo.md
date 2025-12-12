@@ -676,3 +676,40 @@
 - [x] Modifier l'API agenda/vacations pour inclure les anniversaires
 - [x] Afficher les anniversaires dans le calendrier avec icône gâteau
 - [x] Pousser vers GitHub et exécuter le script de mise à jour
+
+
+## Module Facturation / Billing
+
+### Phase 1 - Base de données
+- [x] Modèle Invoice (factures)
+- [x] Modèle InvoiceItem (lignes de facture)
+- [x] Modèle Payment (paiements)
+- [x] Modèle PaymentReminder (relances)
+- [x] Migration de la base de données
+
+### Phase 2 - APIs
+- [x] API CRUD factures
+- [x] API CRUD paiements
+- [x] API génération PDF (HTML)
+- [x] API statistiques financières
+- [x] API relances
+
+### Phase 3 - Interface Factures
+- [x] Page liste des factures avec filtres
+- [x] Formulaire création facture
+- [x] Vue détaillée facture avec paiements
+- [x] Conversion devis en facture
+- [x] Statuts visuels (brouillon, envoyée, payée, en retard, annulée)
+
+### Phase 4 - Tableau de bord financier
+- [x] KPIs (CA, impayés, en attente)
+- [x] Graphique revenus par mois
+- [x] Liste factures en retard
+- [x] Sous-menu Facturation (Rapports, Factures, Devis)
+
+### Phase 5 - PDF et Relances
+- [x] Template HTML facture professionnelle
+- [x] API relances avec niveaux
+- [x] Historique des relances
+
+- [ ] Pousser vers GitHub

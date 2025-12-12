@@ -82,7 +82,16 @@ const navigation: NavItem[] = [
     ],
   },
   { name: "Agenda", href: "/agenda", icon: Calendar },
-  { name: "Facturation", href: "/billing", icon: Receipt },
+  {
+    name: "Facturation",
+    href: "/billing",
+    icon: Receipt,
+    children: [
+      { name: "Rapports", href: "/billing" },
+      { name: "Factures", href: "/billing/invoices" },
+      { name: "Devis", href: "/billing/quotes" },
+    ],
+  },
   { name: "Hub Communication", href: "/communication", icon: Megaphone },
 
   { name: "Leo IA", href: "/leo", icon: Brain },
