@@ -4,8 +4,9 @@ import { getCurrentUser } from "@/lib/auth";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -26,7 +27,7 @@ export async function PATCH(
 
     // Vérifier que la tâche appartient à l'employé
     const task = await prisma.personalTask.findUnique({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
     });
 
     if (!task || task.employeeId !== userWithEmployee.employee.id) {
@@ -41,7 +42,7 @@ export async function PATCH(
       body;
 
     const updatedTask = await prisma.personalTask.update({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       data: {
         ...(title && { title }),
         ...(description !== undefined && { description }),
@@ -70,8 +71,9 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const resolvedParams = await params;
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -92,7 +94,7 @@ export async function DELETE(
 
     // Vérifier que la tâche appartient à l'employé
     const task = await prisma.personalTask.findUnique({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
     });
 
     if (!task || task.employeeId !== userWithEmployee.employee.id) {
@@ -103,7 +105,7 @@ export async function DELETE(
     }
 
     await prisma.personalTask.delete({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
     });
 
     return NextResponse.json({ success: true });
