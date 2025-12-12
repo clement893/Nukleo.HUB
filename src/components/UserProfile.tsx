@@ -44,7 +44,7 @@ export default function UserProfile({ user }: UserProfileProps) {
   };
 
   // Créer les initiales pour l'avatar
-  const initials = user.name
+  const initials = (user.name || user.email || "U")
     .split(" ")
     .map((n) => n[0])
     .join("")
@@ -81,7 +81,7 @@ export default function UserProfile({ user }: UserProfileProps) {
 
         {/* Nom et rôle */}
         <div className="text-left hidden sm:block">
-          <div className="text-sm font-medium text-white">{user.name}</div>
+          <div className="text-sm font-medium text-white">{user.name || "Utilisateur"}</div>
           <div className="text-xs text-gray-400">{user.role || "Utilisateur"}</div>
         </div>
 
