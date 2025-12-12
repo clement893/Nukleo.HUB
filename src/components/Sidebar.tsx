@@ -31,6 +31,8 @@ import {
   Palmtree,
   User,
   ExternalLink,
+  Briefcase,
+  DollarSign,
 } from "lucide-react";
 
 interface AuthUser {
@@ -84,18 +86,7 @@ const navigation: NavItem[] = [
     ],
   },
   { name: "Agenda", href: "/agenda", icon: Calendar },
-  {
-    name: "Facturation",
-    href: "/billing",
-    icon: Receipt,
-    children: [
-      { name: "Rapports", href: "/billing" },
-      { name: "Factures", href: "/billing/invoices" },
-      { name: "Devis", href: "/billing/quotes" },
-    ],
-  },
   { name: "Hub Communication", href: "/communication", icon: Megaphone },
-
   { name: "Leo IA", href: "/leo", icon: Brain },
   { name: "Tickets", href: "/tickets", icon: Ticket },
   {
@@ -105,10 +96,32 @@ const navigation: NavItem[] = [
     children: [
       { name: "Tableau de bord", href: "/admin" },
       { name: "Utilisateurs", href: "/admin/users" },
+      { name: "Notifications", href: "/admin/notifications" },
+      { name: "Accès", href: "/admin/access" },
+      { name: "Permissions Menu", href: "/admin/menu-permissions" },
+    ],
+  },
+  {
+    name: "Gestion",
+    href: "/management",
+    icon: Briefcase,
+    children: [
       { name: "Vacances", href: "/admin/vacations" },
       { name: "Feuilles de temps", href: "/admin/timesheets" },
-      { name: "Notifications", href: "/admin/notifications" },
       { name: "Onboarding", href: "/admin/onboarding" },
+      { name: "Recommandations", href: "/admin/recommendations" },
+      { name: "Sondages", href: "/admin/surveys" },
+    ],
+  },
+  {
+    name: "Finances",
+    href: "/finances",
+    icon: DollarSign,
+    children: [
+      { name: "Facturation", href: "/billing" },
+      { name: "Rapports", href: "/billing" },
+      { name: "Factures", href: "/billing/invoices" },
+      { name: "Devis", href: "/billing/quotes" },
     ],
   },
 ];
