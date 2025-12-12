@@ -62,7 +62,7 @@ export default function UserProfile({ user }: UserProfileProps) {
     "bg-indigo-500",
     "bg-cyan-500",
   ];
-  const colorIndex = user.id.charCodeAt(0) % colors.length;
+  const colorIndex = (user.id || user.email || "default").charCodeAt(0) % colors.length;
   const avatarColor = colors[colorIndex];
 
   return (
@@ -105,8 +105,8 @@ export default function UserProfile({ user }: UserProfileProps) {
                 {initials}
               </div>
               <div>
-                <div className="text-sm font-medium text-white">{user.name}</div>
-                <div className="text-xs text-gray-400">{user.email}</div>
+                <div className="text-sm font-medium text-white">{user.name || "Utilisateur"}</div>
+                <div className="text-xs text-gray-400">{user.email || ""}</div>
               </div>
             </div>
           </div>
