@@ -172,20 +172,39 @@ export default function Sidebar() {
     if (!userAccess) return true;
 
     // Pages toujours accessibles
-    const alwaysAccessible = ["/", "/profile", "/settings", "/agenda"];
+    const alwaysAccessible = ["/", "/profile", "/settings"];
     if (alwaysAccessible.includes(href)) return true;
 
-    // Vérifier l'accès aux clients
-    const clientPages = ["/reseau", "/reseau/clients", "/reseau/contacts", "/reseau/entreprises"];
-    if (clientPages.some(page => href.startsWith(page))) {
-      if (userAccess.clientsAccess === "none") return false;
+    // Vérifier l'accès à Agenda
+    if (href.startsWith("/agenda")) {
+      // Agenda peut être contrôlé par spacesAccess
+      if (userAccess.spacesAccess === "none") return false;
+      if (userAccess.spacesAccess === "specific") {
+        return userAccess.allowedSpaces?.includes("agenda") || false;
+      }
       return true;
     }
 
-    // Vérifier l'accès aux projets
+    // Vérifier l'accès aux clients (Réseau)
+    const clientPages = ["/reseau", "/reseau/clients", "/reseau/contacts", "/reseau/entreprises"];
+    if (clientPages.some(page => href.startsWith(page))) {
+      // Vérifier clientsAccess OU spacesAccess pour "reseau"
+      const hasClientAccess = userAccess.clientsAccess !== "none";
+      const hasSpaceAccess = userAccess.spacesAccess === "all" || 
+        (userAccess.spacesAccess === "specific" && userAccess.allowedSpaces?.includes("reseau"));
+      if (!hasClientAccess && !hasSpaceAccess) return false;
+      return true;
+    }
+
+    // Vérifier l'accès aux projets (Commercial, Projets)
     const projectPages = ["/projects", "/commercial"];
     if (projectPages.some(page => href.startsWith(page))) {
-      if (userAccess.projectsAccess === "none") return false;
+      const spaceId = href.startsWith("/commercial") ? "commercial" : "projects";
+      // Vérifier projectsAccess OU spacesAccess pour "commercial"/"projects"
+      const hasProjectAccess = userAccess.projectsAccess !== "none";
+      const hasSpaceAccess = userAccess.spacesAccess === "all" || 
+        (userAccess.spacesAccess === "specific" && userAccess.allowedSpaces?.includes(spaceId));
+      if (!hasProjectAccess && !hasSpaceAccess) return false;
       return true;
     }
 

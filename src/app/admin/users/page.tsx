@@ -112,8 +112,12 @@ const roleIcons: Record<string, React.ReactNode> = {
 };
 
 const spaceOptions = [
+  { id: "commercial", name: "Commercial", icon: Building2 },
+  { id: "reseau", name: "Réseau", icon: Users },
+  { id: "projects", name: "Projets", icon: FolderKanban },
   { id: "transformation", name: "Transformation", icon: Sparkles },
   { id: "teams", name: "Équipes", icon: Users },
+  { id: "agenda", name: "Agenda", icon: Calendar },
   { id: "billing", name: "Facturation", icon: LayoutGrid },
   { id: "communication", name: "Hub Communication", icon: Megaphone },
   { id: "leo", name: "Leo IA", icon: Brain },
