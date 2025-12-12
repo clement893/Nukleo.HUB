@@ -768,3 +768,21 @@
 - [ ] Export des réponses
 
 - [x] Pousser vers GitHub
+
+
+## Migration Resend vers SendGrid
+
+### Phase 1 - Installation et configuration
+- [x] Installer le package @sendgrid/mail
+- [x] Remplacer Resend par SendGrid dans src/lib/email.ts
+- [x] Configurer la variable d'environnement SENDGRID_API_KEY
+
+### Phase 2 - Templates de courriels
+- [x] Mettre à jour le template HTML pour les invitations
+- [x] Mettre à jour le template texte pour les invitations
+
+### Phase 3 - Tests et validation
+- [ ] Tester l'envoi d'invitation
+- [ ] Vérifier les logs SendGrid
+
+- [ ] Pousser vers GitHub

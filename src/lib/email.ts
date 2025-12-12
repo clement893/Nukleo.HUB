@@ -1,8 +1,14 @@
-// Utilitaire d'envoi d'emails
-// Utilise l'API Resend pour envoyer des emails
+// Utilitaire d'envoi d'emails avec SendGrid
+const sgMail = require("@sendgrid/mail");
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM_EMAIL = process.env.FROM_EMAIL || "Nukleo.HUB <noreply@nukleo.com>";
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@nukleo.com";
+const FROM_NAME = process.env.FROM_NAME || "Nukleo.HUB";
+
+// Initialiser SendGrid si la clé API est disponible
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY);
+}
 
 interface EmailOptions {
   to: string;
@@ -12,36 +18,28 @@ interface EmailOptions {
 }
 
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
-  if (!RESEND_API_KEY) {
-    console.warn("RESEND_API_KEY not configured, skipping email send");
+  if (!SENDGRID_API_KEY) {
+    console.warn("SENDGRID_API_KEY not configured, skipping email send");
     return false;
   }
 
   try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
+    const msg = {
+      to: options.to,
+      from: {
+        email: FROM_EMAIL,
+        name: FROM_NAME,
       },
-      body: JSON.stringify({
-        from: FROM_EMAIL,
-        to: options.to,
-        subject: options.subject,
-        html: options.html,
-        text: options.text,
-      }),
-    });
+      subject: options.subject,
+      text: options.text || options.html.replace(/<[^>]*>/g, ""),
+      html: options.html,
+    };
 
-    if (!response.ok) {
-      const error = await response.json();
-      console.error("Error sending email:", error);
-      return false;
-    }
-
+    await sgMail.send(msg);
+    console.log(`Email sent successfully to ${options.to}`);
     return true;
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("Error sending email with SendGrid:", error);
     return false;
   }
 }
@@ -185,6 +183,94 @@ Détails :
 
 Pour accepter l'invitation, cliquez sur ce lien :
 ${params.invitationLink}
+
+© ${new Date().getFullYear()} Nukleo. Tous droits réservés.
+  `.trim();
+}
+
+// Template d'email de notification (pour les notifications générales)
+export function getNotificationEmailHtml(params: {
+  title: string;
+  message: string;
+  actionUrl?: string;
+  actionText?: string;
+}): string {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${params.title}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #0f172a;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse;">
+          <!-- Header -->
+          <tr>
+            <td align="center" style="padding-bottom: 30px;">
+              <h1 style="margin: 0; font-size: 28px; font-weight: bold; color: #ffffff;">
+                Nukleo<span style="color: #3b82f6;">.HUB</span>
+              </h1>
+            </td>
+          </tr>
+          
+          <!-- Main Content -->
+          <tr>
+            <td style="background-color: #1e293b; border-radius: 16px; padding: 40px;">
+              <h2 style="margin: 0 0 20px; font-size: 24px; color: #ffffff; text-align: center;">
+                ${params.title}
+              </h2>
+              
+              <p style="margin: 0 0 20px; font-size: 16px; color: #94a3b8; line-height: 1.6;">
+                ${params.message}
+              </p>
+              
+              ${params.actionUrl ? `
+              <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="${params.actionUrl}" style="display: inline-block; padding: 16px 32px; background-color: #3b82f6; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 12px;">
+                      ${params.actionText || "Voir plus"}
+                    </a>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding-top: 30px;">
+              <p style="margin: 0; font-size: 12px; color: #64748b;">
+                © ${new Date().getFullYear()} Nukleo. Tous droits réservés.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}
+
+export function getNotificationEmailText(params: {
+  title: string;
+  message: string;
+  actionUrl?: string;
+  actionText?: string;
+}): string {
+  return `
+${params.title}
+
+${params.message}
+
+${params.actionUrl ? `${params.actionText || "Voir plus"}: ${params.actionUrl}` : ''}
 
 © ${new Date().getFullYear()} Nukleo. Tous droits réservés.
   `.trim();
