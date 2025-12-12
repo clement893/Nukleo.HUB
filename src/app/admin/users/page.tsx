@@ -30,6 +30,8 @@ import {
   Megaphone,
   Brain,
   Ticket,
+  Briefcase,
+  DollarSign,
 } from "lucide-react";
 
 interface UserData {
@@ -112,17 +114,21 @@ const roleIcons: Record<string, React.ReactNode> = {
 };
 
 const spaceOptions = [
+  // Sections principales
   { id: "commercial", name: "Commercial", icon: Building2 },
   { id: "reseau", name: "Réseau", icon: Users },
   { id: "projects", name: "Projets", icon: FolderKanban },
   { id: "transformation", name: "Transformation", icon: Sparkles },
   { id: "teams", name: "Équipes", icon: Users },
   { id: "agenda", name: "Agenda", icon: Calendar },
-  { id: "billing", name: "Facturation", icon: LayoutGrid },
   { id: "communication", name: "Hub Communication", icon: Megaphone },
   { id: "leo", name: "Leo IA", icon: Brain },
   { id: "tickets", name: "Tickets", icon: Ticket },
+  
+  // Sections groupées
   { id: "admin", name: "Administration", icon: Shield },
+  { id: "management", name: "Gestion", icon: Briefcase },
+  { id: "finances", name: "Finances", icon: DollarSign },
 ];
 
 export default function UsersPage() {
