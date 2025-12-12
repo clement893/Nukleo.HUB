@@ -130,6 +130,25 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [expandedItems, setExpandedItems] = useState<string[]>(["Commercial", "Réseau"]);
+  
+  // Auto-expand menu based on current pathname
+  useEffect(() => {
+    const pathToParent: Record<string, string> = {
+      "/admin/vacations": "Gestion",
+      "/admin/timesheets": "Gestion",
+      "/admin/onboarding": "Gestion",
+      "/admin/recommendations": "Gestion",
+      "/admin/surveys": "Gestion",
+      "/billing": "Finances",
+      "/billing/invoices": "Finances",
+      "/billing/quotes": "Finances",
+    };
+    
+    const parentMenu = pathToParent[pathname];
+    if (parentMenu && !expandedItems.includes(parentMenu)) {
+      setExpandedItems(prev => [...prev, parentMenu]);
+    }
+  }, [pathname]);
   const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -194,12 +213,12 @@ export default function Sidebar() {
     if (href === "/") return pathname === "/";
     
     // Logique spéciale pour les sections avec enfants
-    const pathToSection: Record<string, string> = {
-      "/admin/vacations": "/admin",
-      "/admin/timesheets": "/admin",
-      "/admin/onboarding": "/admin",
-      "/admin/recommendations": "/admin",
-      "/admin/surveys": "/admin",
+    const pathToParent: Record<string, string> = {
+      "/admin/vacations": "/management",
+      "/admin/timesheets": "/management",
+      "/admin/onboarding": "/management",
+      "/admin/recommendations": "/management",
+      "/admin/surveys": "/management",
       "/admin/access": "/admin",
       "/admin/menu-permissions": "/admin",
       "/admin/notifications": "/admin",
@@ -209,10 +228,10 @@ export default function Sidebar() {
       "/billing/quotes": "/finances",
     };
     
-    // Vérifier si le chemin actuel correspond à une section
-    const section = pathToSection[pathname];
-    if (section) {
-      return href === section;
+    // Vérifier si le chemin actuel correspond à un parent
+    const parent = pathToParent[pathname];
+    if (parent) {
+      return href === parent;
     }
     
     // Sinon, utiliser la logique par défaut
