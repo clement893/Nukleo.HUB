@@ -190,28 +190,27 @@ export default function Sidebar() {
     }
 
     // Vérifier l'accès aux espaces
-    if (href.startsWith("/billing")) {
-      if (userAccess.spacesAccess === "none") return false;
-      if (userAccess.spacesAccess === "specific") {
-        return userAccess.allowedSpaces?.includes("billing") || false;
-      }
-      return true;
-    }
+    const spaceMap: Record<string, string> = {
+      "/commercial": "commercial",
+      "/reseau": "reseau",
+      "/transformation": "transformation",
+      "/teams": "teams",
+      "/agenda": "agenda",
+      "/billing": "billing",
+      "/communication": "communication",
+      "/leo": "leo",
+      "/tickets": "tickets",
+      "/admin": "admin",
+    };
 
-    if (href.startsWith("/teams")) {
-      if (userAccess.spacesAccess === "none") return false;
-      if (userAccess.spacesAccess === "specific") {
-        return userAccess.allowedSpaces?.includes("teams") || false;
+    for (const [path, spaceId] of Object.entries(spaceMap)) {
+      if (href.startsWith(path)) {
+        if (userAccess.spacesAccess === "none") return false;
+        if (userAccess.spacesAccess === "specific") {
+          return userAccess.allowedSpaces?.includes(spaceId) || false;
+        }
+        return true;
       }
-      return true;
-    }
-
-    if (href.startsWith("/admin")) {
-      if (userAccess.spacesAccess === "none") return false;
-      if (userAccess.spacesAccess === "specific") {
-        return userAccess.allowedSpaces?.includes("admin") || false;
-      }
-      return true;
     }
 
     return true;
