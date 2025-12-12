@@ -651,7 +651,7 @@ export default function EmployeePortalPage() {
     }
   }
 
-  function updateSurveyAnswer(surveyId: string, questionId: string, answer: string | number) {
+  function updateSurveyAnswer(surveyId: string, questionId: string, answer: string | number | string[]) {
     setSurveyAnswers(prev => ({
       ...prev,
       [surveyId]: {
