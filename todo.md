@@ -835,4 +835,4 @@
 - [x] Créer le modal avec Leo pour la rédaction
 - [x] Implémenter le streaming des réponses
 
-- [ ] Pousser vers GitHub
+- [x] Pousser vers GitHub
