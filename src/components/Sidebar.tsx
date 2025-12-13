@@ -346,11 +346,15 @@ export default function Sidebar() {
 
         {/* Search */}
         <div className="px-4 py-4">
-          <button className="flex w-full items-center gap-3 rounded-lg bg-muted px-3 py-2.5 text-sm text-muted-foreground hover:bg-sidebar-hover transition-colors">
-            <Search className="h-4 w-4" />
+          <button 
+            className="flex w-full items-center gap-3 rounded-lg bg-muted px-3 py-2.5 text-sm text-muted-foreground hover:bg-sidebar-hover transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            aria-label="Rechercher dans l'application (raccourci: Cmd+K)"
+            title="Rechercher (Cmd+K)"
+          >
+            <Search className="h-4 w-4" aria-hidden="true" />
             <span>Rechercher...</span>
-            <kbd className="ml-auto flex h-5 items-center gap-1 rounded border border-border bg-background px-1.5 text-xs text-muted-foreground">
-              <Command className="h-3 w-3" />K
+            <kbd className="ml-auto flex h-5 items-center gap-1 rounded border border-border bg-background px-1.5 text-xs text-muted-foreground" aria-label="Raccourci clavier">
+              <Command className="h-3 w-3" aria-hidden="true" />K
             </kbd>
           </button>
         </div>
@@ -365,33 +369,44 @@ export default function Sidebar() {
                     <button
                       onClick={() => toggleExpand(item.name)}
                       className={clsx(
-                        "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                        "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
                         isActive(item.href)
                           ? "bg-sidebar-hover text-foreground"
                           : "text-sidebar-foreground hover:bg-sidebar-hover hover:text-foreground"
                       )}
+                      aria-expanded={expandedItems.includes(item.name)}
+                      aria-controls={`submenu-${item.name}`}
+                      aria-label={`${item.name}, ${expandedItems.includes(item.name) ? "réduire" : "développer"} le menu`}
                     >
-                      <item.icon className="h-5 w-5" />
+                      <item.icon className="h-5 w-5" aria-hidden="true" />
                       <span>{item.name}</span>
                       <ChevronDown
                         className={clsx(
                           "ml-auto h-4 w-4 transition-transform",
                           expandedItems.includes(item.name) && "rotate-180"
                         )}
+                        aria-hidden="true"
                       />
                     </button>
                     {expandedItems.includes(item.name) && (
-                      <ul className="mt-1 space-y-1 pl-11">
+                      <ul 
+                        id={`submenu-${item.name}`}
+                        className="mt-1 space-y-1 pl-11"
+                        role="menu"
+                        aria-label={`Sous-menu ${item.name}`}
+                      >
                         {item.children.map((child) => (
-                          <li key={child.name}>
+                          <li key={child.name} role="none">
                             <Link
                               href={child.href}
                               className={clsx(
-                                "block rounded-lg px-3 py-2 text-sm transition-colors",
+                                "block rounded-lg px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
                                 pathname === child.href
                                   ? "bg-primary/10 text-primary"
                                   : "text-sidebar-foreground hover:bg-sidebar-hover hover:text-foreground"
                               )}
+                              role="menuitem"
+                              aria-current={pathname === child.href ? "page" : undefined}
                             >
                               {child.name}
                             </Link>

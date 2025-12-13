@@ -383,21 +383,21 @@ export default function VacationsAdminPage() {
 
         {/* Requests Table */}
         <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <table className="w-full">
+          <table className="w-full" role="table" aria-label="Liste des demandes de vacances">
             <thead className="bg-muted/50 border-b border-border">
-              <tr>
-                <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Employé</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Type</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Période</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Jours</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Statut</th>
-                <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Raison</th>
-                <th className="text-right px-6 py-4 text-sm font-medium text-muted-foreground">Actions</th>
+              <tr role="row">
+                <th scope="col" className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Employé</th>
+                <th scope="col" className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Type</th>
+                <th scope="col" className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Période</th>
+                <th scope="col" className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Jours</th>
+                <th scope="col" className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Statut</th>
+                <th scope="col" className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Raison</th>
+                <th scope="col" className="text-right px-6 py-4 text-sm font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {filteredRequests.map((req) => (
-                <tr key={req.id} className="hover:bg-muted/30 transition-colors">
+                <tr key={req.id} role="row" className="hover:bg-muted/30 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       {req.employee.photoUrl ? (
@@ -448,40 +448,43 @@ export default function VacationsAdminPage() {
                     <div className="flex items-center justify-end gap-2">
                       {req.status === "pending" && (
                         <>
-                          <button
-                            onClick={() => openResponseModal(req, "approve")}
-                            disabled={processing === req.id}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg text-sm transition-colors disabled:opacity-50"
-                          >
-                            {processing === req.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Check className="w-4 h-4" />
-                            )}
-                            Approuver
-                          </button>
-                          <button
-                            onClick={() => openResponseModal(req, "reject")}
-                            disabled={processing === req.id}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-sm transition-colors disabled:opacity-50"
-                          >
-                            <X className="w-4 h-4" />
-                            Refuser
-                          </button>
+                        <button
+                          onClick={() => openResponseModal(req, "approve")}
+                          disabled={processing === req.id}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg text-sm transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                          aria-label={`Approuver la demande de vacances de ${req.employee.name}`}
+                        >
+                          {processing === req.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                          ) : (
+                            <Check className="w-4 h-4" aria-hidden="true" />
+                          )}
+                          <span>Approuver</span>
+                        </button>
+                        <button
+                          onClick={() => openResponseModal(req, "reject")}
+                          disabled={processing === req.id}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-sm transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                          aria-label={`Refuser la demande de vacances de ${req.employee.name}`}
+                        >
+                          <X className="w-4 h-4" aria-hidden="true" />
+                          <span>Refuser</span>
+                        </button>
                         </>
                       )}
                       <button
                         onClick={() => openEditModal(req)}
                         disabled={processing === req.id}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg text-sm transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg text-sm transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        aria-label={`Modifier la demande de vacances de ${req.employee.name}`}
                         title="Modifier"
                       >
                         {processing === req.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                         ) : (
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-4 h-4" aria-hidden="true" />
                         )}
-                        Modifier
+                        <span>Modifier</span>
                       </button>
                       <button
                         onClick={() => {
@@ -489,15 +492,16 @@ export default function VacationsAdminPage() {
                           setShowDeleteConfirm(true);
                         }}
                         disabled={processing === req.id}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-sm transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-sm transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                        aria-label={`Supprimer la demande de vacances de ${req.employee.name}`}
                         title="Supprimer"
                       >
                         {processing === req.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                         ) : (
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4" aria-hidden="true" />
                         )}
-                        Supprimer
+                        <span>Supprimer</span>
                       </button>
                       {req.status !== "pending" && (
                         <div className="text-xs text-muted-foreground ml-2">
