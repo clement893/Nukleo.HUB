@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 import { z } from "zod";
 
 const updateVacationSchema = z.object({
@@ -48,7 +49,13 @@ export async function GET(
 
     return NextResponse.json(vacationRequest);
   } catch (error) {
-    console.error("Error fetching vacation request:", error);
+    const { id: requestId } = await params;
+    logger.error(
+      "Error fetching vacation request",
+      error instanceof Error ? error : new Error(String(error)),
+      "VACATIONS_API",
+      { id: requestId }
+    );
     return NextResponse.json(
       { error: "Erreur lors de la récupération de la demande" },
       { status: 500 }
@@ -225,7 +232,13 @@ export async function PUT(
 
     return NextResponse.json(updatedRequest);
   } catch (error) {
-    console.error("Error updating vacation request:", error);
+    const { id: requestId } = await params;
+    logger.error(
+      "Error updating vacation request",
+      error instanceof Error ? error : new Error(String(error)),
+      "VACATIONS_API",
+      { id: requestId }
+    );
     return NextResponse.json(
       { error: "Erreur lors de la mise à jour de la demande" },
       { status: 500 }
@@ -287,7 +300,13 @@ export async function DELETE(
 
     return NextResponse.json({ success: true, message: "Demande supprimée" });
   } catch (error) {
-    console.error("Error deleting vacation request:", error);
+    const { id: requestId } = await params;
+    logger.error(
+      "Error deleting vacation request",
+      error instanceof Error ? error : new Error(String(error)),
+      "VACATIONS_API",
+      { id: requestId }
+    );
     return NextResponse.json(
       { error: "Erreur lors de la suppression de la demande" },
       { status: 500 }

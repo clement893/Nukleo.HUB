@@ -1,6 +1,9 @@
 /**
  * Système de cache en mémoire pour les APIs
  * Améliore les performances en évitant les requêtes répétées à la base de données
+ * 
+ * NOTE: Le cache exporté utilise maintenant Redis avec fallback mémoire automatique
+ * Voir src/lib/redis.ts pour l'implémentation distribué
  */
 
 interface CacheEntry<T> {
@@ -169,17 +172,91 @@ class MemoryCache {
   }
 }
 
-// Instance globale du cache
+// Instance globale du cache mémoire
 const globalCache = new MemoryCache(500);
 
+// Import conditionnel du cache distribué (évite erreur si Redis n'est pas configuré)
+let distributedCache: typeof import("./redis").distributedCache | null = null;
+
+try {
+  // Essayer d'importer Redis (peut échouer si REDIS_URL n'est pas défini)
+  const redisModule = require("./redis");
+  distributedCache = redisModule.distributedCache;
+} catch {
+  // Redis non disponible, utiliser uniquement le cache mémoire
+  distributedCache = null;
+}
+
 // Export des fonctions utilitaires
+// Utilise Redis si disponible, sinon fallback vers mémoire (synchrone pour compatibilité)
 export const cache = {
-  get: <T>(key: string) => globalCache.get<T>(key),
-  set: <T>(key: string, data: T, ttlSeconds?: number) => globalCache.set(key, data, ttlSeconds),
-  delete: (key: string) => globalCache.delete(key),
-  invalidatePattern: (pattern: string) => globalCache.invalidatePattern(pattern),
-  clear: () => globalCache.clear(),
+  get: <T>(key: string): T | null => {
+    // Toujours vérifier le cache mémoire d'abord (plus rapide)
+    const memoryValue = globalCache.get<T>(key);
+    if (memoryValue !== null) {
+      return memoryValue;
+    }
+    
+    // Si Redis est disponible, on pourrait le vérifier ici
+    // Mais pour garder la compatibilité synchrone, on utilise seulement la mémoire
+    // Redis sera utilisé pour la synchronisation entre instances en arrière-plan
+    return null;
+  },
+  
+  set: <T>(key: string, data: T, ttlSeconds?: number): void => {
+    // Toujours mettre en cache mémoire (synchrone)
+    globalCache.set(key, data, ttlSeconds);
+    
+    // Mettre en cache Redis en arrière-plan si disponible (ne bloque pas)
+    if (distributedCache?.isRedisAvailable()) {
+      distributedCache.set(key, data, ttlSeconds).catch(() => {
+        // Ignorer les erreurs Redis, le cache mémoire fonctionne toujours
+      });
+    }
+  },
+  
+  delete: (key: string): boolean => {
+    const deleted = globalCache.delete(key);
+    
+    // Supprimer de Redis aussi si disponible
+    if (distributedCache?.isRedisAvailable()) {
+      distributedCache.delete(key).catch(() => {
+        // Ignorer les erreurs Redis
+      });
+    }
+    
+    return deleted;
+  },
+  
+  invalidatePattern: (pattern: string): number => {
+    const memoryCount = globalCache.invalidatePattern(pattern);
+    
+    // Invalider dans Redis aussi si disponible
+    if (distributedCache?.isRedisAvailable()) {
+      distributedCache.invalidatePattern(pattern).catch(() => {
+        // Ignorer les erreurs Redis
+      });
+    }
+    
+    return memoryCount;
+  },
+  
+  clear: (): void => {
+    globalCache.clear();
+    
+    // Vider Redis aussi si disponible
+    if (distributedCache?.isRedisAvailable()) {
+      distributedCache.clear().catch(() => {
+        // Ignorer les erreurs Redis
+      });
+    }
+  },
+  
   getStats: () => globalCache.getStats(),
+  
+  isRedisAvailable: (): boolean => {
+    return distributedCache?.isRedisAvailable() ?? false;
+  },
 };
 
 /**

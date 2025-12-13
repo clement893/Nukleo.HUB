@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
   TrendingUp,
   DollarSign,
@@ -12,46 +11,7 @@ import {
   ArrowUpRight,
   RefreshCw,
 } from "lucide-react";
-
-interface HomeData {
-  kpis: {
-    activeOpportunities: number;
-    pipelineValue: number;
-    wonAmount: number;
-    conversionRate: number;
-  };
-  pipelineDistribution: Array<{
-    stage: string;
-    count: number;
-  }>;
-  recentActivity: Array<{
-    id: string;
-    type: string;
-    title: string;
-    subtitle: string;
-    stage: string | null;
-    time: string;
-  }>;
-  newContacts: Array<{
-    id: string;
-    name: string;
-    company: string;
-    position: string;
-    photoUrl: string | null;
-    time: string;
-  }>;
-  deadlines: Array<{
-    id: string;
-    title: string;
-    project: string;
-    dueDate: string;
-    priority: string;
-  }>;
-  agenda: Array<{
-    day: string;
-    events: number;
-  }>;
-}
+import { useDashboard, type HomeData } from "@/hooks/useDashboard";
 
 const formatCurrency = (value: number) => {
   if (value >= 1000000) {
@@ -64,18 +24,8 @@ const formatCurrency = (value: number) => {
 };
 
 export function KPICards() {
-  const [data, setData] = useState<HomeData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/home")
-      .then((res) => res.json())
-      .then((data) => {
-        setData(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+  const { data, isLoading: loading, refetch } = useDashboard();
+  const dashboardData = data as HomeData | undefined;
 
   if (loading) {
     return (
@@ -94,28 +44,28 @@ export function KPICards() {
   const kpiData = [
     {
       title: "Opportunités actives",
-      value: data?.kpis.activeOpportunities.toString() || "0",
+      value: dashboardData?.kpis?.activeOpportunities?.toString() ?? "0",
       icon: Target,
       color: "text-primary",
       bgColor: "bg-primary/10",
     },
     {
       title: "Valeur du pipeline",
-      value: formatCurrency(data?.kpis.pipelineValue || 0),
+      value: formatCurrency(dashboardData?.kpis?.pipelineValue ?? 0),
       icon: DollarSign,
       color: "text-accent",
       bgColor: "bg-accent/10",
     },
     {
       title: "Revenus signés",
-      value: formatCurrency(data?.kpis.wonAmount || 0),
+      value: formatCurrency(dashboardData?.kpis?.wonAmount ?? 0),
       icon: TrendingUp,
       color: "text-secondary",
       bgColor: "bg-secondary/10",
     },
     {
       title: "Taux de conversion",
-      value: `${data?.kpis.conversionRate || 0}%`,
+      value: `${dashboardData?.kpis?.conversionRate ?? 0}%`,
       icon: Percent,
       color: "text-amber-500",
       bgColor: "bg-amber-500/10",
@@ -146,18 +96,8 @@ export function KPICards() {
 }
 
 export function PipelineChart() {
-  const [data, setData] = useState<HomeData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/home")
-      .then((res) => res.json())
-      .then((data) => {
-        setData(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+  const { data, isLoading: loading } = useDashboard();
+  const dashboardData = data as HomeData | undefined;
 
   if (loading) {
     return (
@@ -175,7 +115,7 @@ export function PipelineChart() {
     );
   }
 
-  const pipelineData = data?.pipelineDistribution || [];
+  const pipelineData = dashboardData?.pipelineDistribution || [];
   const maxCount = Math.max(...pipelineData.map((p) => p.count), 1);
   const colors = ["#6366f1", "#8b5cf6", "#a855f7", "#d946ef", "#ec4899", "#f43f5e", "#10b981", "#14b8a6", "#06b6d4"];
 
@@ -211,18 +151,8 @@ export function PipelineChart() {
 }
 
 export function RecentActivity() {
-  const [data, setData] = useState<HomeData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/home")
-      .then((res) => res.json())
-      .then((data) => {
-        setData(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+  const { data, isLoading: loading } = useDashboard();
+  const dashboardData = data as HomeData | undefined;
 
   if (loading) {
     return (
@@ -243,7 +173,7 @@ export function RecentActivity() {
     );
   }
 
-  const recentActivity = data?.recentActivity || [];
+  const recentActivity = dashboardData?.recentActivity || [];
 
   return (
     <div className="glass-card rounded-xl p-5">
@@ -284,18 +214,8 @@ export function RecentActivity() {
 }
 
 export function NewContacts() {
-  const [data, setData] = useState<HomeData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/home")
-      .then((res) => res.json())
-      .then((data) => {
-        setData(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+  const { data, isLoading: loading } = useDashboard();
+  const dashboardData = data as HomeData | undefined;
 
   if (loading) {
     return (
@@ -319,7 +239,7 @@ export function NewContacts() {
     );
   }
 
-  const newContacts = data?.newContacts || [];
+  const newContacts = dashboardData?.newContacts || [];
 
   return (
     <div className="glass-card rounded-xl p-5">
@@ -370,18 +290,8 @@ export function NewContacts() {
 }
 
 export function UpcomingDeadlines() {
-  const [data, setData] = useState<HomeData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/home")
-      .then((res) => res.json())
-      .then((data) => {
-        setData(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+  const { data, isLoading: loading } = useDashboard();
+  const dashboardData = data as HomeData | undefined;
 
   const priorityColors: Record<string, string> = {
     high: "bg-red-500",
@@ -411,7 +321,7 @@ export function UpcomingDeadlines() {
     );
   }
 
-  const deadlines = data?.deadlines || [];
+  const deadlines = dashboardData?.deadlines || [];
 
   return (
     <div className="glass-card rounded-xl p-5">
@@ -448,18 +358,8 @@ export function UpcomingDeadlines() {
 }
 
 export function WeekAgenda() {
-  const [data, setData] = useState<HomeData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/home")
-      .then((res) => res.json())
-      .then((data) => {
-        setData(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+  const { data, isLoading: loading } = useDashboard();
+  const dashboardData = data as HomeData | undefined;
 
   if (loading) {
     return (
@@ -480,7 +380,7 @@ export function WeekAgenda() {
     );
   }
 
-  const agenda = data?.agenda || [];
+  const agenda = dashboardData?.agenda || [];
 
   return (
     <div className="glass-card rounded-xl p-5">
