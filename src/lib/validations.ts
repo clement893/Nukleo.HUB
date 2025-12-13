@@ -217,7 +217,7 @@ export const activityCreateSchema = z.object({
   entityId: z.string().min(1),
   type: z.enum(["created", "updated", "deleted", "commented", "assigned"]),
   description: z.string().max(1000),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
 });
 
 // ============================================
