@@ -103,8 +103,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Mapper les données validées vers le format Prisma
     const project = await prisma.project.create({
-      data: validation.data,
+      data: {
+        name: validation.data.name,
+        description: validation.data.description || null,
+        companyId: validation.data.clientId || null,
+        status: validation.data.status || null,
+        budget: validation.data.budget !== undefined && validation.data.budget !== null 
+          ? String(validation.data.budget) 
+          : null,
+        lead: validation.data.managerId || null,
+      },
     });
     return NextResponse.json(project, { status: 201 });
   } catch (error) {

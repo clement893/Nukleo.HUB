@@ -57,14 +57,10 @@ export async function POST(request: NextRequest) {
       data: {
         name: validation.data.title,
         value: validation.data.value,
-        company: validation.data.companyId ? undefined : undefined,
         contactId: validation.data.contactId,
         stage: validation.data.stage || "00 - Idées de contact",
-        region: undefined,
-        segment: undefined,
-        projectType: undefined,
         assignee: validation.data.assignedTo,
-        expectedCloseDate: validation.data.expectedCloseDate ? new Date(validation.data.expectedCloseDate) : undefined,
+        closedDate: validation.data.expectedCloseDate ? new Date(validation.data.expectedCloseDate) : undefined,
       },
       include: {
         linkedContact: true,

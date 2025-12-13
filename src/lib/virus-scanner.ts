@@ -103,6 +103,8 @@ export async function scanBuffer(
   mimeType: string
 ): Promise<ScanResult> {
   // Créer un File-like object pour le scanner
-  const file = new File([buffer], fileName, { type: mimeType });
+  // Convertir Buffer en Uint8Array pour compatibilité avec File API
+  const uint8Array = new Uint8Array(buffer);
+  const file = new File([uint8Array], fileName, { type: mimeType });
   return scanFile(file);
 }

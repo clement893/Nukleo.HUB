@@ -81,6 +81,7 @@ export const taskCreateSchema = z.object({
   description: z.string().optional().nullable(),
   projectId: z.string().optional().nullable(),
   assigneeId: z.string().optional().nullable(),
+  department: z.enum(["Lab", "Bureau", "Studio"]).optional(),
   status: z.enum(["todo", "in_progress", "review", "done", "cancelled"]).optional(),
   priority: z.enum(["low", "medium", "high", "urgent"]).optional(),
   dueDate: z.string().optional().nullable(),

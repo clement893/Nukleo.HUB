@@ -114,9 +114,28 @@ export async function PATCH(
       );
     }
 
+    // Mapper les données validées vers le format Prisma
+    const updateData: {
+      name?: string;
+      description?: string | null;
+      companyId?: string | null;
+      status?: string | null;
+      budget?: string | null;
+      lead?: string | null;
+    } = {};
+    
+    if (validation.data.name !== undefined) updateData.name = validation.data.name;
+    if (validation.data.description !== undefined) updateData.description = validation.data.description;
+    if (validation.data.clientId !== undefined) updateData.companyId = validation.data.clientId;
+    if (validation.data.status !== undefined) updateData.status = validation.data.status;
+    if (validation.data.budget !== undefined) {
+      updateData.budget = validation.data.budget !== null ? String(validation.data.budget) : null;
+    }
+    if (validation.data.managerId !== undefined) updateData.lead = validation.data.managerId;
+
     const project = await prisma.project.update({
       where: { id },
-      data: validation.data,
+      data: updateData,
     });
 
     return NextResponse.json(project);
