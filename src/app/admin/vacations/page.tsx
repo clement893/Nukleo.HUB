@@ -16,6 +16,8 @@ import {
   MessageSquare,
   Filter,
   ChevronDown,
+  Edit,
+  Trash2,
 } from "lucide-react";
 
 interface Employee {
@@ -96,6 +98,18 @@ export default function VacationsAdminPage() {
   const [responseAction, setResponseAction] = useState<"approve" | "reject">("approve");
   const [responseComment, setResponseComment] = useState("");
 
+  // Modal de modification
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    type: "vacation",
+    startDate: "",
+    endDate: "",
+    reason: "",
+    status: "pending",
+  });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteRequestId, setDeleteRequestId] = useState<string | null>(null);
+
   useEffect(() => {
     fetchRequests();
   }, [statusFilter, departmentFilter]);
@@ -169,6 +183,69 @@ export default function VacationsAdminPage() {
       }
     } catch (error) {
       console.error("Error processing request:", error);
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const openEditModal = (request: VacationRequest) => {
+    setSelectedRequest(request);
+    setEditFormData({
+      type: request.type,
+      startDate: request.startDate.split("T")[0],
+      endDate: request.endDate.split("T")[0],
+      reason: request.reason || "",
+      status: request.status,
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = async () => {
+    if (!selectedRequest) return;
+
+    setProcessing(selectedRequest.id);
+    try {
+      const res = await fetch(`/api/admin/vacations/${selectedRequest.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editFormData),
+      });
+
+      if (res.ok) {
+        setShowEditModal(false);
+        fetchRequests();
+      } else {
+        const error = await res.json();
+        alert(error.error || "Erreur lors de la modification");
+      }
+    } catch (error) {
+      console.error("Error updating vacation:", error);
+      alert("Erreur lors de la modification");
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteRequestId) return;
+
+    setProcessing(deleteRequestId);
+    try {
+      const res = await fetch(`/api/admin/vacations/${deleteRequestId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        setShowDeleteConfirm(false);
+        setDeleteRequestId(null);
+        fetchRequests();
+      } else {
+        const error = await res.json();
+        alert(error.error || "Erreur lors de la suppression");
+      }
+    } catch (error) {
+      console.error("Error deleting vacation:", error);
+      alert("Erreur lors de la suppression");
     } finally {
       setProcessing(null);
     }
@@ -368,39 +445,71 @@ export default function VacationsAdminPage() {
                     {req.reason || "-"}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {req.status === "pending" ? (
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => openResponseModal(req, "approve")}
-                          disabled={processing === req.id}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg text-sm transition-colors disabled:opacity-50"
-                        >
-                          {processing === req.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Check className="w-4 h-4" />
+                    <div className="flex items-center justify-end gap-2">
+                      {req.status === "pending" && (
+                        <>
+                          <button
+                            onClick={() => openResponseModal(req, "approve")}
+                            disabled={processing === req.id}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg text-sm transition-colors disabled:opacity-50"
+                          >
+                            {processing === req.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Check className="w-4 h-4" />
+                            )}
+                            Approuver
+                          </button>
+                          <button
+                            onClick={() => openResponseModal(req, "reject")}
+                            disabled={processing === req.id}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-sm transition-colors disabled:opacity-50"
+                          >
+                            <X className="w-4 h-4" />
+                            Refuser
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => openEditModal(req)}
+                        disabled={processing === req.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg text-sm transition-colors disabled:opacity-50"
+                        title="Modifier"
+                      >
+                        {processing === req.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Edit className="w-4 h-4" />
+                        )}
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeleteRequestId(req.id);
+                          setShowDeleteConfirm(true);
+                        }}
+                        disabled={processing === req.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-sm transition-colors disabled:opacity-50"
+                        title="Supprimer"
+                      >
+                        {processing === req.id ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4" />
+                        )}
+                        Supprimer
+                      </button>
+                      {req.status !== "pending" && (
+                        <div className="text-xs text-muted-foreground ml-2">
+                          {req.reviewedByName && (
+                            <p>Par {req.reviewedByName}</p>
                           )}
-                          Approuver
-                        </button>
-                        <button
-                          onClick={() => openResponseModal(req, "reject")}
-                          disabled={processing === req.id}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg text-sm transition-colors disabled:opacity-50"
-                        >
-                          <X className="w-4 h-4" />
-                          Refuser
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="text-sm text-muted-foreground">
-                        {req.reviewedByName && (
-                          <p>Par {req.reviewedByName}</p>
-                        )}
-                        {req.reviewedAt && (
-                          <p className="text-xs">{new Date(req.reviewedAt).toLocaleDateString("fr-FR")}</p>
-                        )}
-                      </div>
-                    )}
+                          {req.reviewedAt && (
+                            <p>{new Date(req.reviewedAt).toLocaleDateString("fr-FR")}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -415,6 +524,184 @@ export default function VacationsAdminPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Edit Modal */}
+        {showEditModal && selectedRequest && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-card border border-border rounded-2xl w-full max-w-md">
+              <div className="p-6 border-b border-border">
+                <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                  <Edit className="w-5 h-5 text-blue-400" />
+                  Modifier la demande de vacances
+                </h2>
+              </div>
+              <div className="p-6 space-y-4">
+                {/* Employee Info */}
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    {selectedRequest.employee.photoUrl ? (
+                      <img
+                        src={selectedRequest.employee.photoUrl}
+                        alt={selectedRequest.employee.name}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="w-5 h-5 text-primary" />
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-medium text-foreground">{selectedRequest.employee.name}</p>
+                      <p className="text-sm text-muted-foreground">{selectedRequest.employee.department}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Type */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Type de congé
+                  </label>
+                  <select
+                    value={editFormData.type}
+                    onChange={(e) => setEditFormData({ ...editFormData, type: e.target.value })}
+                    className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    <option value="vacation">Vacances</option>
+                    <option value="sick">Maladie</option>
+                    <option value="personal">Personnel</option>
+                    <option value="unpaid">Sans solde</option>
+                    <option value="other">Autre</option>
+                  </select>
+                </div>
+
+                {/* Dates */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Date de début
+                    </label>
+                    <input
+                      type="date"
+                      value={editFormData.startDate}
+                      onChange={(e) => setEditFormData({ ...editFormData, startDate: e.target.value })}
+                      className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Date de fin
+                    </label>
+                    <input
+                      type="date"
+                      value={editFormData.endDate}
+                      onChange={(e) => setEditFormData({ ...editFormData, endDate: e.target.value })}
+                      className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    />
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Statut
+                  </label>
+                  <select
+                    value={editFormData.status}
+                    onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                    className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    <option value="pending">En attente</option>
+                    <option value="approved">Approuvée</option>
+                    <option value="rejected">Refusée</option>
+                    <option value="cancelled">Annulée</option>
+                  </select>
+                </div>
+
+                {/* Reason */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Raison
+                  </label>
+                  <textarea
+                    value={editFormData.reason}
+                    onChange={(e) => setEditFormData({ ...editFormData, reason: e.target.value })}
+                    rows={3}
+                    placeholder="Raison du congé..."
+                    className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                  />
+                </div>
+              </div>
+              <div className="p-6 border-t border-border flex justify-end gap-3">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleEditSubmit}
+                  disabled={processing === selectedRequest.id}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {processing === selectedRequest.id ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Edit className="w-4 h-4" />
+                  )}
+                  Enregistrer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-card border border-border rounded-2xl w-full max-w-md">
+              <div className="p-6 border-b border-border">
+                <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                  <Trash2 className="w-5 h-5 text-red-400" />
+                  Supprimer la demande
+                </h2>
+              </div>
+              <div className="p-6">
+                <p className="text-foreground mb-4">
+                  Êtes-vous sûr de vouloir supprimer cette demande de vacances ? Cette action est irréversible.
+                </p>
+                {deleteRequestId && requests.find(r => r.id === deleteRequestId)?.status === "approved" && (
+                  <p className="text-sm text-amber-400 mb-4">
+                    ⚠️ Cette demande est approuvée. Les jours seront déduits du solde de l'employé.
+                  </p>
+                )}
+              </div>
+              <div className="p-6 border-t border-border flex justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeleteRequestId(null);
+                  }}
+                  className="px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={processing === deleteRequestId}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {processing === deleteRequestId ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Response Modal */}
         {showResponseModal && selectedRequest && (
