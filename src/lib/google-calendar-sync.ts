@@ -21,7 +21,6 @@ export async function syncMeetingToGoogleCalendar(meeting: {
     
     logger.info(
       `Synchronisation Google Calendar pour réunion ${meeting.id}`,
-      undefined,
       "google-calendar-sync"
     );
 
