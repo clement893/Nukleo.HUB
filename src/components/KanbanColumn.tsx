@@ -2,6 +2,7 @@
 
 import { Opportunity } from "@/types/opportunity";
 import KanbanCard from "./KanbanCard";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface KanbanColumnProps {
   stage: {
@@ -14,6 +15,8 @@ interface KanbanColumnProps {
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent, stageId: string) => void;
   onCardClick: (opportunity: Opportunity) => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export default function KanbanColumn({
@@ -23,6 +26,8 @@ export default function KanbanColumn({
   onDragOver,
   onDrop,
   onCardClick,
+  isCollapsed = false,
+  onToggleCollapse,
 }: KanbanColumnProps) {
   const totalValue = opportunities.reduce((sum, opp) => sum + (opp.value || 0), 0);
   
@@ -35,6 +40,28 @@ export default function KanbanColumn({
     }
     return `${value}$`;
   };
+
+  if (isCollapsed) {
+    return (
+      <div
+        className="flex-shrink-0 w-12 bg-muted/30 rounded-xl p-2 flex flex-col items-center cursor-pointer hover:bg-muted/50 transition-colors"
+        onClick={onToggleCollapse}
+        title={`Afficher ${stage.name}`}
+      >
+        <div
+          className="w-3 h-3 rounded-full mb-2"
+          style={{ backgroundColor: stage.color }}
+        />
+        <span className="text-xs font-medium text-foreground writing-vertical-rl transform rotate-180">
+          {stage.name}
+        </span>
+        <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full mt-2">
+          {opportunities.length}
+        </span>
+        <ChevronRight className="h-4 w-4 text-muted-foreground mt-auto" />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -54,6 +81,19 @@ export default function KanbanColumn({
             {opportunities.length}
           </span>
         </div>
+        {onToggleCollapse && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleCollapse();
+            }}
+            className="p-1 rounded hover:bg-muted/50 transition-colors"
+            title="Masquer la colonne"
+            aria-label="Masquer la colonne"
+          >
+            <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+          </button>
+        )}
       </div>
       
       {/* Total Value */}

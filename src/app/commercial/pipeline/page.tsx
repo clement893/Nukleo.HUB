@@ -5,7 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import KanbanColumn from "@/components/KanbanColumn";
 import OpportunityModal from "@/components/OpportunityModal";
 import { Opportunity, PIPELINE_STAGES, REGIONS, SEGMENTS } from "@/types/opportunity";
-import { Filter, RefreshCw, Search, Download } from "lucide-react";
+import { Filter, RefreshCw, Search, Download, Eye, EyeOff, ChevronLeft, ChevronRight, Settings, X } from "lucide-react";
 
 export default function PipelinePage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
@@ -15,6 +15,23 @@ export default function PipelinePage() {
   const [filterRegion, setFilterRegion] = useState<string>("");
   const [filterSegment, setFilterSegment] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
+  const [showColumnSettings, setShowColumnSettings] = useState(false);
+  
+  // Column visibility state (saved in localStorage)
+  const [visibleColumns, setVisibleColumns] = useState<Set<string>>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("pipeline-visible-columns");
+      if (saved) {
+        try {
+          return new Set(JSON.parse(saved));
+        } catch {
+          // Fallback to all visible
+        }
+      }
+    }
+    // Par défaut, toutes les colonnes sont visibles
+    return new Set(PIPELINE_STAGES.map(stage => stage.id));
+  });
   
   // Modal state
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
@@ -139,11 +156,51 @@ export default function PipelinePage() {
     return matchesSearch && matchesRegion && matchesSegment;
   });
 
+  // Toggle column visibility
+  const toggleColumnVisibility = (stageId: string) => {
+    const newVisible = new Set(visibleColumns);
+    if (newVisible.has(stageId)) {
+      newVisible.delete(stageId);
+    } else {
+      newVisible.add(stageId);
+    }
+    setVisibleColumns(newVisible);
+    // Sauvegarder dans localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pipeline-visible-columns", JSON.stringify(Array.from(newVisible)));
+    }
+  };
+
+  // Show all columns
+  const showAllColumns = () => {
+    const allColumns = new Set(PIPELINE_STAGES.map(stage => stage.id));
+    setVisibleColumns(allColumns);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pipeline-visible-columns", JSON.stringify(Array.from(allColumns)));
+    }
+  };
+
+  // Hide all columns except active ones
+  const hideInactiveColumns = () => {
+    const activeStages = new Set(
+      filteredOpportunities
+        .filter(opp => !["09 - Closed Won", "Closed Lost"].includes(opp.stage))
+        .map(opp => opp.stage)
+    );
+    setVisibleColumns(activeStages);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pipeline-visible-columns", JSON.stringify(Array.from(activeStages)));
+    }
+  };
+
   // Group by stage
   const opportunitiesByStage = PIPELINE_STAGES.reduce((acc, stage) => {
     acc[stage.id] = filteredOpportunities.filter((opp) => opp.stage === stage.id);
     return acc;
   }, {} as Record<string, Opportunity[]>);
+
+  // Filter visible stages
+  const visibleStages = PIPELINE_STAGES.filter(stage => visibleColumns.has(stage.id));
 
   // Calculate totals
   const totalValue = filteredOpportunities.reduce(
@@ -219,6 +276,76 @@ export default function PipelinePage() {
               >
                 <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
               </button>
+
+              {/* Column Settings */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowColumnSettings(!showColumnSettings)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted text-foreground hover:bg-muted/80 transition-colors text-sm"
+                  title="Gérer les colonnes"
+                >
+                  <Settings className="h-4 w-4" />
+                  Colonnes
+                </button>
+                
+                {showColumnSettings && (
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-popover border border-border rounded-lg shadow-lg z-50 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-semibold text-foreground text-sm">Colonnes visibles</h3>
+                      <button
+                        onClick={() => setShowColumnSettings(false)}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-2 max-h-64 overflow-y-auto mb-3">
+                      {PIPELINE_STAGES.map((stage) => {
+                        const isVisible = visibleColumns.has(stage.id);
+                        const count = opportunitiesByStage[stage.id]?.length || 0;
+                        
+                        return (
+                          <label
+                            key={stage.id}
+                            className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isVisible}
+                              onChange={() => toggleColumnVisibility(stage.id)}
+                              className="rounded border-border"
+                            />
+                            <div className="flex items-center gap-2 flex-1">
+                              <div
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: stage.color }}
+                              />
+                              <span className="text-sm text-foreground flex-1">{stage.name}</span>
+                              <span className="text-xs text-muted-foreground">{count}</span>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    
+                    <div className="flex gap-2 pt-3 border-t border-border">
+                      <button
+                        onClick={showAllColumns}
+                        className="flex-1 px-3 py-1.5 text-xs bg-muted hover:bg-muted/80 rounded-lg transition-colors"
+                      >
+                        Tout afficher
+                      </button>
+                      <button
+                        onClick={hideInactiveColumns}
+                        className="flex-1 px-3 py-1.5 text-xs bg-muted hover:bg-muted/80 rounded-lg transition-colors"
+                      >
+                        Masquer inactives
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -274,7 +401,7 @@ export default function PipelinePage() {
             </div>
           ) : (
             <div className="flex gap-4 pb-4">
-              {PIPELINE_STAGES.map((stage) => (
+              {visibleStages.map((stage) => (
                 <KanbanColumn
                   key={stage.id}
                   stage={stage}
@@ -283,6 +410,23 @@ export default function PipelinePage() {
                   onDragOver={handleDragOver}
                   onDrop={handleDrop}
                   onCardClick={handleCardClick}
+                  isCollapsed={false}
+                  onToggleCollapse={() => toggleColumnVisibility(stage.id)}
+                />
+              ))}
+              
+              {/* Colonnes masquées (affichées en mode collapsed) */}
+              {PIPELINE_STAGES.filter(stage => !visibleColumns.has(stage.id)).map((stage) => (
+                <KanbanColumn
+                  key={stage.id}
+                  stage={stage}
+                  opportunities={opportunitiesByStage[stage.id] || []}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  onCardClick={handleCardClick}
+                  isCollapsed={true}
+                  onToggleCollapse={() => toggleColumnVisibility(stage.id)}
                 />
               ))}
             </div>
