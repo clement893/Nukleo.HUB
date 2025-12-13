@@ -44,18 +44,17 @@ export default function KanbanColumn({
   if (isCollapsed) {
     return (
       <div
-        className="flex-shrink-0 w-12 bg-muted/30 rounded-xl p-2 flex flex-col items-center cursor-pointer hover:bg-muted/50 transition-colors"
+        className="flex-shrink-0 w-10 bg-muted/30 rounded-xl p-2 flex flex-col items-center cursor-pointer hover:bg-muted/50 transition-colors"
         onClick={onToggleCollapse}
         title={`Afficher ${stage.name}`}
+        onDragOver={onDragOver}
+        onDrop={(e) => onDrop(e, stage.id)}
       >
         <div
           className="w-3 h-3 rounded-full mb-2"
           style={{ backgroundColor: stage.color }}
         />
-        <span className="text-xs font-medium text-foreground writing-vertical-rl transform rotate-180">
-          {stage.name}
-        </span>
-        <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full mt-2">
+        <span className="text-sm font-semibold text-foreground">
           {opportunities.length}
         </span>
         <ChevronRight className="h-4 w-4 text-muted-foreground mt-auto" />

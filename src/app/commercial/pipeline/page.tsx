@@ -401,34 +401,22 @@ export default function PipelinePage() {
             </div>
           ) : (
             <div className="flex gap-4 pb-4">
-              {visibleStages.map((stage) => (
-                <KanbanColumn
-                  key={stage.id}
-                  stage={stage}
-                  opportunities={opportunitiesByStage[stage.id] || []}
-                  onDragStart={handleDragStart}
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
-                  onCardClick={handleCardClick}
-                  isCollapsed={false}
-                  onToggleCollapse={() => toggleColumnVisibility(stage.id)}
-                />
-              ))}
-              
-              {/* Colonnes masquées (affichées en mode collapsed) */}
-              {PIPELINE_STAGES.filter(stage => !visibleColumns.has(stage.id)).map((stage) => (
-                <KanbanColumn
-                  key={stage.id}
-                  stage={stage}
-                  opportunities={opportunitiesByStage[stage.id] || []}
-                  onDragStart={handleDragStart}
-                  onDragOver={handleDragOver}
-                  onDrop={handleDrop}
-                  onCardClick={handleCardClick}
-                  isCollapsed={true}
-                  onToggleCollapse={() => toggleColumnVisibility(stage.id)}
-                />
-              ))}
+              {PIPELINE_STAGES.map((stage) => {
+                const isVisible = visibleColumns.has(stage.id);
+                return (
+                  <KanbanColumn
+                    key={stage.id}
+                    stage={stage}
+                    opportunities={opportunitiesByStage[stage.id] || []}
+                    onDragStart={handleDragStart}
+                    onDragOver={onDragOver}
+                    onDrop={handleDrop}
+                    onCardClick={handleCardClick}
+                    isCollapsed={!isVisible}
+                    onToggleCollapse={() => toggleColumnVisibility(stage.id)}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
