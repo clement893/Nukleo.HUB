@@ -184,7 +184,7 @@ export default function PipelinePage() {
   const hideInactiveColumns = () => {
     const activeStages = new Set(
       filteredOpportunities
-        .filter(opp => !["09 - Closed Won", "Closed Lost"].includes(opp.stage))
+        .filter(opp => !["10 - Closed Won", "11 - Closed Lost"].includes(opp.stage))
         .map(opp => opp.stage)
     );
     setVisibleColumns(activeStages);
@@ -208,7 +208,7 @@ export default function PipelinePage() {
     0
   );
   const activeOpportunities = filteredOpportunities.filter(
-    (opp) => !["09 - Closed Won", "Closed Lost"].includes(opp.stage)
+    (opp) => !["10 - Closed Won", "11 - Closed Lost"].includes(opp.stage)
   );
 
   return (
