@@ -21,7 +21,6 @@ export async function syncMeetingToOutlook(meeting: {
     
     logger.info(
       `Synchronisation Outlook pour réunion ${meeting.id}`,
-      undefined,
       "outlook-calendar-sync"
     );
 
@@ -55,7 +54,6 @@ export async function updateOutlookCalendarEvent(
     // TODO: Implémenter mise à jour avec Microsoft Graph API
     logger.info(
       `Mise à jour événement Outlook ${meeting.outlookCalendarEventId}`,
-      undefined,
       "outlook-calendar-sync"
     );
   } catch (error) {
@@ -78,7 +76,6 @@ export async function deleteOutlookCalendarEvent(
     // TODO: Implémenter suppression avec Microsoft Graph API
     logger.info(
       `Suppression événement Outlook ${meeting.outlookCalendarEventId}`,
-      undefined,
       "outlook-calendar-sync"
     );
   } catch (error) {
