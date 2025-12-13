@@ -82,13 +82,15 @@ export function errorResponse(
   statusCode: number = 400,
   details?: unknown
 ): NextResponse {
-  return NextResponse.json(
-    {
-      error: message,
-      ...(process.env.NODE_ENV === "development" && details && { details }),
-    },
-    { status: statusCode }
-  );
+  const response: Record<string, unknown> = {
+    error: message,
+  };
+  
+  if (process.env.NODE_ENV === "development" && details) {
+    response.details = details;
+  }
+  
+  return NextResponse.json(response, { status: statusCode });
 }
 
 /**
