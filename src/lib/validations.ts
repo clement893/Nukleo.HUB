@@ -47,7 +47,7 @@ export const employeeCreateSchema = z.object({
   email: z.string().email("Email invalide"),
   phone: z.string().max(50).optional().nullable(),
   position: z.string().max(255).optional().nullable(),
-  department: z.string().max(100).optional().nullable(),
+  department: z.enum(["Lab", "Bureau", "Studio"]).default("Lab"), // Département requis avec valeur par défaut
   hireDate: z.string().optional().nullable(),
   salary: z.number().positive().optional().nullable(),
   status: z.enum(["active", "inactive", "on_leave"]).optional(),

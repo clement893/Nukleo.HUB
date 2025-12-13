@@ -74,10 +74,10 @@ export async function POST(request: NextRequest) {
       data: {
         name: validation.data.firstName + " " + validation.data.lastName,
         email: validation.data.email,
-        phone: validation.data.phone,
-        photoUrl: validation.data.photoUrl,
-        role: validation.data.position,
-        department: validation.data.department,
+        phone: validation.data.phone || null,
+        photoUrl: validation.data.photoUrl || null,
+        role: validation.data.position || null,
+        department: validation.data.department, // Département requis avec valeur par défaut dans Zod
         capacityHoursPerWeek: 35,
       },
     });
