@@ -409,7 +409,7 @@ export default function PipelinePage() {
                     stage={stage}
                     opportunities={opportunitiesByStage[stage.id] || []}
                     onDragStart={handleDragStart}
-                    onDragOver={onDragOver}
+                    onDragOver={handleDragOver}
                     onDrop={handleDrop}
                     onCardClick={handleCardClick}
                     isCollapsed={!isVisible}
