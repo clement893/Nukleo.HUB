@@ -146,6 +146,32 @@ export async function PUT(
       updateData.totalDays = totalDays;
     }
 
+    // Déterminer le type final (utiliser le nouveau type si fourni, sinon l'ancien)
+    const finalType = validation.data.type || existingRequest.type;
+    // Déterminer le statut final (utiliser le nouveau statut si fourni, sinon l'ancien)
+    const finalStatus = validation.data.status || existingRequest.status;
+
+    // GESTION DES SOLDES - Cas 1 : La vacation était approuvée
+    // On doit d'abord RECRÉDITER les jours à l'employé (annuler l'ancienne déduction)
+    if (existingRequest.status === "approved") {
+      // Recréditer les jours de l'ancienne vacation (decrement = ajouter au solde disponible)
+      if (existingRequest.type === "vacation") {
+        await prisma.vacationBalance.updateMany({
+          where: { employeeId: existingRequest.employeeId },
+          data: {
+            usedDays: { decrement: existingRequest.totalDays },
+          },
+        });
+      } else if (existingRequest.type === "sick") {
+        await prisma.vacationBalance.updateMany({
+          where: { employeeId: existingRequest.employeeId },
+          data: {
+            sickDaysUsed: { decrement: existingRequest.totalDays },
+          },
+        });
+      }
+    }
+
     // Mettre à jour la demande
     const updatedRequest = await prisma.vacationRequest.update({
       where: { id },
@@ -164,36 +190,11 @@ export async function PUT(
       },
     });
 
-    // Si le statut change de "approved" à autre chose, ajuster le solde
-    if (
-      existingRequest.status === "approved" &&
-      validation.data.status &&
-      validation.data.status !== "approved"
-    ) {
-      // Déduire les jours du solde
-      if (existingRequest.type === "vacation") {
-        await prisma.vacationBalance.updateMany({
-          where: { employeeId: existingRequest.employeeId },
-          data: {
-            usedDays: { decrement: existingRequest.totalDays },
-          },
-        });
-      } else if (existingRequest.type === "sick") {
-        await prisma.vacationBalance.updateMany({
-          where: { employeeId: existingRequest.employeeId },
-          data: {
-            sickDaysUsed: { decrement: existingRequest.totalDays },
-          },
-        });
-      }
-    }
-
-    // Si le statut change vers "approved", ajouter au solde
-    if (
-      existingRequest.status !== "approved" &&
-      validation.data.status === "approved"
-    ) {
-      if (updatedRequest.type === "vacation") {
+    // GESTION DES SOLDES - Cas 2 : La nouvelle vacation est approuvée
+    // On doit ensuite DÉDIRE les jours de la nouvelle vacation (si approuvée)
+    if (finalStatus === "approved") {
+      // Déduire les jours de la nouvelle vacation (increment = retirer du solde disponible)
+      if (finalType === "vacation") {
         await prisma.vacationBalance.upsert({
           where: { employeeId: updatedRequest.employeeId },
           update: {
@@ -206,7 +207,7 @@ export async function PUT(
             usedDays: updatedRequest.totalDays,
           },
         });
-      } else if (updatedRequest.type === "sick") {
+      } else if (finalType === "sick") {
         await prisma.vacationBalance.upsert({
           where: { employeeId: updatedRequest.employeeId },
           update: {
@@ -258,9 +259,10 @@ export async function DELETE(
       );
     }
 
-    // Si la demande était approuvée, déduire les jours du solde
+    // Si la demande était approuvée, RECRÉDITER les jours à l'employé
     if (vacationRequest.status === "approved") {
       if (vacationRequest.type === "vacation") {
+        // Recréditer les jours de vacances utilisés
         await prisma.vacationBalance.updateMany({
           where: { employeeId: vacationRequest.employeeId },
           data: {
@@ -268,6 +270,7 @@ export async function DELETE(
           },
         });
       } else if (vacationRequest.type === "sick") {
+        // Recréditer les jours de maladie utilisés
         await prisma.vacationBalance.updateMany({
           where: { employeeId: vacationRequest.employeeId },
           data: {
