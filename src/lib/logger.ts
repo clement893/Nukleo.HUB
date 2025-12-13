@@ -309,3 +309,19 @@ export function logPermissionChange(
     newRole,
   });
 }
+
+/**
+ * Logger les événements de sécurité génériques
+ */
+export async function logSecurityEvent(
+  event: string,
+  userId: string,
+  details?: Record<string, unknown>
+): Promise<void> {
+  logger.info(`Security event: ${event}`, "SECURITY", {
+    userId,
+    event,
+    timestamp: new Date().toISOString(),
+    ...details,
+  });
+}
