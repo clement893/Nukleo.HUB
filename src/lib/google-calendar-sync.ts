@@ -55,7 +55,6 @@ export async function updateGoogleCalendarEvent(
     // TODO: Implémenter mise à jour avec Google Calendar API
     logger.info(
       `Mise à jour événement Google Calendar ${meeting.googleCalendarEventId}`,
-      undefined,
       "google-calendar-sync"
     );
   } catch (error) {
@@ -78,7 +77,6 @@ export async function deleteGoogleCalendarEvent(
     // TODO: Implémenter suppression avec Google Calendar API
     logger.info(
       `Suppression événement Google Calendar ${meeting.googleCalendarEventId}`,
-      undefined,
       "google-calendar-sync"
     );
   } catch (error) {

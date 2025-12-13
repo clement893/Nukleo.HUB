@@ -51,7 +51,6 @@ export async function sendMeetingReminders() {
 
         logger.info(
           `Rappel envoyé pour réunion ${meeting.id}`,
-          undefined,
           "meeting-reminders"
         );
       }
