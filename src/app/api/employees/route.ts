@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
+import { employeeCreateSchema, validateBody } from "@/lib/validations";
+import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
+  // Rate limiting
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.read);
+  if (rateLimitError) return rateLimitError;
+
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
@@ -32,46 +39,57 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(employees);
   } catch (error) {
-    console.error("Error fetching employees:", error);
+    logger.error("Error fetching employees", error as Error, "EMPLOYEES_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la récupération des employés."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to fetch employees" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
 }
 
 export async function POST(request: NextRequest) {
+  // Rate limiting
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.write);
+  if (rateLimitError) return rateLimitError;
+
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
   try {
     const body = await request.json();
-    const { name, email, phone, photoUrl, role, department, capacityHoursPerWeek } = body;
 
-    if (!name || !department) {
+    // Validation Zod
+    const validation = validateBody(employeeCreateSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Name and department are required" },
+        { error: validation.error },
         { status: 400 }
       );
     }
 
     const employee = await prisma.employee.create({
       data: {
-        name,
-        email,
-        phone,
-        photoUrl,
-        role,
-        department,
-        capacityHoursPerWeek: capacityHoursPerWeek || 35,
+        name: validation.data.firstName + " " + validation.data.lastName,
+        email: validation.data.email,
+        phone: validation.data.phone,
+        photoUrl: validation.data.photoUrl,
+        role: validation.data.position,
+        department: validation.data.department,
+        capacityHoursPerWeek: 35,
       },
     });
 
     return NextResponse.json(employee, { status: 201 });
   } catch (error) {
-    console.error("Error creating employee:", error);
+    logger.error("Error creating employee", error as Error, "EMPLOYEES_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la création de l'employé."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to create employee" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

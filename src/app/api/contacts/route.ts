@@ -1,12 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 import { contactCreateSchema, validateBody } from "@/lib/validations";
 import { cache, CACHE_TTL } from "@/lib/cache";
+import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 const CACHE_KEY = "contacts:list";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Rate limiting
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.read);
+  if (rateLimitError) return rateLimitError;
+
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
@@ -26,15 +32,22 @@ export async function GET() {
 
     return NextResponse.json(contacts);
   } catch (error) {
-    console.error("Error fetching contacts:", error);
+    logger.error("Error fetching contacts", error as Error, "CONTACTS_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la récupération des contacts."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to fetch contacts" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Rate limiting
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.write);
+  if (rateLimitError) return rateLimitError;
+
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
@@ -59,9 +72,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json(contact, { status: 201 });
   } catch (error) {
-    console.error("Error creating contact:", error);
+    logger.error("Error creating contact", error as Error, "CONTACTS_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la création du contact."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to create contact" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

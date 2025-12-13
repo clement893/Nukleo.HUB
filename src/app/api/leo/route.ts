@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import OpenAI from "openai";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
+import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 // Initialiser OpenAI seulement si la clé est disponible
 function getOpenAIClient() {
@@ -235,6 +237,10 @@ Tu as accès à TOUTES les données ci-dessus. Utilise-les pour répondre de man
 }
 
 export async function POST(request: NextRequest) {
+  // Rate limiting sur l'API LLM (coûteuse)
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.llm);
+  if (rateLimitError) return rateLimitError;
+
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
@@ -287,9 +293,12 @@ export async function POST(request: NextRequest) {
       context: context.stats,
     });
   } catch (error) {
-    console.error("Error in Leo API:", error);
+    logger.error("Error in Leo API", error as Error, "LEO_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors du traitement de votre demande."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to process request" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

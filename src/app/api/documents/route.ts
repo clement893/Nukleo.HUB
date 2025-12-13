@@ -4,6 +4,8 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 import { validateUploadedFile, sanitizeFileName, ALLOWED_FILE_TYPES, ALLOWED_EXTENSIONS, MAX_FILE_SIZES } from "@/lib/upload-validation";
 import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
+import { scanFile } from "@/lib/virus-scanner";
+import { logger } from "@/lib/logger";
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || "ca-central-1",
@@ -52,11 +54,14 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(documents);
+      return NextResponse.json(documents);
   } catch (error) {
-    console.error("Error fetching documents:", error);
+    logger.error("Error fetching documents", error as Error, "DOCUMENTS_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la récupération des documents."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to fetch documents" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
@@ -100,6 +105,21 @@ export async function POST(request: NextRequest) {
       if (!validation.valid) {
         return NextResponse.json(
           { error: validation.error },
+          { status: 400 }
+        );
+      }
+
+      // Scanner le fichier pour détecter les malwares
+      const scanResult = await scanFile(file);
+      if (!scanResult.isClean) {
+        logger.warn("Malware detected in file upload", "SECURITY", {
+          fileName: file.name,
+          fileSize: file.size,
+          threats: scanResult.threats,
+          userId: auth.id,
+        });
+        return NextResponse.json(
+          { error: "Fichier malveillant détecté. Upload refusé." },
           { status: 400 }
         );
       }
@@ -224,9 +244,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(document, { status: 201 });
     }
   } catch (error) {
-    console.error("Error creating document:", error);
+    logger.error("Error creating document", error as Error, "DOCUMENTS_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la création du document."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to create document" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
@@ -260,9 +283,12 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting document:", error);
+    logger.error("Error deleting document", error as Error, "DOCUMENTS_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la suppression du document."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to delete document" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

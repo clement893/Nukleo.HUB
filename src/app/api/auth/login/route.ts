@@ -1,9 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
+import { logFailedAuth } from "@/lib/logger";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
 // GET - Rediriger vers Google pour l'authentification (login)
 export async function GET(request: NextRequest) {
+  // Rate limiting sur l'authentification
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.auth);
+  if (rateLimitError) {
+    const ipAddress = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
+    await logFailedAuth("rate_limit_exceeded", ipAddress);
+    return rateLimitError;
+  }
+
   if (!GOOGLE_CLIENT_ID) {
     return NextResponse.redirect("/login?error=config");
   }

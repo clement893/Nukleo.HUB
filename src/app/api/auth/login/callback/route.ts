@@ -2,14 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { randomBytes } from "crypto";
 import { cookies } from "next/headers";
+import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
+import { logFailedAuth, logSecurityEvent } from "@/lib/logger";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const SESSION_COOKIE_NAME = "nukleo_session";
-const SESSION_DURATION_DAYS = 30;
+const SESSION_DURATION_DAYS = 7; // Réduit de 30 à 7 jours
 
 // GET - Callback de Google OAuth pour login
 export async function GET(request: NextRequest) {
+  // Rate limiting sur l'authentification
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.auth);
+  if (rateLimitError) {
+    const ipAddress = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
+    await logFailedAuth("rate_limit_exceeded", ipAddress);
+    return rateLimitError;
+  }
+
+  const ipAddress = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
+  const userAgent = request.headers.get("user-agent") || "unknown";
+
   try {
     const { searchParams } = new URL(request.url);
     const code = searchParams.get("code");
@@ -31,10 +44,12 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error("Google OAuth error:", error);
+      await logFailedAuth(`oauth_error_${error}`, ipAddress);
       return NextResponse.redirect(`${baseUrl}/login?error=denied`);
     }
 
     if (!code) {
+      await logFailedAuth("no_code", ipAddress);
       return NextResponse.redirect(`${baseUrl}/login?error=no_code`);
     }
 
@@ -60,6 +75,7 @@ export async function GET(request: NextRequest) {
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
       console.error("Token exchange error:", errorData);
+      await logFailedAuth("token_exchange_failed", ipAddress);
       return NextResponse.redirect(`${baseUrl}/login?error=token_exchange`);
     }
 
@@ -85,6 +101,7 @@ export async function GET(request: NextRequest) {
     const emailDomain = googleUser.email.split("@")[1]?.toLowerCase();
     
     if (!emailDomain || !allowedDomains.includes(emailDomain)) {
+      await logFailedAuth(googleUser.email, ipAddress);
       return NextResponse.redirect(`${baseUrl}/login?error=domain_not_allowed`);
     }
 
@@ -163,6 +180,7 @@ export async function GET(request: NextRequest) {
 
     // Vérifier si l'utilisateur est actif
     if (!user.isActive) {
+      await logFailedAuth(user.email, ipAddress);
       return NextResponse.redirect(`${baseUrl}/login?error=inactive`);
     }
 
@@ -176,9 +194,16 @@ export async function GET(request: NextRequest) {
         userId: user.id,
         token: sessionToken,
         expiresAt,
-        userAgent: request.headers.get("user-agent") || undefined,
-        ipAddress: request.headers.get("x-forwarded-for")?.split(",")[0] || undefined,
+        userAgent,
+        ipAddress,
       },
+    });
+
+    // Logger la connexion réussie
+    await logSecurityEvent("user_login", user.id, {
+      email: user.email,
+      ipAddress,
+      userAgent,
     });
 
     // Définir le cookie de session

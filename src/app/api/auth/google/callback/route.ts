@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { encrypt } from "@/lib/encryption";
+import { logSecurityEvent, logFailedAuth } from "@/lib/logger";
+import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -8,12 +11,18 @@ const REDIRECT_URI = process.env.NEXT_PUBLIC_APP_URL
   : "https://nukleohub-production.up.railway.app/api/auth/google/callback";
 
 export async function GET(request: NextRequest) {
+  // Rate limiting sur l'authentification
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.auth);
+  if (rateLimitError) return rateLimitError;
+
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const state = searchParams.get("state"); // employeeId
   const error = searchParams.get("error");
+  const ipAddress = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
 
   if (error) {
+    await logFailedAuth(`google_oauth_${state || "unknown"}`, ipAddress);
     return NextResponse.redirect(
       `${process.env.NEXT_PUBLIC_APP_URL || "https://nukleohub-production.up.railway.app"}/teams/employees/${state}?google_error=${error}`
     );
@@ -79,16 +88,26 @@ export async function GET(request: NextRequest) {
     // Calculer la date d'expiration
     const expiryDate = new Date(Date.now() + expires_in * 1000);
 
-    // Mettre à jour l'employé avec les tokens
+    // Chiffrer les tokens avant stockage
+    const encryptedAccessToken = encrypt(access_token);
+    const encryptedRefreshToken = refresh_token ? encrypt(refresh_token) : null;
+
+    // Mettre à jour l'employé avec les tokens chiffrés
     await prisma.employee.update({
       where: { id: state },
       data: {
-        googleAccessToken: access_token,
-        googleRefreshToken: refresh_token,
+        googleAccessToken: encryptedAccessToken,
+        googleRefreshToken: encryptedRefreshToken,
         googleTokenExpiry: expiryDate,
         googleCalendarId: calendarId,
         googleCalendarSync: true,
       },
+    });
+
+    // Logger l'événement de sécurité
+    await logSecurityEvent("google_oauth_connected", state, {
+      calendarId,
+      ipAddress,
     });
 
     // Rediriger vers la page de l'employé avec succès

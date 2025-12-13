@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
+import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 // Générer le prochain numéro de facture
 async function generateInvoiceNumber(): Promise<string> {
@@ -29,6 +31,10 @@ async function generateInvoiceNumber(): Promise<string> {
 
 // GET - Liste des factures
 export async function GET(request: NextRequest) {
+  // Rate limiting
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.read);
+  if (rateLimitError) return rateLimitError;
+
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
@@ -101,9 +107,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(invoices);
   } catch (error) {
-    console.error("Error fetching invoices:", error);
+    logger.error("Error fetching invoices", error as Error, "INVOICES_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la récupération des factures."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Erreur lors de la récupération des factures" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
@@ -111,6 +120,10 @@ export async function GET(request: NextRequest) {
 
 // POST - Créer une nouvelle facture
 export async function POST(request: NextRequest) {
+  // Rate limiting
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.write);
+  if (rateLimitError) return rateLimitError;
+
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
@@ -205,9 +218,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(invoice, { status: 201 });
   } catch (error) {
-    console.error("Error creating invoice:", error);
+    logger.error("Error creating invoice", error as Error, "INVOICES_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la création de la facture."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Erreur lors de la création de la facture" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

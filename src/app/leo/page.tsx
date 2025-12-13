@@ -145,8 +145,16 @@ export default function LeoPage() {
         return `<p key="${i}" class="mb-1">${line}</p>`;
       })
       .join("");
-    // Sanitiser le HTML pour prévenir les attaques XSS
-    return typeof window !== "undefined" ? DOMPurify.sanitize(formatted) : formatted;
+    // Sanitiser le HTML pour prévenir les attaques XSS (côté client ET serveur)
+    if (typeof window !== "undefined") {
+      return DOMPurify.sanitize(formatted, {
+        ALLOWED_TAGS: ['p', 'strong', 'em', 'ul', 'ol', 'li', 'br', 'a'],
+        ALLOWED_ATTR: ['href', 'class'],
+        ALLOW_DATA_ATTR: false,
+      });
+    }
+    // En SSR, retourner le contenu non formaté (sera sanitisé côté client)
+    return content;
   };
 
   return (

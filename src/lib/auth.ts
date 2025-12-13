@@ -3,7 +3,8 @@ import { cookies } from "next/headers";
 import { randomBytes } from "crypto";
 
 const SESSION_COOKIE_NAME = "nukleo_session";
-const SESSION_DURATION_DAYS = 30;
+const SESSION_DURATION_DAYS = 7; // Réduit de 30 à 7 jours
+const SESSION_SLIDING_WINDOW = true; // Renouveler à chaque activité
 
 export interface AuthUser {
   id: string;
@@ -84,6 +85,20 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 
     if (!session.user.isActive) {
       return null;
+    }
+
+    // Sliding window: renouveler la session à chaque activité
+    if (SESSION_SLIDING_WINDOW) {
+      const newExpiresAt = new Date();
+      newExpiresAt.setDate(newExpiresAt.getDate() + SESSION_DURATION_DAYS);
+      
+      // Mettre à jour la date d'expiration sans bloquer la réponse
+      prisma.session.update({
+        where: { id: session.id },
+        data: { expiresAt: newExpiresAt },
+      }).catch(error => {
+        console.error("Error refreshing session:", error);
+      });
     }
 
     return {
@@ -184,5 +199,16 @@ export async function getGoogleUserInfo(accessToken: string) {
     throw new Error("Failed to get user info from Google");
   }
 
-  return response.json();
+  const userInfo = await response.json();
+  
+  // Validation renforcée du domaine email
+  const ALLOWED_DOMAINS = ["@nukleo.com", "@nukleo.ca"];
+  const email = userInfo.email || "";
+  const isValidDomain = ALLOWED_DOMAINS.some(domain => email.endsWith(domain));
+  
+  if (!isValidDomain) {
+    throw new Error("Email domain not authorized");
+  }
+
+  return userInfo;
 }

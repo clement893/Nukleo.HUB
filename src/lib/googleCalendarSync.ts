@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { decrypt, isEncrypted } from "@/lib/encryption";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -15,11 +16,25 @@ interface Employee {
 async function getValidAccessToken(employee: Employee): Promise<string | null> {
   if (!employee.googleAccessToken) return null;
 
+  // Déchiffrer le token si nécessaire
+  let accessToken: string;
+  if (isEncrypted(employee.googleAccessToken)) {
+    try {
+      accessToken = decrypt(employee.googleAccessToken);
+    } catch (error) {
+      console.error("Error decrypting access token:", error);
+      return null;
+    }
+  } else {
+    // Migration: si le token n'est pas chiffré, le déchiffrer et le mettre à jour
+    accessToken = employee.googleAccessToken;
+  }
+
   const now = new Date();
   const expiry = employee.googleTokenExpiry;
   
   if (expiry && expiry.getTime() > now.getTime() + 5 * 60 * 1000) {
-    return employee.googleAccessToken;
+    return accessToken;
   }
 
   if (!employee.googleRefreshToken || !GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) {
@@ -27,13 +42,26 @@ async function getValidAccessToken(employee: Employee): Promise<string | null> {
   }
 
   try {
+    // Déchiffrer le refresh token si nécessaire
+    let refreshToken: string;
+    if (isEncrypted(employee.googleRefreshToken)) {
+      try {
+        refreshToken = decrypt(employee.googleRefreshToken);
+      } catch (error) {
+        console.error("Error decrypting refresh token:", error);
+        return null;
+      }
+    } else {
+      refreshToken = employee.googleRefreshToken;
+    }
+
     const response = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         client_id: GOOGLE_CLIENT_ID,
         client_secret: GOOGLE_CLIENT_SECRET,
-        refresh_token: employee.googleRefreshToken,
+        refresh_token: refreshToken,
         grant_type: "refresh_token",
       }),
     });
@@ -43,10 +71,14 @@ async function getValidAccessToken(employee: Employee): Promise<string | null> {
     const tokens = await response.json();
     const newExpiry = new Date(Date.now() + tokens.expires_in * 1000);
 
+    // Chiffrer le nouveau token avant stockage
+    const { encrypt } = await import("@/lib/encryption");
+    const encryptedAccessToken = encrypt(tokens.access_token);
+
     await prisma.employee.update({
       where: { id: employee.id },
       data: {
-        googleAccessToken: tokens.access_token,
+        googleAccessToken: encryptedAccessToken,
         googleTokenExpiry: newExpiry,
       },
     });
