@@ -919,6 +919,8 @@ function SettingsTab() {
     needsMigration: boolean;
     count: number;
     summary: Record<string, number>;
+    unknownStages?: Record<string, number>;
+    allStageCounts?: Record<string, number>;
   } | null>(null);
   const [migrating, setMigrating] = useState(false);
   const [migrationResult, setMigrationResult] = useState<{
@@ -1049,20 +1051,35 @@ function SettingsTab() {
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
               Les IDs des étapes du pipeline ont été mis à jour pour un ordre séquentiel (1, 2, 3, 4...).
-              {migrationStatus?.needsMigration && (
+              {migrationStatus && (migrationStatus.needsMigration || (migrationStatus.unknownStages && Object.keys(migrationStatus.unknownStages).length > 0)) && (
                 <span className="block mt-2 font-medium text-yellow-400">
-                  {migrationStatus.count} opportunité(s) doivent être migrée(s).
+                  {migrationStatus.count} opportunité(s) avec anciens IDs + {migrationStatus.unknownStages ? Object.values(migrationStatus.unknownStages).reduce((a, b) => a + b, 0) : 0} avec stages inconnus doivent être migrée(s).
                 </span>
               )}
             </p>
             {migrationStatus?.summary && Object.keys(migrationStatus.summary).length > 0 && (
               <div className="mb-4 space-y-1">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Stages à migrer:</p>
                 {Object.entries(migrationStatus.summary).map(([stage, count]) => (
                   <div key={stage} className="text-xs text-muted-foreground flex items-center gap-2">
                     <AlertTriangle className="w-3 h-3 text-yellow-400" />
                     <span>{stage}: {count} opportunité(s)</span>
                   </div>
                 ))}
+              </div>
+            )}
+            {migrationStatus?.unknownStages && Object.keys(migrationStatus.unknownStages).length > 0 && (
+              <div className="mb-4 space-y-1 p-3 bg-red-500/10 rounded-lg">
+                <p className="text-xs font-medium text-red-400 mb-2">⚠️ Stages non reconnus (non mappés):</p>
+                {Object.entries(migrationStatus.unknownStages).map(([stage, count]) => (
+                  <div key={stage} className="text-xs text-red-400 flex items-center gap-2">
+                    <AlertTriangle className="w-3 h-3" />
+                    <span>{stage}: {count} opportunité(s)</span>
+                  </div>
+                ))}
+                <p className="text-xs text-red-400 mt-2">
+                  Ces stages ne correspondent à aucun stage dans PIPELINE_STAGES. Ils doivent être migrés manuellement.
+                </p>
               </div>
             )}
             {migrationResult && (
@@ -1074,23 +1091,33 @@ function SettingsTab() {
                 {migrationResult.message}
               </div>
             )}
+            <div className="flex gap-2">
             <button
               onClick={handleMigrate}
-              disabled={migrating || !migrationStatus?.needsMigration}
+              disabled={migrating || (!migrationStatus?.needsMigration && (!migrationStatus?.unknownStages || Object.keys(migrationStatus.unknownStages).length === 0))}
               className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {migrating ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  Migration en cours...
-                </>
-              ) : (
-                <>
-                  <Database className="w-4 h-4" />
-                  Migrer les opportunités
-                </>
-              )}
-            </button>
+                {migrating ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Migration en cours...
+                  </>
+                ) : (
+                  <>
+                    <Database className="w-4 h-4" />
+                    Migrer les opportunités
+                  </>
+                )}
+              </button>
+              <button
+                onClick={checkMigrationStatus}
+                disabled={migrating}
+                className="px-4 py-2 bg-muted hover:bg-muted/80 text-foreground rounded-lg text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Actualiser
+              </button>
+            </div>
           </div>
         </div>
       </div>
