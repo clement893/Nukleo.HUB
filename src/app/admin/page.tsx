@@ -29,6 +29,8 @@ import {
   Mail,
   RotateCw,
   Trash2,
+  Database,
+  AlertTriangle,
 } from "lucide-react";
 
 interface KPIs {
@@ -913,6 +915,59 @@ function LogsTab() {
 
 // Settings Tab Component
 function SettingsTab() {
+  const [migrationStatus, setMigrationStatus] = useState<{
+    needsMigration: boolean;
+    count: number;
+    summary: Record<string, number>;
+  } | null>(null);
+  const [migrating, setMigrating] = useState(false);
+  const [migrationResult, setMigrationResult] = useState<{
+    message: string;
+    migrated: number;
+  } | null>(null);
+
+  useEffect(() => {
+    checkMigrationStatus();
+  }, []);
+
+  const checkMigrationStatus = async () => {
+    try {
+      const response = await fetch("/api/admin/migrate-pipeline-stages");
+      if (response.ok) {
+        const data = await response.json();
+        setMigrationStatus(data);
+      }
+    } catch (error) {
+      console.error("Error checking migration status:", error);
+    }
+  };
+
+  const handleMigrate = async () => {
+    if (!confirm("Êtes-vous sûr de vouloir migrer les étapes du pipeline ? Cette action mettra à jour toutes les opportunités avec les anciens IDs.")) {
+      return;
+    }
+
+    try {
+      setMigrating(true);
+      setMigrationResult(null);
+      const response = await fetch("/api/admin/migrate-pipeline-stages", {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setMigrationResult(data);
+        await checkMigrationStatus();
+      } else {
+        const error = await response.json();
+        setMigrationResult({ message: error.error || "Erreur lors de la migration", migrated: 0 });
+      }
+    } catch (error) {
+      setMigrationResult({ message: "Erreur lors de la migration", migrated: 0 });
+    } finally {
+      setMigrating(false);
+    }
+  };
   const [settings, setSettings] = useState<Record<string, Array<{
     id: string;
     key: string;
@@ -977,6 +1032,69 @@ function SettingsTab() {
 
   return (
     <div className="space-y-6">
+      {/* Migration Pipeline Stages */}
+      <div className="glass-card rounded-xl p-6 border-2 border-yellow-500/20">
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-yellow-500/10 rounded-lg">
+            <Database className="w-6 h-6 text-yellow-400" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-md font-semibold text-foreground mb-2 flex items-center gap-2">
+              Migration des étapes du pipeline
+              {migrationStatus?.needsMigration && (
+                <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full">
+                  Migration requise
+                </span>
+              )}
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Les IDs des étapes du pipeline ont été mis à jour pour un ordre séquentiel (1, 2, 3, 4...).
+              {migrationStatus?.needsMigration && (
+                <span className="block mt-2 font-medium text-yellow-400">
+                  {migrationStatus.count} opportunité(s) doivent être migrée(s).
+                </span>
+              )}
+            </p>
+            {migrationStatus?.summary && Object.keys(migrationStatus.summary).length > 0 && (
+              <div className="mb-4 space-y-1">
+                {Object.entries(migrationStatus.summary).map(([stage, count]) => (
+                  <div key={stage} className="text-xs text-muted-foreground flex items-center gap-2">
+                    <AlertTriangle className="w-3 h-3 text-yellow-400" />
+                    <span>{stage}: {count} opportunité(s)</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {migrationResult && (
+              <div className={`p-3 rounded-lg mb-4 ${
+                migrationResult.migrated > 0 
+                  ? "bg-green-500/10 text-green-400" 
+                  : "bg-red-500/10 text-red-400"
+              }`}>
+                {migrationResult.message}
+              </div>
+            )}
+            <button
+              onClick={handleMigrate}
+              disabled={migrating || !migrationStatus?.needsMigration}
+              className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {migrating ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Migration en cours...
+                </>
+              ) : (
+                <>
+                  <Database className="w-4 h-4" />
+                  Migrer les opportunités
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-foreground">Paramètres système</h2>
         {Object.keys(editedValues).length > 0 && (
