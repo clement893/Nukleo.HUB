@@ -35,21 +35,25 @@ export async function GET() {
       return NextResponse.json(cached);
     }
 
-    // Get all opportunities
-    const opportunities = await prisma.opportunity.findMany({
-      select: {
-        id: true,
-        name: true,
-        value: true,
-        stage: true,
-        company: true,
-        contact: true,
-        openDate: true,
-        closedDate: true,
-        updatedAt: true,
-      },
-      orderBy: { updatedAt: "desc" },
-    });
+    // Requêtes optimisées en parallèle pour les statistiques
+    const [opportunities, totalCount] = await Promise.all([
+      prisma.opportunity.findMany({
+        select: {
+          id: true,
+          name: true,
+          value: true,
+          stage: true,
+          company: true,
+          contact: true,
+          openDate: true,
+          closedDate: true,
+          updatedAt: true,
+        },
+        orderBy: { updatedAt: "desc" },
+        take: 1000, // Limite pour éviter de charger trop de données
+      }),
+      prisma.opportunity.count(),
+    ]);
 
     // Calculate statistics
     const totalOpportunities = opportunities.length;

@@ -4,6 +4,8 @@ import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 import { eventCreateSchema, validateBody } from "@/lib/validations";
 import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
+import { getPaginationParams, getSkip, createPaginatedResponse, type PaginatedResponse } from "@/lib/pagination";
+import { cache, CACHE_TTL } from "@/lib/cache";
 
 export async function GET(request: NextRequest) {
   // Rate limiting
@@ -34,12 +36,45 @@ export async function GET(request: NextRequest) {
       where.type = type;
     }
 
-    const events = await prisma.event.findMany({
-      where,
-      orderBy: { startDate: "asc" },
-    });
+    // Pagination pour les événements (limite par défaut plus élevée car souvent filtrés par date)
+    const { page, limit } = getPaginationParams(searchParams);
+    const skip = getSkip(page, limit);
 
-    return NextResponse.json(events);
+    // Clé de cache
+    const cacheKey = `events:${JSON.stringify({ where, page, limit })}`;
+    const cached = cache.get<PaginatedResponse<unknown>>(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
+    }
+
+    // Requêtes parallèles
+    const [events, total] = await Promise.all([
+      prisma.event.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { startDate: "asc" },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          type: true,
+          startDate: true,
+          endDate: true,
+          allDay: true,
+          location: true,
+          color: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      prisma.event.count({ where }),
+    ]);
+
+    const response = createPaginatedResponse(events, total, page, limit);
+    cache.set(cacheKey, response, CACHE_TTL.SHORT); // Cache court car les événements changent souvent
+    
+    return NextResponse.json(response);
   } catch (error) {
     logger.error("Error fetching events", error as Error, "EVENTS_API");
     const errorMessage = process.env.NODE_ENV === "production"
@@ -87,6 +122,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Invalider le cache
+    cache.invalidatePattern("events:*");
+    
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
     logger.error("Error creating event", error as Error, "EVENTS_API");

@@ -4,6 +4,8 @@ import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 import { taskCreateSchema, validateBody } from "@/lib/validations";
 import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
+import { getPaginationParams, getSkip, createPaginatedResponse, type PaginatedResponse } from "@/lib/pagination";
+import { cache, CACHE_TTL } from "@/lib/cache";
 
 export async function GET(request: NextRequest) {
   // Rate limiting
@@ -18,34 +20,63 @@ export async function GET(request: NextRequest) {
     const department = searchParams.get("department");
     const zone = searchParams.get("zone");
     const projectId = searchParams.get("projectId");
+    const { page, limit } = getPaginationParams(searchParams);
+    const skip = getSkip(page, limit);
 
     const where: Record<string, string> = {};
     if (department) where.department = department;
     if (zone) where.zone = zone;
     if (projectId) where.projectId = projectId;
 
-    const tasks = await prisma.task.findMany({
-      where,
-      include: {
-        project: {
-          select: {
-            id: true,
-            name: true,
-            client: true,
-          },
-        },
-        assignedEmployee: {
-          select: {
-            id: true,
-            name: true,
-            photoUrl: true,
-          },
-        },
-      },
-      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
-    });
+    // Clé de cache
+    const cacheKey = `tasks:${JSON.stringify({ where, page, limit })}`;
+    const cached = cache.get<PaginatedResponse<unknown>>(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
+    }
 
-    return NextResponse.json(tasks);
+    // Requêtes parallèles
+    const [tasks, total] = await Promise.all([
+      prisma.task.findMany({
+        where,
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          zone: true,
+          department: true,
+          status: true,
+          priority: true,
+          estimatedHours: true,
+          dueDate: true,
+          createdAt: true,
+          updatedAt: true,
+          project: {
+            select: {
+              id: true,
+              name: true,
+              client: true,
+            },
+          },
+          assignedEmployee: {
+            select: {
+              id: true,
+              name: true,
+              photoUrl: true,
+            },
+          },
+        },
+        orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+      }),
+      prisma.task.count({ where }),
+    ]);
+
+    const response = createPaginatedResponse(tasks, total, page, limit);
+    cache.set(cacheKey, response, CACHE_TTL.SHORT); // Cache court car les tâches changent souvent
+    
+    return NextResponse.json(response);
   } catch (error) {
     logger.error("Error fetching tasks", error as Error, "TASKS_API");
     const errorMessage = process.env.NODE_ENV === "production"
@@ -101,6 +132,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Invalider le cache
+    cache.invalidatePattern("tasks:*");
+    
     return NextResponse.json(task, { status: 201 });
   } catch (error) {
     logger.error("Error creating task", error as Error, "TASKS_API");

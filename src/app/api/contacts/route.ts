@@ -5,8 +5,7 @@ import { contactCreateSchema, validateBody } from "@/lib/validations";
 import { cache, CACHE_TTL } from "@/lib/cache";
 import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
-
-const CACHE_KEY = "contacts:list";
+import { getPaginationParams, getSkip, createPaginatedResponse, type PaginatedResponse } from "@/lib/pagination";
 
 export async function GET(request: NextRequest) {
   // Rate limiting
@@ -17,20 +16,48 @@ export async function GET(request: NextRequest) {
   if (isErrorResponse(auth)) return auth;
 
   try {
+    // Pagination
+    const { searchParams } = new URL(request.url);
+    const { page, limit } = getPaginationParams(searchParams);
+    const skip = getSkip(page, limit);
+    
+    // Clé de cache basée sur la pagination
+    const cacheKey = `contacts:${page}:${limit}`;
+    
     // Vérifier le cache
-    const cached = cache.get<object[]>(CACHE_KEY);
+    const cached = cache.get<PaginatedResponse<unknown>>(cacheKey);
     if (cached) {
       return NextResponse.json(cached);
     }
 
-    const contacts = await prisma.contact.findMany({
-      orderBy: { fullName: "asc" },
-    });
+    // Requêtes parallèles
+    const [contacts, total] = await Promise.all([
+      prisma.contact.findMany({
+        skip,
+        take: limit,
+        orderBy: { fullName: "asc" },
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          phone: true,
+          company: true,
+          position: true,
+          photoUrl: true,
+          linkedinUrl: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      prisma.contact.count(),
+    ]);
+
+    const response = createPaginatedResponse(contacts, total, page, limit);
 
     // Mettre en cache pour 2 minutes
-    cache.set(CACHE_KEY, contacts, CACHE_TTL.MEDIUM);
+    cache.set(cacheKey, response, CACHE_TTL.MEDIUM);
 
-    return NextResponse.json(contacts);
+    return NextResponse.json(response);
   } catch (error) {
     logger.error("Error fetching contacts", error as Error, "CONTACTS_API");
     const errorMessage = process.env.NODE_ENV === "production"
@@ -68,7 +95,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Invalider le cache après création
-    cache.delete(CACHE_KEY);
+    cache.invalidatePattern("contacts:*");
 
     return NextResponse.json(contact, { status: 201 });
   } catch (error) {

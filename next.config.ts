@@ -148,6 +148,23 @@ const nextConfig: NextConfig = {
   experimental: {
     // Optimiser le chargement des packages
     optimizePackageImports: ["lucide-react", "@prisma/client"],
+    // Optimiser les requêtes de base de données
+    serverActions: {
+      bodySizeLimit: "2mb",
+    },
+  },
+  
+  // Optimisations de compilation
+  swcMinify: true,
+  
+  // Optimisations de production
+  productionBrowserSourceMaps: false,
+  
+  // Optimiser les imports
+  modularizeImports: {
+    "lucide-react": {
+      transform: "lucide-react/dist/esm/icons/{{kebabCase member}}",
+    },
   },
 };
 

@@ -4,6 +4,8 @@ import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 import { opportunityCreateSchema, validateBody } from "@/lib/validations";
 import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
+import { getPaginationParams, getSkip, createPaginatedResponse, type PaginatedResponse } from "@/lib/pagination";
+import { cache, CACHE_TTL } from "@/lib/cache";
 
 export async function GET(request: NextRequest) {
   // Rate limiting
@@ -14,13 +16,49 @@ export async function GET(request: NextRequest) {
   if (isErrorResponse(auth)) return auth;
 
   try {
-    const opportunities = await prisma.opportunity.findMany({
-      orderBy: { updatedAt: "desc" },
-      include: {
-        linkedContact: true,
-      },
-    });
-    return NextResponse.json(opportunities);
+    const { searchParams } = new URL(request.url);
+    const { page, limit } = getPaginationParams(searchParams);
+    const skip = getSkip(page, limit);
+
+    // Clé de cache
+    const cacheKey = `opportunities:${page}:${limit}`;
+    const cached = cache.get<PaginatedResponse<unknown>>(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
+    }
+
+    // Requêtes parallèles
+    const [opportunities, total] = await Promise.all([
+      prisma.opportunity.findMany({
+        skip,
+        take: limit,
+        orderBy: { updatedAt: "desc" },
+        select: {
+          id: true,
+          name: true,
+          value: true,
+          stage: true,
+          assignee: true,
+          closedDate: true,
+          createdAt: true,
+          updatedAt: true,
+          linkedContact: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              photoUrl: true,
+            },
+          },
+        },
+      }),
+      prisma.opportunity.count(),
+    ]);
+
+    const response = createPaginatedResponse(opportunities, total, page, limit);
+    cache.set(cacheKey, response, CACHE_TTL.MEDIUM);
+    
+    return NextResponse.json(response);
   } catch (error) {
     logger.error("Error fetching opportunities", error as Error, "OPPORTUNITIES_API");
     const errorMessage = process.env.NODE_ENV === "production"
@@ -66,6 +104,9 @@ export async function POST(request: NextRequest) {
         linkedContact: true,
       },
     });
+    // Invalider le cache
+    cache.invalidatePattern("opportunities:*");
+    
     return NextResponse.json(opportunity);
   } catch (error) {
     logger.error("Error creating opportunity", error as Error, "OPPORTUNITIES_API");

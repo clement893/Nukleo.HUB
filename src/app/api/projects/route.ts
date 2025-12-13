@@ -4,6 +4,8 @@ import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 import { projectCreateSchema, validateBody } from "@/lib/validations";
 import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
+import { getPaginationParams, getSkip, createPaginatedResponse, type PaginatedResponse } from "@/lib/pagination";
+import { cache, CACHE_TTL } from "@/lib/cache";
 
 export async function GET(request: NextRequest) {
   // Rate limiting
@@ -20,6 +22,10 @@ export async function GET(request: NextRequest) {
     const projectType = searchParams.get("projectType") || "";
     const year = searchParams.get("year") || "";
     const department = searchParams.get("department") || "";
+    
+    // Pagination
+    const { page, limit } = getPaginationParams(searchParams);
+    const skip = getSkip(page, limit);
 
     const where: Record<string, unknown> = {};
 
@@ -47,30 +53,58 @@ export async function GET(request: NextRequest) {
       where.departments = { contains: department, mode: "insensitive" };
     }
 
-    const projects = await prisma.project.findMany({
-      where,
-      orderBy: { updatedAt: "desc" },
-      include: {
-        company: {
-          select: {
-            id: true,
-            name: true,
-            logoUrl: true,
-            isClient: true,
-          },
-        },
-        contact: {
-          select: {
-            id: true,
-            fullName: true,
-            photoUrl: true,
-            position: true,
-          },
-        },
-      },
-    });
+    // Clé de cache basée sur les paramètres
+    const cacheKey = `projects:${JSON.stringify({ where, page, limit })}`;
+    
+    // Vérifier le cache
+    const cached = cache.get<PaginatedResponse<unknown>>(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
+    }
 
-    return NextResponse.json(projects);
+    // Requêtes parallèles pour meilleures performances
+    const [projects, total] = await Promise.all([
+      prisma.project.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { updatedAt: "desc" },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          status: true,
+          projectType: true,
+          year: true,
+          createdAt: true,
+          updatedAt: true,
+          company: {
+            select: {
+              id: true,
+              name: true,
+              logoUrl: true,
+              isClient: true,
+            },
+          },
+          contact: {
+            select: {
+              id: true,
+              fullName: true,
+              photoUrl: true,
+              position: true,
+            },
+          },
+        },
+      }),
+      prisma.project.count({ where }),
+    ]);
+
+    const response = createPaginatedResponse(projects, total, page, limit);
+    
+    // Mettre en cache pour 2 minutes
+    cache.set(cacheKey, response, CACHE_TTL.MEDIUM);
+
+    return NextResponse.json(response);
   } catch (error) {
     logger.error("Error fetching projects", error as Error, "PROJECTS_API");
     const errorMessage = process.env.NODE_ENV === "production"
@@ -116,6 +150,10 @@ export async function POST(request: NextRequest) {
         lead: validation.data.managerId || null,
       },
     });
+    
+    // Invalider le cache des projets
+    cache.invalidatePattern("projects:*");
+    
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
     logger.error("Error creating project", error as Error, "PROJECTS_API");
