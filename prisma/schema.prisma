@@ -2107,9 +2107,196 @@ model DeliverableVersion {
   workflowId    String? // Workflow d'approbation pour cette version
   createdAt     DateTime          @default(now())
 
+  // Relations pour le nouveau système
+  comments      VersionComment[]
+  qualityChecks QualityCheck[]
+  revisionWorkflow RevisionWorkflow?
+
   @@unique([deliverableId, versionNumber])
   @@index([deliverableId])
   @@index([versionNumber])
+}
+
+// Commentaires sur les versions de fichiers
+model VersionComment {
+  id            String            @id @default(cuid())
+  versionId     String
+  version       DeliverableVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  commentType   String            @default("general") // general, revision_request, approval_note, quality_issue
+  content       String            @db.Text
+  authorType    String            // client, employee
+  authorName    String
+  authorId      String?           // employee ID si employee
+  fileReference String?           // Référence à une partie spécifique du fichier (coordonnées, page, etc.)
+  isResolved    Boolean           @default(false)
+  resolvedAt    DateTime?
+  resolvedBy    String?
+  parentCommentId String?         // Pour les réponses aux commentaires
+  parentComment VersionComment?   @relation("CommentReplies", fields: [parentCommentId], references: [id])
+  replies       VersionComment[]  @relation("CommentReplies")
+  attachments   String?           @db.Text // JSON array de fichiers joints
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([versionId])
+  @@index([parentCommentId])
+  @@index([createdAt])
+}
+
+// Workflow de révision structuré
+model RevisionWorkflow {
+  id            String            @id @default(cuid())
+  versionId     String            @unique
+  version       DeliverableVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  workflowType  String            @default("structured") // structured, simple, parallel
+  currentLevel  Int               @default(1) // Niveau actuel dans l'approbation multi-niveaux
+  status        String            @default("draft") // draft, in_review, revision_requested, approved, rejected
+  revisionRound Int               @default(1) // Numéro de round de révision
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  levels        ApprovalLevel[]
+  revisions     RevisionRound[]
+  checklist     QualityChecklist?
+
+  @@index([versionId])
+  @@index([status])
+}
+
+// Niveaux d'approbation multi-niveaux
+model ApprovalLevel {
+  id              String           @id @default(cuid())
+  workflowId      String
+  workflow        RevisionWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  levelNumber     Int              // 1, 2, 3... (ordre hiérarchique)
+  name            String           // Ex: "Révision initiale", "Approbation manager", "Approbation finale"
+  description     String?          @db.Text
+  approverType    String           // client, employee, manager, director, specific_user
+  approverId      String?          // ID spécifique si approverType = specific_user
+  approverName    String?
+  approverEmail   String?
+  isRequired      Boolean          @default(true)
+  canDelegate     Boolean          @default(false) // Peut déléguer à quelqu'un d'autre
+  minApprovers    Int              @default(1) // Nombre minimum d'approbateurs requis
+  maxApprovers    Int              @default(1) // Nombre maximum d'approbateurs
+  status          String           @default("pending") // pending, in_progress, approved, rejected, skipped
+  startedAt       DateTime?
+  completedAt     DateTime?
+  deadline        DateTime?        // Date limite pour cette approbation
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  approvers       LevelApprover[]
+  comments        LevelComment[]
+
+  @@unique([workflowId, levelNumber])
+  @@index([workflowId])
+  @@index([levelNumber])
+}
+
+// Approbateurs pour un niveau spécifique
+model LevelApprover {
+  id          String         @id @default(cuid())
+  levelId     String
+  level       ApprovalLevel  @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  approverType String         // client, employee
+  approverId  String?        // employee ID si employee
+  approverName String
+  approverEmail String?
+  status      String         @default("pending") // pending, approved, rejected, delegated
+  delegatedTo String?        // Nom de la personne à qui c'est délégué
+  comments    String?        @db.Text
+  approvedAt  DateTime?
+  rejectedAt  DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([levelId])
+  @@index([status])
+}
+
+// Commentaires spécifiques à un niveau d'approbation
+model LevelComment {
+  id          String         @id @default(cuid())
+  levelId     String
+  level       ApprovalLevel  @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  commentType String         @default("feedback") // feedback, revision_request, approval_note, question
+  content     String         @db.Text
+  authorType  String         // client, employee
+  authorName  String
+  authorId    String?
+  isInternal  Boolean        @default(false) // Commentaire interne (non visible par le client)
+  createdAt   DateTime       @default(now())
+
+  @@index([levelId])
+  @@index([createdAt])
+}
+
+// Rounds de révision
+model RevisionRound {
+  id            String           @id @default(cuid())
+  workflowId    String
+  workflow      RevisionWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  roundNumber   Int              // 1, 2, 3...
+  status        String           @default("in_progress") // in_progress, completed, cancelled
+  requestedBy   String           // Nom de la personne qui a demandé la révision
+  requestedById String?          // Employee ID
+  reason        String?          @db.Text // Raison de la révision
+  requestedChanges String?       @db.Text // Changements demandés
+  completedAt   DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([workflowId])
+  @@index([roundNumber])
+}
+
+// Checklist qualité
+model QualityChecklist {
+  id            String           @id @default(cuid())
+  workflowId    String           @unique
+  workflow      RevisionWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  templateId    String?          // Référence à un template de checklist
+  status        String           @default("pending") // pending, in_progress, passed, failed
+  overallScore  Float?           // Score global (0-100)
+  passedAt      DateTime?
+  failedAt      DateTime?
+  reviewedBy    String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  items         QualityCheck[]
+
+  @@index([workflowId])
+  @@index([status])
+}
+
+// Items de la checklist qualité
+model QualityCheck {
+  id              String           @id @default(cuid())
+  checklistId     String?
+  checklist       QualityChecklist? @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  versionId       String?         // Optionnel : check directement sur une version
+  version         DeliverableVersion? @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  category        String           // design, content, technical, accessibility, performance, legal, other
+  title            String
+  description      String?         @db.Text
+  criteria         String          @db.Text // Critères de vérification
+  isRequired       Boolean         @default(true)
+  status           String          @default("pending") // pending, passed, failed, n_a
+  checkedBy        String?         // Nom de la personne qui a vérifié
+  checkedById      String?         // Employee ID
+  checkedAt        DateTime?
+  notes            String?         @db.Text
+  evidence         String?         @db.Text // JSON array de preuves (screenshots, fichiers, etc.)
+  score            Float?          // Score pour cet item (0-100)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([checklistId])
+  @@index([versionId])
+  @@index([category])
+  @@index([status])
 }
 
 // ==================== MODULE GESTION CONTRATS ====================
