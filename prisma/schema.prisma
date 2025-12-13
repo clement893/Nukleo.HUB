@@ -11,21 +11,21 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  photoUrl      String?
-  googleId      String?   @unique
-  role          String    @default("user") // super_admin, admin, user
-  isActive      Boolean   @default(true)
-  lastLoginAt   DateTime?
-  employeeId    String?   @unique // Liaison avec un employé
-  employee      Employee? @relation(fields: [employeeId], references: [id])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  invitations   Invitation[] @relation("InvitedBy")
-  access        UserAccess?
+  id              String           @id @default(cuid())
+  email           String           @unique
+  name            String?
+  photoUrl        String?
+  googleId        String?          @unique
+  role            String           @default("user") // super_admin, admin, user
+  isActive        Boolean          @default(true)
+  lastLoginAt     DateTime?
+  employeeId      String?          @unique // Liaison avec un employé
+  employee        Employee?        @relation(fields: [employeeId], references: [id])
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  sessions        Session[]
+  invitations     Invitation[]     @relation("InvitedBy")
+  access          UserAccess?
   menuPermissions MenuPermission[]
 
   @@index([googleId])
@@ -34,14 +34,14 @@ model User {
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token        String   @unique
-  expiresAt    DateTime
-  userAgent    String?  @db.Text
-  ipAddress    String?
-  createdAt    DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  userAgent String?  @db.Text
+  ipAddress String?
+  createdAt DateTime @default(now())
 
   @@index([userId])
   @@index([token])
@@ -49,27 +49,27 @@ model Session {
 }
 
 model Opportunity {
-  id              String    @id @default(cuid())
-  name            String
-  value           Float?
-  company         String?
-  referredBy      String?
-  leadSourceType  String?
-  contact         String?
-  contactId       String?
-  linkedContact   Contact?  @relation(fields: [contactId], references: [id])
-  completedAt     DateTime?
-  stage           String    @default("00 - Idées de contact")
-  proposal        String?   @db.Text
-  assignee        String?
-  closedDate      DateTime?
-  openDate        DateTime?
-  region          String?
-  segment         String?
+  id               String    @id @default(cuid())
+  name             String
+  value            Float?
+  company          String?
+  referredBy       String?
+  leadSourceType   String?
+  contact          String?
+  contactId        String?
+  linkedContact    Contact?  @relation(fields: [contactId], references: [id])
+  completedAt      DateTime?
+  stage            String    @default("00 - Idées de contact")
+  proposal         String?   @db.Text
+  assignee         String?
+  closedDate       DateTime?
+  openDate         DateTime?
+  region           String?
+  segment          String?
   proposalSentDate DateTime?
-  projectType     String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  projectType      String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   @@index([stage])
   @@index([region])
@@ -78,34 +78,34 @@ model Opportunity {
 }
 
 model Contact {
-  id                String    @id @default(cuid())
-  fullName          String
-  firstName         String?
-  lastName          String?
-  level             Int?
-  potentialSale     Boolean   @default(false)
-  photoUrl          String?
-  linkedinUrl       String?
-  position          String?
-  company           String?
-  email             String?
-  phone             String?
-  relation          String?
-  circles           String?
-  employmentField   String?
-  lastUpdated       DateTime?
-  region            String?
-  birthday          String?
-  link              String?
-  tags              String?
+  id                  String    @id @default(cuid())
+  fullName            String
+  firstName           String?
+  lastName            String?
+  level               Int?
+  potentialSale       Boolean   @default(false)
+  photoUrl            String?
+  linkedinUrl         String?
+  position            String?
+  company             String?
+  email               String?
+  phone               String?
+  relation            String?
+  circles             String?
+  employmentField     String?
+  lastUpdated         DateTime?
+  region              String?
+  birthday            String?
+  link                String?
+  tags                String?
   linkedOpportunities String?
-  projects          String?
-  language          String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
-  opportunities     Opportunity[]
-  linkedProjects    Project[]
+  projects            String?
+  language            String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  opportunities  Opportunity[]
+  linkedProjects Project[]
 
   @@index([region])
   @@index([employmentField])
@@ -113,44 +113,44 @@ model Contact {
 }
 
 model Project {
-  id              String    @id @default(cuid())
-  name            String
-  client          String?
-  team            String?
-  status          String?
-  stage           String?
-  billing         String?
-  lead            String?
-  clientComm      String?
-  contactName     String?
-  contactMethod   String?
-  hourlyRate      Float?
-  proposalUrl     String?
-  budget          String?
-  driveUrl        String?
-  asanaUrl        String?
-  slackUrl        String?
-  timeline        String?
-  projectType     String?
-  year            String?
-  description     String?   @db.Text
-  brief           String?   @db.Text
-  testimonial     String?
-  portfolio       String?
-  report          String?
-  communication   String?
-  departments     String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  client        String?
+  team          String?
+  status        String?
+  stage         String?
+  billing       String?
+  lead          String?
+  clientComm    String?
+  contactName   String?
+  contactMethod String?
+  hourlyRate    Float?
+  proposalUrl   String?
+  budget        String?
+  driveUrl      String?
+  asanaUrl      String?
+  slackUrl      String?
+  timeline      String?
+  projectType   String?
+  year          String?
+  description   String?  @db.Text
+  brief         String?  @db.Text
+  testimonial   String?
+  portfolio     String?
+  report        String?
+  communication String?
+  departments   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relations
-  companyId       String?
-  company         Company?  @relation(fields: [companyId], references: [id])
-  contactId       String?
-  contact         Contact?  @relation(fields: [contactId], references: [id])
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+  contactId String?
+  contact   Contact? @relation(fields: [contactId], references: [id])
 
-  tasks           Task[]
-  milestones      Milestone[]
+  tasks      Task[]
+  milestones Milestone[]
 
   @@index([status])
   @@index([projectType])
@@ -161,31 +161,31 @@ model Project {
 }
 
 model Company {
-  id                String    @id @default(cuid())
-  name              String
-  logoUrl           String?
-  website           String?
-  address           String?
-  phone             String?
-  type              String?
-  mainContactName   String?
-  mainContactEmail  String?
-  description       String?   @db.Text
-  industry          String?
-  insight           String?   @db.Text
-  engagements       String?   @db.Text
-  linkedinUrl       String?
-  facebookUrl       String?
-  instagramUrl      String?
-  agencyPartners    String?
-  referralPartners  String?
-  isClient          Boolean   @default(false)
-  testimonials      String?
-  events            String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id               String   @id @default(cuid())
+  name             String
+  logoUrl          String?
+  website          String?
+  address          String?
+  phone            String?
+  type             String?
+  mainContactName  String?
+  mainContactEmail String?
+  description      String?  @db.Text
+  industry         String?
+  insight          String?  @db.Text
+  engagements      String?  @db.Text
+  linkedinUrl      String?
+  facebookUrl      String?
+  instagramUrl     String?
+  agencyPartners   String?
+  referralPartners String?
+  isClient         Boolean  @default(false)
+  testimonials     String?
+  events           String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  projects          Project[]
+  projects Project[]
 
   @@index([type])
   @@index([industry])
@@ -202,14 +202,14 @@ model Employee {
   photoUrl              String?
   linkedinUrl           String?
   role                  String?
-  department            String    // Lab, Bureau, Studio
+  department            String // Lab, Bureau, Studio
   capacityHoursPerWeek  Int       @default(35) // Capacité en heures par semaine
   currentTaskId         String?   @unique // Only one current task per employee
   currentTask           Task?     @relation("CurrentTask", fields: [currentTaskId], references: [id])
   onboardingCompleted   Boolean   @default(false)
   onboardingStartedAt   DateTime?
   onboardingCompletedAt DateTime?
-  googleCalendarId      String?   // ID du calendrier Google (email ou ID)
+  googleCalendarId      String? // ID du calendrier Google (email ou ID)
   googleCalendarSync    Boolean   @default(false) // Activer la sync
   googleAccessToken     String?   @db.Text // OAuth access token
   googleRefreshToken    String?   @db.Text // OAuth refresh token
@@ -223,28 +223,28 @@ model Employee {
   chatMessages          ChatMessage[]
 
   // Relations portail employé
-  portal                EmployeePortal?
-  requests              EmployeeRequest[]
-  documents             EmployeeDocument[]
-  events                EmployeeEvent[]
-  
+  portal    EmployeePortal?
+  requests  EmployeeRequest[]
+  documents EmployeeDocument[]
+  events    EmployeeEvent[]
+
   // Relations accès et contexte Leo
-  access                EmployeeAccess?
-  leoContext            EmployeeLeoContext?
-  
+  access     EmployeeAccess?
+  leoContext EmployeeLeoContext?
+
   // Relation avec l'utilisateur connecté
-  linkedUser            User?
-  
+  linkedUser User?
+
   // Relations vacances
-  vacationRequests      VacationRequest[]
-  vacationBalance       VacationBalance?
-  
+  vacationRequests VacationRequest[]
+  vacationBalance  VacationBalance?
+
   // Relations recommandations et sondages
-  recommendations       Recommendation[]
-  surveyResponses       SurveyResponse[]
-  
+  recommendations Recommendation[]
+  surveyResponses SurveyResponse[]
+
   // Relations tâches personnelles
-  personalTasks         PersonalTask[]
+  personalTasks PersonalTask[]
 
   @@index([department])
 }
@@ -252,22 +252,22 @@ model Employee {
 // Task zones: current, shelf, storage, dock
 // Task status: todo, in_progress, done
 model Task {
-  id              String    @id @default(cuid())
-  title           String
-  description     String?   @db.Text
-  zone            String    @default("shelf") // current, shelf, storage, dock
-  department      String    @default("Lab") // Lab, Bureau, Studio
-  status          String    @default("todo") // todo, in_progress, done
-  projectId       String?
-  project         Project?  @relation(fields: [projectId], references: [id])
-  priority        String?   @default("medium") // low, medium, high
-  estimatedHours  Float?    @default(2) // Heures estimées pour la tâche
-  dueDate         DateTime?
-   completedAt     DateTime?
-  order           Int       @default(0)
-  googleEventId   String?   // ID de l'événement Google Calendar
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  title            String
+  description      String?   @db.Text
+  zone             String    @default("shelf") // current, shelf, storage, dock
+  department       String    @default("Lab") // Lab, Bureau, Studio
+  status           String    @default("todo") // todo, in_progress, done
+  projectId        String?
+  project          Project?  @relation(fields: [projectId], references: [id])
+  priority         String?   @default("medium") // low, medium, high
+  estimatedHours   Float?    @default(2) // Heures estimées pour la tâche
+  dueDate          DateTime?
+  completedAt      DateTime?
+  order            Int       @default(0)
+  googleEventId    String? // ID de l'événement Google Calendar
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
   assignedEmployee Employee? @relation("CurrentTask")
 
   @@index([zone])
@@ -276,31 +276,30 @@ model Task {
   @@index([status])
 }
 
-
 // Events and Calendar
 model Event {
-  id            String    @id @default(cuid())
-  title         String
-  description   String?   @db.Text
-  type          String    @default("meeting") // meeting, deadline, reminder, call, other
-  startDate     DateTime
-  endDate       DateTime?
-  allDay        Boolean   @default(false)
-  location      String?
-  color         String?   @default("#6366f1")
-  
+  id          String    @id @default(cuid())
+  title       String
+  description String?   @db.Text
+  type        String    @default("meeting") // meeting, deadline, reminder, call, other
+  startDate   DateTime
+  endDate     DateTime?
+  allDay      Boolean   @default(false)
+  location    String?
+  color       String?   @default("#6366f1")
+
   // Linked entities
   contactId     String?
   opportunityId String?
   projectId     String?
   companyId     String?
-  
+
   // Reminders
-  reminder      Boolean   @default(false)
-  reminderTime  Int?      // minutes before event
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  reminder     Boolean @default(false)
+  reminderTime Int? // minutes before event
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([startDate])
   @@index([type])
@@ -311,25 +310,25 @@ model Event {
 
 // Documents attachés aux entités
 model Document {
-  id            String    @id @default(cuid())
-  name          String
-  url           String?
-  type          String?   // file, link, drive, figma, notion, github, pdf, doc, xls, image, etc.
-  size          Int?      // taille en bytes
-  fileKey       String?   // Clé S3 pour les fichiers uploadés
-  mimeType      String?   // Type MIME pour les fichiers
-  description   String?   @db.Text
-  category      String?   // design, dev, docs, contracts, assets, general, etc.
-  
+  id          String  @id @default(cuid())
+  name        String
+  url         String?
+  type        String? // file, link, drive, figma, notion, github, pdf, doc, xls, image, etc.
+  size        Int? // taille en bytes
+  fileKey     String? // Clé S3 pour les fichiers uploadés
+  mimeType    String? // Type MIME pour les fichiers
+  description String? @db.Text
+  category    String? // design, dev, docs, contracts, assets, general, etc.
+
   // Entité liée (une seule à la fois)
   companyId     String?
   contactId     String?
   projectId     String?
   opportunityId String?
-  
-  uploadedBy    String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+
+  uploadedBy String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   taskDocuments TaskDocument[]
 
@@ -343,16 +342,16 @@ model Document {
 
 // Historique des activités
 model ActivityLog {
-  id            String    @id @default(cuid())
-  action        String    // created, updated, status_changed, note_added, document_uploaded, etc.
-  description   String?
-  entityType    String    // contact, company, project, opportunity
-  entityId      String
-  oldValue      String?   @db.Text
-  newValue      String?   @db.Text
-  userId        String?
-  userName      String?
-  createdAt     DateTime  @default(now())
+  id          String   @id @default(cuid())
+  action      String // created, updated, status_changed, note_added, document_uploaded, etc.
+  description String?
+  entityType  String // contact, company, project, opportunity
+  entityId    String
+  oldValue    String?  @db.Text
+  newValue    String?  @db.Text
+  userId      String?
+  userName    String?
+  createdAt   DateTime @default(now())
 
   @@index([entityType, entityId])
   @@index([createdAt])
@@ -360,20 +359,20 @@ model ActivityLog {
 
 // Milestones (grandes tâches de projet)
 model Milestone {
-  id            String    @id @default(cuid())
-  title         String
-  description   String?   @db.Text
-  status        String    @default("pending") // pending, in_progress, completed
-  startDate     DateTime?
-  dueDate       DateTime?
-  completedAt   DateTime?
-  progress      Int       @default(0) // 0-100 percentage
-  deliverables  String?   @db.Text // JSON array of deliverables
-  order         Int       @default(0)
-  projectId     String
-  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  title        String
+  description  String?   @db.Text
+  status       String    @default("pending") // pending, in_progress, completed
+  startDate    DateTime?
+  dueDate      DateTime?
+  completedAt  DateTime?
+  progress     Int       @default(0) // 0-100 percentage
+  deliverables String?   @db.Text // JSON array of deliverables
+  order        Int       @default(0)
+  projectId    String
+  project      Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([projectId])
   @@index([status])
@@ -382,45 +381,44 @@ model Milestone {
 
 // Notes et commentaires
 model Note {
-  id            String    @id @default(cuid())
-  content       String    @db.Text
-  entityType    String    // contact, company, project, opportunity
-  entityId      String
-  authorName    String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id         String   @id @default(cuid())
+  content    String   @db.Text
+  entityType String // contact, company, project, opportunity
+  entityId   String
+  authorName String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([entityType, entityId])
 }
 
 // Témoignages clients
 model Testimonial {
-  id            String    @id @default(cuid())
-  clientName    String
-  contactName   String?
-  companyName   String?
-  status        String    @default("received") // received, requested, online, pending
-  textFr        String?   @db.Text
-  textEn        String?   @db.Text
-  titleFr       String?
-  titleEn       String?
-  rating        Int?      @default(5)
-  featured      Boolean   @default(false)
-  companyId     String?
-  contactId     String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id          String   @id @default(cuid())
+  clientName  String
+  contactName String?
+  companyName String?
+  status      String   @default("received") // received, requested, online, pending
+  textFr      String?  @db.Text
+  textEn      String?  @db.Text
+  titleFr     String?
+  titleEn     String?
+  rating      Int?     @default(5)
+  featured    Boolean  @default(false)
+  companyId   String?
+  contactId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([status])
   @@index([featured])
 }
 
-
 // Phases de projet pour la transformation numérique
 model ProjectPhase {
   id              String    @id @default(cuid())
   projectId       String
-  phaseTemplateId String    // diagnostic, strategie, design, developpement, ia, formation, deploiement, suivi
+  phaseTemplateId String // diagnostic, strategie, design, developpement, ia, formation, deploiement, suivi
   name            String
   description     String?
   status          String    @default("pending") // pending, in_progress, completed, skipped
@@ -442,48 +440,47 @@ model ProjectPhase {
 
 // Devis générés
 model Quote {
-  id              String    @id @default(cuid())
-  projectId       String?
-  clientName      String
-  clientEmail     String?
-  clientCompany   String?
-  title           String
-  description     String?   @db.Text
-  status          String    @default("draft") // draft, sent, accepted, rejected, expired
-  validUntil      DateTime?
-  subtotal        Float     @default(0)
-  taxRate         Float     @default(0.15) // 15% TPS+TVQ
-  taxAmount       Float     @default(0)
-  total           Float     @default(0)
-  currency        String    @default("CAD")
-  phases          String?   @db.Text // JSON array of selected phases with pricing
-  notes           String?   @db.Text
-  terms           String?   @db.Text
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  projectId     String?
+  clientName    String
+  clientEmail   String?
+  clientCompany String?
+  title         String
+  description   String?   @db.Text
+  status        String    @default("draft") // draft, sent, accepted, rejected, expired
+  validUntil    DateTime?
+  subtotal      Float     @default(0)
+  taxRate       Float     @default(0.15) // 15% TPS+TVQ
+  taxAmount     Float     @default(0)
+  total         Float     @default(0)
+  currency      String    @default("CAD")
+  phases        String?   @db.Text // JSON array of selected phases with pricing
+  notes         String?   @db.Text
+  terms         String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([projectId])
   @@index([status])
 }
 
-
 // Entrées de temps pour le time tracking
 model TimeEntry {
-  id          String    @id @default(cuid())
+  id          String           @id @default(cuid())
   employeeId  String
   taskId      String?
   projectId   String?
   description String?
   startTime   DateTime
   endTime     DateTime?
-  duration    Int?      // Durée en minutes
-  billable    Boolean   @default(true)
-  status      String    @default("running") // running, completed, paused
-  notes       String?   @db.Text
-  timesheetId String?   // Lien vers la feuille de temps hebdomadaire
+  duration    Int? // Durée en minutes
+  billable    Boolean          @default(true)
+  status      String           @default("running") // running, completed, paused
+  notes       String?          @db.Text
+  timesheetId String? // Lien vers la feuille de temps hebdomadaire
   timesheet   WeeklyTimesheet? @relation(fields: [timesheetId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
   @@index([employeeId])
   @@index([taskId])
@@ -494,26 +491,26 @@ model TimeEntry {
 
 // Feuille de temps hebdomadaire avec approbation
 model WeeklyTimesheet {
-  id            String    @id @default(cuid())
-  employeeId    String
-  weekStartDate DateTime  // Lundi de la semaine (date sans heure)
-  weekEndDate   DateTime  // Dimanche de la semaine
-  totalHours    Float     @default(0) // Total des heures de la semaine
-  status        String    @default("draft") // draft, submitted, approved, rejected
-  submittedAt   DateTime?
-  approvedAt    DateTime?
-  approvedBy    String?   // ID de l'admin qui a approuvé
-  approverName  String?   // Nom de l'admin qui a approuvé
-  rejectedAt    DateTime?
-  rejectedBy    String?
-  rejectionReason String? @db.Text
-  notes         String?   @db.Text // Notes de l'employé
-  adminNotes    String?   @db.Text // Notes de l'admin
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  employeeId      String
+  weekStartDate   DateTime // Lundi de la semaine (date sans heure)
+  weekEndDate     DateTime // Dimanche de la semaine
+  totalHours      Float     @default(0) // Total des heures de la semaine
+  status          String    @default("draft") // draft, submitted, approved, rejected
+  submittedAt     DateTime?
+  approvedAt      DateTime?
+  approvedBy      String? // ID de l'admin qui a approuvé
+  approverName    String? // Nom de l'admin qui a approuvé
+  rejectedAt      DateTime?
+  rejectedBy      String?
+  rejectionReason String?   @db.Text
+  notes           String?   @db.Text // Notes de l'employé
+  adminNotes      String?   @db.Text // Notes de l'admin
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   // Relations
-  entries       TimeEntry[]
+  entries TimeEntry[]
 
   @@unique([employeeId, weekStartDate])
   @@index([employeeId])
@@ -521,63 +518,63 @@ model WeeklyTimesheet {
   @@index([status])
 }
 
-
 // ============================================
 // HUB COMMUNICATION NUMÉRIQUE
 // ============================================
 
 // Catégories de clients (maintenance, comm, web, etc.)
 model ClientCategory {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  color       String    @default("#6366f1") // Couleur pour l'affichage
-  icon        String?   // Icône optionnelle (nom lucide-react)
+  id          String   @id @default(cuid())
+  name        String   @unique
+  color       String   @default("#6366f1") // Couleur pour l'affichage
+  icon        String? // Icône optionnelle (nom lucide-react)
   description String?
-  order       Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  clients     CommunicationClient[]
-  
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  clients CommunicationClient[]
+
   @@index([order])
 }
 
 // Client de communication (lié à un projet existant ou standalone)
 model CommunicationClient {
-  id              String    @id @default(cuid())
-  name            String
-  company         String?
-  email           String?
-  phone           String?
-  website         String?
-  logoUrl         String?
-  industry        String?
-  description     String?   @db.Text
-  status          String    @default("active") // active, paused, completed
-  projectId       String?   // Lien optionnel vers un projet existant
-  companyId       String?   // Lien vers une entreprise cliente (Company)
-  categoryId      String?   // Catégorie du client
-  category        ClientCategory? @relation(fields: [categoryId], references: [id])
-  startDate       DateTime?
-  monthlyBudget   Int?      // Budget mensuel en dollars
-  notes           String?   @db.Text
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id               String                         @id @default(cuid())
+  name             String
+  company          String?
+  email            String?
+  phone            String?
+  website          String?
+  logoUrl          String?
+  industry         String?
+  description      String?                        @db.Text
+  status           String                         @default("active") // active, paused, completed
+  projectId        String? // Lien optionnel vers un projet existant
+  companyId        String? // Lien vers une entreprise cliente (Company)
+  categoryId       String? // Catégorie du client
+  category         ClientCategory?                @relation(fields: [categoryId], references: [id])
+  startDate        DateTime?
+  monthlyBudget    Int? // Budget mensuel en dollars
+  notes            String?                        @db.Text
+  createdAt        DateTime                       @default(now())
+  updatedAt        DateTime                       @updatedAt
   // Relations
-  socialAccounts  SocialMediaAccount[]
-  newsletters     Newsletter[]
-  campaigns       Campaign[]
-  accesses        ClientAccess[]
-  messages        ClientMessage[]
-  tasks           ClientTask[]
+  socialAccounts   SocialMediaAccount[]
+  newsletters      Newsletter[]
+  campaigns        Campaign[]
+  accesses         ClientAccess[]
+  messages         ClientMessage[]
+  tasks            ClientTask[]
   // Hub de Communication - Agence du Futur
-  contentCalendar ContentCalendar[]
-  briefs          CommunicationBrief[]
-  strategies      CommunicationStrategy[]
-  brandAssets     BrandAsset[]
-  reports         CommunicationReport[]
-  contentIdeas    ContentIdea[]
+  contentCalendar  ContentCalendar[]
+  briefs           CommunicationBrief[]
+  strategies       CommunicationStrategy[]
+  brandAssets      BrandAsset[]
+  reports          CommunicationReport[]
+  contentIdeas     ContentIdea[]
   contextDocuments CommunicationContextDocument[]
+
   @@index([status])
   @@index([projectId])
   @@index([companyId])
@@ -586,23 +583,23 @@ model CommunicationClient {
 
 // Comptes de médias sociaux
 model SocialMediaAccount {
-  id              String    @id @default(cuid())
-  clientId        String
-  platform        String    // facebook, instagram, linkedin, twitter, tiktok, youtube, etc.
-  accountName     String
-  accountUrl      String?
-  username        String?
-  followers       Int?
-  status          String    @default("active") // active, paused, archived
-  accessEmail     String?
-  accessPassword  String?   // Encrypted in production
-  notes           String?   @db.Text
-  lastPostDate    DateTime?
-  postsPerWeek    Int?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  clientId       String
+  platform       String // facebook, instagram, linkedin, twitter, tiktok, youtube, etc.
+  accountName    String
+  accountUrl     String?
+  username       String?
+  followers      Int?
+  status         String    @default("active") // active, paused, archived
+  accessEmail    String?
+  accessPassword String? // Encrypted in production
+  notes          String?   @db.Text
+  lastPostDate   DateTime?
+  postsPerWeek   Int?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([clientId])
   @@index([platform])
@@ -610,52 +607,52 @@ model SocialMediaAccount {
 
 // Infolettres
 model Newsletter {
-  id              String    @id @default(cuid())
-  clientId        String
-  name            String
-  platform        String?   // mailchimp, sendinblue, hubspot, etc.
-  listSize        Int?      // Nombre d'abonnés
-  frequency       String?   // weekly, biweekly, monthly
-  lastSentDate    DateTime?
-  nextSendDate    DateTime?
-  openRate        Float?    // Taux d'ouverture moyen
-  clickRate       Float?    // Taux de clic moyen
-  status          String    @default("active")
-  templateUrl     String?
-  accessEmail     String?
-  accessPassword  String?
-  notes           String?   @db.Text
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  clientId       String
+  name           String
+  platform       String? // mailchimp, sendinblue, hubspot, etc.
+  listSize       Int? // Nombre d'abonnés
+  frequency      String? // weekly, biweekly, monthly
+  lastSentDate   DateTime?
+  nextSendDate   DateTime?
+  openRate       Float? // Taux d'ouverture moyen
+  clickRate      Float? // Taux de clic moyen
+  status         String    @default("active")
+  templateUrl    String?
+  accessEmail    String?
+  accessPassword String?
+  notes          String?   @db.Text
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([clientId])
 }
 
 // Campagnes numériques (pub, SEO, etc.)
 model Campaign {
-  id              String    @id @default(cuid())
-  clientId        String
-  name            String
-  type            String    // google_ads, facebook_ads, linkedin_ads, seo, email, influencer
-  status          String    @default("draft") // draft, active, paused, completed
-  startDate       DateTime?
-  endDate         DateTime?
-  budget          Int?
-  spent           Int?
-  impressions     Int?
-  clicks          Int?
-  conversions     Int?
-  revenue         Int?
-  targetAudience  String?   @db.Text
-  objectives      String?   @db.Text
-  notes           String?   @db.Text
-  platformUrl     String?   // Lien vers la plateforme de gestion
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  clientId       String
+  name           String
+  type           String // google_ads, facebook_ads, linkedin_ads, seo, email, influencer
+  status         String    @default("draft") // draft, active, paused, completed
+  startDate      DateTime?
+  endDate        DateTime?
+  budget         Int?
+  spent          Int?
+  impressions    Int?
+  clicks         Int?
+  conversions    Int?
+  revenue        Int?
+  targetAudience String?   @db.Text
+  objectives     String?   @db.Text
+  notes          String?   @db.Text
+  platformUrl    String? // Lien vers la plateforme de gestion
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([clientId])
   @@index([type])
@@ -664,21 +661,21 @@ model Campaign {
 
 // Accès et liens clients (sites, outils, etc.)
 model ClientAccess {
-  id              String    @id @default(cuid())
-  clientId        String
-  name            String    // Nom du service/outil
-  type            String    // website, hosting, domain, analytics, cms, crm, email, other
-  url             String?
-  username        String?
-  password        String?   // Encrypted in production
-  email           String?
-  apiKey          String?
-  expiryDate      DateTime?
-  notes           String?   @db.Text
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id         String    @id @default(cuid())
+  clientId   String
+  name       String // Nom du service/outil
+  type       String // website, hosting, domain, analytics, cms, crm, email, other
+  url        String?
+  username   String?
+  password   String? // Encrypted in production
+  email      String?
+  apiKey     String?
+  expiryDate DateTime?
+  notes      String?   @db.Text
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([clientId])
   @@index([type])
@@ -686,22 +683,22 @@ model ClientAccess {
 
 // Messages/Communications avec le client
 model ClientMessage {
-  id              String    @id @default(cuid())
-  clientId        String
-  direction       String    // inbound, outbound
-  channel         String    // email, phone, meeting, slack, other
-  subject         String?
-  content         String    @db.Text
-  attachments     String?   @db.Text // JSON array of attachment URLs
-  sentAt          DateTime  @default(now())
-  sentBy          String?   // Employee ID or name
-  isImportant     Boolean   @default(false)
-  followUpDate    DateTime?
-  status          String    @default("sent") // sent, read, replied, archived
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id           String    @id @default(cuid())
+  clientId     String
+  direction    String // inbound, outbound
+  channel      String // email, phone, meeting, slack, other
+  subject      String?
+  content      String    @db.Text
+  attachments  String?   @db.Text // JSON array of attachment URLs
+  sentAt       DateTime  @default(now())
+  sentBy       String? // Employee ID or name
+  isImportant  Boolean   @default(false)
+  followUpDate DateTime?
+  status       String    @default("sent") // sent, read, replied, archived
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([clientId])
   @@index([sentAt])
@@ -709,29 +706,28 @@ model ClientMessage {
 
 // Tâches spécifiques au client
 model ClientTask {
-  id              String    @id @default(cuid())
-  clientId        String
-  title           String
-  description     String?   @db.Text
-  type            String?   // content, design, development, meeting, review, other
-  status          String    @default("todo") // todo, in_progress, review, done
-  priority        String    @default("medium") // low, medium, high, urgent
-  dueDate         DateTime?
-  assignedTo      String?   // Employee ID
-  estimatedHours  Int?
-  actualHours     Int?
-  completedAt     DateTime?
-  notes           String?   @db.Text
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  clientId       String
+  title          String
+  description    String?   @db.Text
+  type           String? // content, design, development, meeting, review, other
+  status         String    @default("todo") // todo, in_progress, review, done
+  priority       String    @default("medium") // low, medium, high, urgent
+  dueDate        DateTime?
+  assignedTo     String? // Employee ID
+  estimatedHours Int?
+  actualHours    Int?
+  completedAt    DateTime?
+  notes          String?   @db.Text
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@index([clientId])
   @@index([status])
   @@index([dueDate])
 }
-
 
 // ==================== ONBOARDING ====================
 
@@ -742,53 +738,53 @@ model OnboardingStep {
   content     String   @db.Text
   type        String   @default("info") // info, video, quiz, policy, tour
   order       Int
-  role        String?  // null = all roles, or specific role (Lab, Bureau, Studio, Admin)
+  role        String? // null = all roles, or specific role (Lab, Bureau, Studio, Admin)
   isRequired  Boolean  @default(true)
   duration    Int      @default(5) // estimated minutes
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
-  progress    OnboardingProgress[]
+
+  progress OnboardingProgress[]
 }
 
 model Policy {
   id          Int      @id @default(autoincrement())
   title       String
   content     String   @db.Text
-  category    String   // general, security, hr, conduct, remote
+  category    String // general, security, hr, conduct, remote
   version     String   @default("1.0")
   isActive    Boolean  @default(true)
   requiresAck Boolean  @default(true) // requires acknowledgment
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   acknowledgments PolicyAcknowledgment[]
 }
 
 model PolicyAcknowledgment {
-  id         Int      @id @default(autoincrement())
-  employeeId String
-  policyId   Int
+  id             Int      @id @default(autoincrement())
+  employeeId     String
+  policyId       Int
   acknowledgedAt DateTime @default(now())
-  ipAddress  String?
-  
-  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  policy     Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
-  
+  ipAddress      String?
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  policy   Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
   @@unique([employeeId, policyId])
 }
 
 model OnboardingProgress {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   employeeId  String
   stepId      Int
-  status      String   @default("pending") // pending, in_progress, completed, skipped
+  status      String    @default("pending") // pending, in_progress, completed, skipped
   completedAt DateTime?
-  score       Int?     // for quiz steps
-  
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  step        OnboardingStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
-  
+  score       Int? // for quiz steps
+
+  employee Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  step     OnboardingStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
   @@unique([employeeId, stepId])
 }
 
@@ -796,32 +792,29 @@ model OnboardingProgress {
 model ChatMessage {
   id         Int      @id @default(autoincrement())
   employeeId String
-  role       String   // user, assistant
+  role       String // user, assistant
   content    String   @db.Text
   createdAt  DateTime @default(now())
-  
-  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
   @@index([employeeId])
 }
 
-
-
 // Relation entre documents et tâches
 model TaskDocument {
-  id          String    @id @default(cuid())
-  taskId      String
-  documentId  String
-  addedBy     String?   // ID de l'employé qui a attaché le document
-  createdAt   DateTime  @default(now())
+  id         String   @id @default(cuid())
+  taskId     String
+  documentId String
+  addedBy    String? // ID de l'employé qui a attaché le document
+  createdAt  DateTime @default(now())
 
-  document    Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
 
   @@unique([taskId, documentId])
   @@index([taskId])
   @@index([documentId])
 }
-
 
 // ============================================
 // SYSTÈME DE TICKETS & PORTAIL CLIENT
@@ -829,18 +822,18 @@ model TaskDocument {
 
 // Portail Client - URL unique pour chaque client
 model ClientPortal {
-  id          String   @id @default(cuid())
-  token       String   @unique @default(cuid())
-  clientName  String
-  clientEmail String?
-  companyId   String?
-  isActive    Boolean  @default(true)
-  welcomeMessage String? @db.Text
-  expiresAt   DateTime?  // Date d'expiration du token (null = jamais)
-  lastUsedAt  DateTime?  // Dernière utilisation du portail
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  tickets     Ticket[]
+  id              String           @id @default(cuid())
+  token           String           @unique @default(cuid())
+  clientName      String
+  clientEmail     String?
+  companyId       String?
+  isActive        Boolean          @default(true)
+  welcomeMessage  String?          @db.Text
+  expiresAt       DateTime? // Date d'expiration du token (null = jamais)
+  lastUsedAt      DateTime? // Dernière utilisation du portail
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  tickets         Ticket[]
   recommendations Recommendation[]
 
   @@index([token])
@@ -849,22 +842,22 @@ model ClientPortal {
 
 // Tickets soumis par les clients
 model Ticket {
-  id            String        @id @default(cuid())
-  portalId      String
-  portal        ClientPortal  @relation(fields: [portalId], references: [id], onDelete: Cascade)
-  projectId     String?
-  subject       String
-  description   String        @db.Text
-  category      String?       // bug, feature, question, support
-  priority      String        @default("medium") // low, medium, high, urgent
-  status        String        @default("open") // open, in_progress, waiting, resolved, closed
-  submittedBy   String?       // Nom du soumetteur
-  submittedEmail String?      // Email du soumetteur
-  assignedToId  String?
-  resolvedAt    DateTime?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  responses     TicketResponse[]
+  id             String           @id @default(cuid())
+  portalId       String
+  portal         ClientPortal     @relation(fields: [portalId], references: [id], onDelete: Cascade)
+  projectId      String?
+  subject        String
+  description    String           @db.Text
+  category       String? // bug, feature, question, support
+  priority       String           @default("medium") // low, medium, high, urgent
+  status         String           @default("open") // open, in_progress, waiting, resolved, closed
+  submittedBy    String? // Nom du soumetteur
+  submittedEmail String? // Email du soumetteur
+  assignedToId   String?
+  resolvedAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  responses      TicketResponse[]
 
   @@index([portalId])
   @@index([projectId])
@@ -874,19 +867,18 @@ model Ticket {
 
 // Réponses aux tickets
 model TicketResponse {
-  id          String   @id @default(cuid())
-  ticketId    String
-  ticket      Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  content     String   @db.Text
-  isInternal  Boolean  @default(false) // Note interne ou réponse visible au client
-  authorType  String   // client, employee
-  authorName  String?
-  authorId    String?  // employeeId si authorType = employee
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  ticketId   String
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  content    String   @db.Text
+  isInternal Boolean  @default(false) // Note interne ou réponse visible au client
+  authorType String // client, employee
+  authorName String?
+  authorId   String? // employeeId si authorType = employee
+  createdAt  DateTime @default(now())
 
   @@index([ticketId])
 }
-
 
 // Paramètres système
 model SystemSettings {
@@ -894,46 +886,45 @@ model SystemSettings {
   key         String   @unique
   value       String   @db.Text
   description String?
-  category    String?  // general, email, notifications, security, etc.
+  category    String? // general, email, notifications, security, etc.
   updatedAt   DateTime @updatedAt
   updatedBy   String?
 
   @@index([category])
 }
 
-
 // Portail Employé - Token d'accès unique
 model EmployeePortal {
-  id          String   @id @default(cuid())
-  employeeId  String   @unique
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  token       String   @unique @default(cuid())
-  isActive    Boolean  @default(true)
-  expiresAt   DateTime?  // Date d'expiration du token (null = jamais)
-  lastAccess  DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String    @id @default(cuid())
+  employeeId String    @unique
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  token      String    @unique @default(cuid())
+  isActive   Boolean   @default(true)
+  expiresAt  DateTime? // Date d'expiration du token (null = jamais)
+  lastAccess DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   @@index([token])
 }
 
 // Demandes des employés (congés, formations, équipement)
 model EmployeeRequest {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   employeeId  String
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  type        String   // leave, training, equipment, other
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type        String // leave, training, equipment, other
   title       String
-  description String?  @db.Text
+  description String?   @db.Text
   startDate   DateTime?
   endDate     DateTime?
-  status      String   @default("pending") // pending, approved, rejected
-  priority    String   @default("normal") // low, normal, high, urgent
+  status      String    @default("pending") // pending, approved, rejected
+  priority    String    @default("normal") // low, normal, high, urgent
   reviewedBy  String?
   reviewedAt  DateTime?
-  reviewNotes String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  reviewNotes String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([employeeId])
   @@index([status])
@@ -948,9 +939,9 @@ model EmployeeDocument {
   name        String
   description String?
   fileUrl     String
-  fileType    String?  // pdf, doc, image, etc.
-  fileSize    Int?     // en bytes
-  category    String?  // contract, payslip, training, personal, etc.
+  fileType    String? // pdf, doc, image, etc.
+  fileSize    Int? // en bytes
+  category    String? // contract, payslip, training, personal, etc.
   isPrivate   Boolean  @default(true)
   uploadedBy  String?
   createdAt   DateTime @default(now())
@@ -962,110 +953,107 @@ model EmployeeDocument {
 
 // Événements du calendrier employé
 model EmployeeEvent {
-  id          String   @id @default(cuid())
-  employeeId  String
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  title       String
-  description String?  @db.Text
-  startDate   DateTime
-  endDate     DateTime?
-  allDay      Boolean  @default(false)
-  type        String   @default("event") // event, meeting, deadline, reminder
-  location    String?
-  color       String?
-  isRecurring Boolean  @default(false)
+  id               String    @id @default(cuid())
+  employeeId       String
+  employee         Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  title            String
+  description      String?   @db.Text
+  startDate        DateTime
+  endDate          DateTime?
+  allDay           Boolean   @default(false)
+  type             String    @default("event") // event, meeting, deadline, reminder
+  location         String?
+  color            String?
+  isRecurring      Boolean   @default(false)
   recurringPattern String? // daily, weekly, monthly
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   @@index([employeeId])
   @@index([startDate])
 }
 
-
 // Accès employé aux clients et projets
 model EmployeeAccess {
-  id          String   @id @default(cuid())
-  employeeId  String
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  
+  id         String   @id @default(cuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
   // Type d'accès: "all" = tout, "selected" = sélection spécifique
-  accessType  String   @default("all") // all, selected
-  
+  accessType String @default("all") // all, selected
+
   // Accès aux clients (companyIds séparés par virgule, ou "*" pour tous)
   clientAccess String? @db.Text
-  
+
   // Accès aux projets (projectIds séparés par virgule, ou "*" pour tous)
   projectAccess String? @db.Text
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([employeeId])
   @@index([employeeId])
 }
 
 // Configuration du contexte Leo IA par employé
 model EmployeeLeoContext {
-  id          String   @id @default(cuid())
-  employeeId  String
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  
+  id         String   @id @default(cuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
   // Contextes activés pour Leo
-  canAccessTasks       Boolean @default(true)  // Accès aux tâches assignées
-  canAccessProjects    Boolean @default(true)  // Accès aux projets
-  canAccessClients     Boolean @default(false) // Accès aux informations clients
-  canAccessContacts    Boolean @default(false) // Accès aux contacts
-  canAccessFinancials  Boolean @default(false) // Accès aux données financières (factures, devis)
-  canAccessTeam        Boolean @default(false) // Accès aux infos équipe
+  canAccessTasks         Boolean @default(true) // Accès aux tâches assignées
+  canAccessProjects      Boolean @default(true) // Accès aux projets
+  canAccessClients       Boolean @default(false) // Accès aux informations clients
+  canAccessContacts      Boolean @default(false) // Accès aux contacts
+  canAccessFinancials    Boolean @default(false) // Accès aux données financières (factures, devis)
+  canAccessTeam          Boolean @default(false) // Accès aux infos équipe
   canAccessOpportunities Boolean @default(false) // Accès au pipeline commercial
-  
+
   // Instructions personnalisées pour Leo
   customInstructions String? @db.Text
-  
+
   // Restrictions
   restrictedTopics String? @db.Text // Sujets interdits (séparés par virgule)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([employeeId])
   @@index([employeeId])
 }
 
-
 // Notifications pour les employés
 model EmployeeNotification {
-  id          String    @id @default(cuid())
-  employeeId  String
-  type        String    // timesheet_approved, timesheet_rejected, task_assigned, task_updated, request_approved, request_rejected, general
-  title       String
-  message     String    @db.Text
-  link        String?   // Lien vers la ressource concernée (ex: /timesheets, /tasks/123)
-  isRead      Boolean   @default(false)
-  readAt      DateTime?
-  metadata    String?   @db.Text // JSON avec données additionnelles
-  createdAt   DateTime  @default(now())
+  id         String    @id @default(cuid())
+  employeeId String
+  type       String // timesheet_approved, timesheet_rejected, task_assigned, task_updated, request_approved, request_rejected, general
+  title      String
+  message    String    @db.Text
+  link       String? // Lien vers la ressource concernée (ex: /timesheets, /tasks/123)
+  isRead     Boolean   @default(false)
+  readAt     DateTime?
+  metadata   String?   @db.Text // JSON avec données additionnelles
+  createdAt  DateTime  @default(now())
 
   @@index([employeeId])
   @@index([isRead])
   @@index([createdAt])
 }
 
-
 // Invitations pour les nouveaux utilisateurs
 model Invitation {
-  id          String    @id @default(cuid())
-  email       String
-  token       String    @unique
-  role        String    @default("user") // super_admin, admin, user
-  invitedBy   String    // ID de l'utilisateur qui a envoyé l'invitation
-  expiresAt   DateTime
-  acceptedAt  DateTime?
-  createdAt   DateTime  @default(now())
-  
-  inviter     User      @relation("InvitedBy", fields: [invitedBy], references: [id])
-  
+  id         String    @id @default(cuid())
+  email      String
+  token      String    @unique
+  role       String    @default("user") // super_admin, admin, user
+  invitedBy  String // ID de l'utilisateur qui a envoyé l'invitation
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  inviter User @relation("InvitedBy", fields: [invitedBy], references: [id])
+
   @@index([email])
   @@index([token])
   @@index([expiresAt])
@@ -1073,61 +1061,59 @@ model Invitation {
 
 // Accès granulaires par utilisateur
 model UserAccess {
-  id          String    @id @default(cuid())
-  userId      String
-  
+  id     String @id @default(cuid())
+  userId String
+
   // Type d'accès: all (tout), specific (sélection spécifique), none (aucun)
-  clientsAccess   String    @default("all") // all, specific, none
-  projectsAccess  String    @default("all") // all, specific, none
-  spacesAccess    String    @default("all") // all, specific, none
-  
+  clientsAccess  String @default("all") // all, specific, none
+  projectsAccess String @default("all") // all, specific, none
+  spacesAccess   String @default("all") // all, specific, none
+
   // IDs spécifiques si access = "specific" (JSON array)
-  allowedClients  String?   @db.Text // JSON array of client IDs
-  allowedProjects String?   @db.Text // JSON array of project IDs
-  allowedSpaces   String?   @db.Text // JSON array of space names (commercial, teams, billing, etc.)
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  allowedClients  String? @db.Text // JSON array of client IDs
+  allowedProjects String? @db.Text // JSON array of project IDs
+  allowedSpaces   String? @db.Text // JSON array of space names (commercial, teams, billing, etc.)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([userId])
   @@index([userId])
 }
 
-
 // Préférences de notifications pour les employés
 model NotificationPreferences {
-  id                    String   @id @default(cuid())
-  employeeId            String   @unique
-  
+  id         String @id @default(cuid())
+  employeeId String @unique
+
   // Notifications par type
-  timesheetApproved     Boolean  @default(true)
-  timesheetRejected     Boolean  @default(true)
-  taskAssigned          Boolean  @default(true)
-  taskUpdated           Boolean  @default(true)
-  requestApproved       Boolean  @default(true)
-  requestRejected       Boolean  @default(true)
-  generalAnnouncements  Boolean  @default(true)
-  
+  timesheetApproved    Boolean @default(true)
+  timesheetRejected    Boolean @default(true)
+  taskAssigned         Boolean @default(true)
+  taskUpdated          Boolean @default(true)
+  requestApproved      Boolean @default(true)
+  requestRejected      Boolean @default(true)
+  generalAnnouncements Boolean @default(true)
+
   // Méthodes de notification
-  inAppEnabled          Boolean  @default(true)
-  emailEnabled          Boolean  @default(false)
-  
+  inAppEnabled Boolean @default(true)
+  emailEnabled Boolean @default(false)
+
   // Fréquence des emails (si activé)
-  emailFrequency        String   @default("instant") // instant, daily, weekly
-  
+  emailFrequency String @default("instant") // instant, daily, weekly
+
   // Heures de silence (ne pas envoyer de notifications)
-  quietHoursEnabled     Boolean  @default(false)
-  quietHoursStart       String?  // Format HH:MM
-  quietHoursEnd         String?  // Format HH:MM
-  
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  
+  quietHoursEnabled Boolean @default(false)
+  quietHoursStart   String? // Format HH:MM
+  quietHoursEnd     String? // Format HH:MM
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([employeeId])
 }
-
 
 // ==========================================
 // HUB DE COMMUNICATION - AGENCE DU FUTUR
@@ -1135,29 +1121,29 @@ model NotificationPreferences {
 
 // Calendrier éditorial - Publications planifiées
 model ContentCalendar {
-  id              String    @id @default(cuid())
-  clientId        String
-  title           String
-  description     String?   @db.Text
-  contentType     String    // post, story, reel, article, newsletter, video, podcast, infographic
-  platform        String    // instagram, facebook, linkedin, twitter, tiktok, youtube, blog, newsletter
-  status          String    @default("draft") // draft, scheduled, published, cancelled
-  scheduledDate   DateTime
-  publishedDate   DateTime?
-  content         String?   @db.Text  // Contenu du post
-  mediaUrls       String?   @db.Text  // URLs des médias (JSON array)
-  hashtags        String?   @db.Text  // Hashtags suggérés
-  caption         String?   @db.Text  // Légende/Caption
-  link            String?   // Lien associé
-  assignedTo      String?   // ID de l'employé assigné
-  approvedBy      String?   // ID de l'approbateur
-  approvedAt      DateTime?
-  engagement      String?   @db.Text  // Métriques d'engagement (JSON)
-  notes           String?   @db.Text
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
+  id            String              @id @default(cuid())
+  clientId      String
+  title         String
+  description   String?             @db.Text
+  contentType   String // post, story, reel, article, newsletter, video, podcast, infographic
+  platform      String // instagram, facebook, linkedin, twitter, tiktok, youtube, blog, newsletter
+  status        String              @default("draft") // draft, scheduled, published, cancelled
+  scheduledDate DateTime
+  publishedDate DateTime?
+  content       String?             @db.Text // Contenu du post
+  mediaUrls     String?             @db.Text // URLs des médias (JSON array)
+  hashtags      String?             @db.Text // Hashtags suggérés
+  caption       String?             @db.Text // Légende/Caption
+  link          String? // Lien associé
+  assignedTo    String? // ID de l'employé assigné
+  approvedBy    String? // ID de l'approbateur
+  approvedAt    DateTime?
+  engagement    String?             @db.Text // Métriques d'engagement (JSON)
+  notes         String?             @db.Text
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  client        CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   @@index([clientId])
   @@index([scheduledDate])
   @@index([status])
@@ -1166,45 +1152,45 @@ model ContentCalendar {
 
 // Brief de projet de communication
 model CommunicationBrief {
-  id                String    @id @default(cuid())
-  clientId          String
-  title             String
-  projectType       String    // branding, campaign, social_media, website, video, event, launch
-  status            String    @default("draft") // draft, in_review, approved, in_progress, completed
-  priority          String    @default("medium") // low, medium, high, urgent
-  
+  id          String @id @default(cuid())
+  clientId    String
+  title       String
+  projectType String // branding, campaign, social_media, website, video, event, launch
+  status      String @default("draft") // draft, in_review, approved, in_progress, completed
+  priority    String @default("medium") // low, medium, high, urgent
+
   // Contexte et objectifs
-  background        String?   @db.Text  // Contexte du projet
-  objectives        String?   @db.Text  // Objectifs SMART
-  targetAudience    String?   @db.Text  // Persona et audience cible
-  keyMessages       String?   @db.Text  // Messages clés à communiquer
-  toneOfVoice       String?   // professional, friendly, bold, elegant, playful
-  
+  background     String? @db.Text // Contexte du projet
+  objectives     String? @db.Text // Objectifs SMART
+  targetAudience String? @db.Text // Persona et audience cible
+  keyMessages    String? @db.Text // Messages clés à communiquer
+  toneOfVoice    String? // professional, friendly, bold, elegant, playful
+
   // Livrables et délais
-  deliverables      String?   @db.Text  // Liste des livrables (JSON)
-  startDate         DateTime?
-  deadline          DateTime?
-  milestones        String?   @db.Text  // Jalons du projet (JSON)
-  
+  deliverables String?   @db.Text // Liste des livrables (JSON)
+  startDate    DateTime?
+  deadline     DateTime?
+  milestones   String?   @db.Text // Jalons du projet (JSON)
+
   // Budget et ressources
-  budget            Int?
-  budgetDetails     String?   @db.Text  // Répartition du budget (JSON)
-  teamMembers       String?   @db.Text  // Membres de l'équipe assignés (JSON)
-  
+  budget        Int?
+  budgetDetails String? @db.Text // Répartition du budget (JSON)
+  teamMembers   String? @db.Text // Membres de l'équipe assignés (JSON)
+
   // Références et inspiration
-  competitors       String?   @db.Text  // Analyse concurrentielle
-  inspiration       String?   @db.Text  // Références visuelles/créatives (JSON URLs)
-  brandGuidelines   String?   // URL vers les guidelines de marque
-  
+  competitors     String? @db.Text // Analyse concurrentielle
+  inspiration     String? @db.Text // Références visuelles/créatives (JSON URLs)
+  brandGuidelines String? // URL vers les guidelines de marque
+
   // Validation
-  clientContact     String?   // Contact principal côté client
-  approvalProcess   String?   @db.Text  // Processus de validation
-  
-  notes             String?   @db.Text
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  client            CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
+  clientContact   String? // Contact principal côté client
+  approvalProcess String? @db.Text // Processus de validation
+
+  notes     String?             @db.Text
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  client    CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   @@index([clientId])
   @@index([status])
   @@index([deadline])
@@ -1212,46 +1198,46 @@ model CommunicationBrief {
 
 // Stratégie de communication
 model CommunicationStrategy {
-  id                String    @id @default(cuid())
-  clientId          String
-  title             String
-  type              String    // annual, quarterly, campaign, crisis, launch
-  status            String    @default("draft") // draft, active, paused, completed
-  period            String?   // Q1 2024, 2024, etc.
-  
+  id       String  @id @default(cuid())
+  clientId String
+  title    String
+  type     String // annual, quarterly, campaign, crisis, launch
+  status   String  @default("draft") // draft, active, paused, completed
+  period   String? // Q1 2024, 2024, etc.
+
   // Analyse
-  swotAnalysis      String?   @db.Text  // Forces, Faiblesses, Opportunités, Menaces (JSON)
-  competitorAnalysis String?  @db.Text  // Analyse concurrentielle (JSON)
-  audienceInsights  String?   @db.Text  // Insights sur l'audience (JSON)
-  
+  swotAnalysis       String? @db.Text // Forces, Faiblesses, Opportunités, Menaces (JSON)
+  competitorAnalysis String? @db.Text // Analyse concurrentielle (JSON)
+  audienceInsights   String? @db.Text // Insights sur l'audience (JSON)
+
   // Objectifs stratégiques
-  visionStatement   String?   @db.Text  // Vision de la communication
-  objectives        String?   @db.Text  // Objectifs stratégiques (JSON)
-  kpis              String?   @db.Text  // KPIs à suivre (JSON)
-  
+  visionStatement String? @db.Text // Vision de la communication
+  objectives      String? @db.Text // Objectifs stratégiques (JSON)
+  kpis            String? @db.Text // KPIs à suivre (JSON)
+
   // Positionnement
-  positioning       String?   @db.Text  // Positionnement de marque
-  valueProposition  String?   @db.Text  // Proposition de valeur
-  brandPersonality  String?   @db.Text  // Personnalité de marque
-  
+  positioning      String? @db.Text // Positionnement de marque
+  valueProposition String? @db.Text // Proposition de valeur
+  brandPersonality String? @db.Text // Personnalité de marque
+
   // Canaux et tactiques
-  channels          String?   @db.Text  // Canaux de communication (JSON)
-  contentPillars    String?   @db.Text  // Piliers de contenu (JSON)
-  tacticalPlan      String?   @db.Text  // Plan tactique (JSON)
-  
+  channels       String? @db.Text // Canaux de communication (JSON)
+  contentPillars String? @db.Text // Piliers de contenu (JSON)
+  tacticalPlan   String? @db.Text // Plan tactique (JSON)
+
   // Budget et ressources
-  budget            Int?
-  budgetAllocation  String?   @db.Text  // Répartition par canal (JSON)
-  
+  budget           Int?
+  budgetAllocation String? @db.Text // Répartition par canal (JSON)
+
   // Calendrier
-  timeline          String?   @db.Text  // Timeline stratégique (JSON)
-  keyDates          String?   @db.Text  // Dates clés (JSON)
-  
-  notes             String?   @db.Text
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  client            CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
+  timeline String? @db.Text // Timeline stratégique (JSON)
+  keyDates String? @db.Text // Dates clés (JSON)
+
+  notes     String?             @db.Text
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  client    CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   @@index([clientId])
   @@index([status])
   @@index([type])
@@ -1259,26 +1245,26 @@ model CommunicationStrategy {
 
 // Assets de marque
 model BrandAsset {
-  id              String    @id @default(cuid())
-  clientId        String
-  name            String
-  type            String    // logo, color_palette, typography, icon, template, photo, video, document
-  category        String?   // primary, secondary, social, print, web
-  fileUrl         String
-  thumbnailUrl    String?
-  format          String?   // png, jpg, svg, pdf, ai, psd, mp4
-  dimensions      String?   // 1920x1080, etc.
-  fileSize        Int?      // En bytes
-  version         String?   // v1, v2, etc.
-  isApproved      Boolean   @default(false)
-  approvedBy      String?
-  approvedAt      DateTime?
-  tags            String?   @db.Text  // Tags pour recherche (JSON)
-  usageNotes      String?   @db.Text  // Notes d'utilisation
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
+  id           String              @id @default(cuid())
+  clientId     String
+  name         String
+  type         String // logo, color_palette, typography, icon, template, photo, video, document
+  category     String? // primary, secondary, social, print, web
+  fileUrl      String
+  thumbnailUrl String?
+  format       String? // png, jpg, svg, pdf, ai, psd, mp4
+  dimensions   String? // 1920x1080, etc.
+  fileSize     Int? // En bytes
+  version      String? // v1, v2, etc.
+  isApproved   Boolean             @default(false)
+  approvedBy   String?
+  approvedAt   DateTime?
+  tags         String?             @db.Text // Tags pour recherche (JSON)
+  usageNotes   String?             @db.Text // Notes d'utilisation
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  client       CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   @@index([clientId])
   @@index([type])
   @@index([category])
@@ -1286,41 +1272,41 @@ model BrandAsset {
 
 // Rapports et Analytics
 model CommunicationReport {
-  id              String    @id @default(cuid())
-  clientId        String
-  title           String
-  type            String    // monthly, quarterly, annual, campaign, custom
-  period          String    // Janvier 2024, Q1 2024, etc.
-  status          String    @default("draft") // draft, sent, viewed
-  
+  id       String @id @default(cuid())
+  clientId String
+  title    String
+  type     String // monthly, quarterly, annual, campaign, custom
+  period   String // Janvier 2024, Q1 2024, etc.
+  status   String @default("draft") // draft, sent, viewed
+
   // Métriques globales
-  metrics         String?   @db.Text  // Toutes les métriques (JSON)
-  highlights      String?   @db.Text  // Points forts du mois (JSON)
-  challenges      String?   @db.Text  // Défis rencontrés (JSON)
-  
+  metrics    String? @db.Text // Toutes les métriques (JSON)
+  highlights String? @db.Text // Points forts du mois (JSON)
+  challenges String? @db.Text // Défis rencontrés (JSON)
+
   // Réseaux sociaux
-  socialMetrics   String?   @db.Text  // Métriques par plateforme (JSON)
-  topPosts        String?   @db.Text  // Meilleurs posts (JSON)
-  audienceGrowth  String?   @db.Text  // Croissance de l'audience (JSON)
-  
+  socialMetrics  String? @db.Text // Métriques par plateforme (JSON)
+  topPosts       String? @db.Text // Meilleurs posts (JSON)
+  audienceGrowth String? @db.Text // Croissance de l'audience (JSON)
+
   // Campagnes
-  campaignResults String?   @db.Text  // Résultats des campagnes (JSON)
-  
+  campaignResults String? @db.Text // Résultats des campagnes (JSON)
+
   // Recommandations
-  recommendations String?   @db.Text  // Recommandations pour le prochain mois
-  nextSteps       String?   @db.Text  // Prochaines étapes (JSON)
-  
+  recommendations String? @db.Text // Recommandations pour le prochain mois
+  nextSteps       String? @db.Text // Prochaines étapes (JSON)
+
   // Fichier
-  reportUrl       String?   // URL du rapport PDF
-  presentationUrl String?   // URL de la présentation
-  
-  sentAt          DateTime?
-  viewedAt        DateTime?
-  notes           String?   @db.Text
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
+  reportUrl       String? // URL du rapport PDF
+  presentationUrl String? // URL de la présentation
+
+  sentAt    DateTime?
+  viewedAt  DateTime?
+  notes     String?             @db.Text
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  client    CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   @@index([clientId])
   @@index([type])
   @@index([period])
@@ -1328,30 +1314,29 @@ model CommunicationReport {
 
 // Idées et brainstorming
 model ContentIdea {
-  id              String    @id @default(cuid())
-  clientId        String
-  title           String
-  description     String?   @db.Text
-  category        String?   // trending, evergreen, seasonal, promotional, educational
-  platform        String?   // Pour quelle plateforme
-  format          String?   // post, video, story, carousel, etc.
-  status          String    @default("idea") // idea, approved, scheduled, rejected
-  priority        Int       @default(0)  // Score de priorité
-  source          String?   // Origine de l'idée (team, client, trend, competitor)
-  references      String?   @db.Text  // Liens de référence (JSON)
-  suggestedDate   DateTime?
-  assignedTo      String?
-  votes           Int       @default(0)  // Votes de l'équipe
-  notes           String?   @db.Text
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
+  id            String              @id @default(cuid())
+  clientId      String
+  title         String
+  description   String?             @db.Text
+  category      String? // trending, evergreen, seasonal, promotional, educational
+  platform      String? // Pour quelle plateforme
+  format        String? // post, video, story, carousel, etc.
+  status        String              @default("idea") // idea, approved, scheduled, rejected
+  priority      Int                 @default(0) // Score de priorité
+  source        String? // Origine de l'idée (team, client, trend, competitor)
+  references    String?             @db.Text // Liens de référence (JSON)
+  suggestedDate DateTime?
+  assignedTo    String?
+  votes         Int                 @default(0) // Votes de l'équipe
+  notes         String?             @db.Text
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  client        CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   @@index([clientId])
   @@index([status])
   @@index([category])
 }
-
 
 // ==========================================
 // PORTAIL CLIENT AMÉLIORÉ
@@ -1359,22 +1344,27 @@ model ContentIdea {
 
 // Livrables de projet pour le client
 model ClientDeliverable {
-  id            String   @id @default(cuid())
-  portalId      String
-  projectId     String?
-  title         String
-  description   String?  @db.Text
-  type          String   // document, design, video, website, other
-  status        String   @default("pending") // pending, in_review, approved, rejected, revision_requested
-  dueDate       DateTime?
-  fileUrl       String?
-  thumbnailUrl  String?
-  version       Int      @default(1)
-  clientFeedback String? @db.Text
-  approvedAt    DateTime?
-  approvedBy    String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String    @id @default(cuid())
+  portalId        String
+  projectId       String?
+  title           String
+  description     String?   @db.Text
+  type            String // document, design, video, website, other
+  status          String    @default("pending") // pending, in_review, approved, rejected, revision_requested
+  dueDate         DateTime?
+  fileUrl         String?
+  thumbnailUrl    String?
+  version         Int       @default(1)
+  clientFeedback  String?   @db.Text
+  approvedAt      DateTime?
+  approvedBy      String?
+  workflowEnabled Boolean   @default(false) // Activer le workflow d'approbation
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations pour workflow d'approbation
+  workflow ApprovalWorkflow?
+  versions DeliverableVersion[]
 
   @@index([portalId])
   @@index([projectId])
@@ -1387,9 +1377,9 @@ model ClientChatMessage {
   portalId    String
   projectId   String?
   content     String   @db.Text
-  senderType  String   // client, employee
+  senderType  String // client, employee
   senderName  String
-  senderId    String?  // employeeId si employee
+  senderId    String? // employeeId si employee
   isRead      Boolean  @default(false)
   attachments String?  @db.Text // JSON array of file URLs
   createdAt   DateTime @default(now())
@@ -1401,14 +1391,14 @@ model ClientChatMessage {
 
 // Notifications pour le client
 model ClientNotification {
-  id          String   @id @default(cuid())
-  portalId    String
-  type        String   // deliverable_ready, message_received, meeting_scheduled, project_update, invoice_ready
-  title       String
-  message     String   @db.Text
-  link        String?
-  isRead      Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  portalId  String
+  type      String // deliverable_ready, message_received, meeting_scheduled, project_update, invoice_ready
+  title     String
+  message   String   @db.Text
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 
   @@index([portalId])
   @@index([isRead])
@@ -1417,19 +1407,19 @@ model ClientNotification {
 
 // Fichiers partagés avec le client
 model ClientFile {
-  id          String   @id @default(cuid())
-  portalId    String
-  projectId   String?
-  name        String
-  description String?
-  fileUrl     String
-  fileType    String   // pdf, image, video, document, archive, other
-  fileSize    Int?     // en bytes
-  category    String?  // contract, invoice, deliverable, asset, brand, other
-  uploadedBy  String   // employee name
+  id           String   @id @default(cuid())
+  portalId     String
+  projectId    String?
+  name         String
+  description  String?
+  fileUrl      String
+  fileType     String // pdf, image, video, document, archive, other
+  fileSize     Int? // en bytes
+  category     String? // contract, invoice, deliverable, asset, brand, other
+  uploadedBy   String // employee name
   uploadedById String?
-  isPublic    Boolean  @default(true) // visible par le client
-  createdAt   DateTime @default(now())
+  isPublic     Boolean  @default(true) // visible par le client
+  createdAt    DateTime @default(now())
 
   @@index([portalId])
   @@index([projectId])
@@ -1438,24 +1428,24 @@ model ClientFile {
 
 // Réunions avec le client
 model ClientMeeting {
-  id            String   @id @default(cuid())
-  portalId      String
-  projectId     String?
-  title         String
-  description   String?  @db.Text
-  meetingDate   DateTime
-  duration      Int?     // en minutes
-  location      String?  // URL de visio ou lieu physique
-  meetingType   String   @default("video") // video, phone, in_person
-  status        String   @default("scheduled") // scheduled, completed, cancelled, rescheduled
-  attendees     String?  @db.Text // JSON array of attendees
-  notes         String?  @db.Text
-  recordingUrl  String?
-  agendaItems   String?  @db.Text // JSON array
-  actionItems   String?  @db.Text // JSON array
-  createdBy     String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String   @id @default(cuid())
+  portalId     String
+  projectId    String?
+  title        String
+  description  String?  @db.Text
+  meetingDate  DateTime
+  duration     Int? // en minutes
+  location     String? // URL de visio ou lieu physique
+  meetingType  String   @default("video") // video, phone, in_person
+  status       String   @default("scheduled") // scheduled, completed, cancelled, rescheduled
+  attendees    String?  @db.Text // JSON array of attendees
+  notes        String?  @db.Text
+  recordingUrl String?
+  agendaItems  String?  @db.Text // JSON array
+  actionItems  String?  @db.Text // JSON array
+  createdBy    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@index([portalId])
   @@index([projectId])
@@ -1465,18 +1455,18 @@ model ClientMeeting {
 
 // Suivi du budget projet pour le client
 model ProjectBudgetTracking {
-  id            String   @id @default(cuid())
-  portalId      String
-  projectId     String?
-  totalBudget   Float
-  spentAmount   Float    @default(0)
-  currency      String   @default("CAD")
-  lastUpdated   DateTime @default(now())
-  breakdown     String?  @db.Text // JSON breakdown by category
-  invoices      String?  @db.Text // JSON array of invoice references
-  notes         String?  @db.Text
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String   @id @default(cuid())
+  portalId    String
+  projectId   String?
+  totalBudget Float
+  spentAmount Float    @default(0)
+  currency    String   @default("CAD")
+  lastUpdated DateTime @default(now())
+  breakdown   String?  @db.Text // JSON breakdown by category
+  invoices    String?  @db.Text // JSON array of invoice references
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([portalId])
   @@index([projectId])
@@ -1484,19 +1474,19 @@ model ProjectBudgetTracking {
 
 // Timeline/Étapes de projet visible par le client
 model ClientProjectMilestone {
-  id            String   @id @default(cuid())
-  portalId      String
-  projectId     String?
-  title         String
-  description   String?  @db.Text
-  phase         String?  // discovery, design, development, testing, launch
-  status        String   @default("upcoming") // upcoming, in_progress, completed, delayed
-  dueDate       DateTime?
-  completedAt   DateTime?
-  order         Int      @default(0)
-  isVisible     Boolean  @default(true) // visible par le client
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id          String    @id @default(cuid())
+  portalId    String
+  projectId   String?
+  title       String
+  description String?   @db.Text
+  phase       String? // discovery, design, development, testing, launch
+  status      String    @default("upcoming") // upcoming, in_progress, completed, delayed
+  dueDate     DateTime?
+  completedAt DateTime?
+  order       Int       @default(0)
+  isVisible   Boolean   @default(true) // visible par le client
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([portalId])
   @@index([projectId])
@@ -1507,16 +1497,16 @@ model ClientProjectMilestone {
 // Commentaires sur les fichiers/livrables
 model ClientFileComment {
   id            String   @id @default(cuid())
-  fileId        String?  // ClientFile id
-  deliverableId String?  // ClientDeliverable id
+  fileId        String? // ClientFile id
+  deliverableId String? // ClientDeliverable id
   portalId      String
   content       String   @db.Text
-  authorType    String   // client, employee
+  authorType    String // client, employee
   authorName    String
   authorId      String?
-  positionX     Float?   // Position du commentaire sur l'image/document
+  positionX     Float? // Position du commentaire sur l'image/document
   positionY     Float?
-  pageNumber    Int?     // Pour les PDFs
+  pageNumber    Int? // Pour les PDFs
   isResolved    Boolean  @default(false)
   createdAt     DateTime @default(now())
 
@@ -1525,24 +1515,23 @@ model ClientFileComment {
   @@index([portalId])
 }
 
-
 // Demandes de vacances
 model VacationRequest {
-  id            String   @id @default(cuid())
-  employeeId    String
-  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  type          String   // vacation, sick, personal, unpaid, other
-  startDate     DateTime
-  endDate       DateTime
-  totalDays     Float    // Nombre de jours demandés
-  reason        String?  @db.Text
-  status        String   @default("pending") // pending, approved, rejected, cancelled
-  reviewedBy    String?  // ID de l'admin qui a traité la demande
+  id             String    @id @default(cuid())
+  employeeId     String
+  employee       Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type           String // vacation, sick, personal, unpaid, other
+  startDate      DateTime
+  endDate        DateTime
+  totalDays      Float // Nombre de jours demandés
+  reason         String?   @db.Text
+  status         String    @default("pending") // pending, approved, rejected, cancelled
+  reviewedBy     String? // ID de l'admin qui a traité la demande
   reviewedByName String? // Nom de l'admin
-  reviewedAt    DateTime?
-  reviewComment String?  @db.Text
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  reviewedAt     DateTime?
+  reviewComment  String?   @db.Text
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@index([employeeId])
   @@index([status])
@@ -1557,11 +1546,11 @@ model VacationBalance {
   employee        Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   year            Int      @default(2025)
   totalDays       Float    @default(20) // Jours alloués par an
-  usedDays        Float    @default(0)  // Jours utilisés
-  pendingDays     Float    @default(0)  // Jours en attente d'approbation
-  carriedOverDays Float    @default(0)  // Jours reportés de l'année précédente
-  sickDaysUsed    Float    @default(0)  // Jours maladie utilisés
-  sickDaysAllowed Float    @default(5)  // Jours maladie alloués
+  usedDays        Float    @default(0) // Jours utilisés
+  pendingDays     Float    @default(0) // Jours en attente d'approbation
+  carriedOverDays Float    @default(0) // Jours reportés de l'année précédente
+  sickDaysUsed    Float    @default(0) // Jours maladie utilisés
+  sickDaysAllowed Float    @default(5) // Jours maladie alloués
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -1569,64 +1558,63 @@ model VacationBalance {
   @@index([year])
 }
 
-
 // ==================== MODULE FACTURATION ====================
 
 // Factures
 model Invoice {
-  id              String    @id @default(cuid())
-  invoiceNumber   String    @unique // Format: INV-2024-0001
-  quoteId         String?   // Référence au devis si converti
-  projectId       String?
-  
+  id            String  @id @default(cuid())
+  invoiceNumber String  @unique // Format: INV-2024-0001
+  quoteId       String? // Référence au devis si converti
+  projectId     String?
+
   // Informations client
-  clientName      String
-  clientEmail     String?
-  clientCompany   String?
-  clientAddress   String?   @db.Text
-  clientPhone     String?
-  
+  clientName    String
+  clientEmail   String?
+  clientCompany String?
+  clientAddress String? @db.Text
+  clientPhone   String?
+
   // Informations facture
-  title           String
-  description     String?   @db.Text
-  issueDate       DateTime  @default(now())
-  dueDate         DateTime
-  
+  title       String
+  description String?  @db.Text
+  issueDate   DateTime @default(now())
+  dueDate     DateTime
+
   // Statut
-  status          String    @default("draft") // draft, sent, viewed, paid, partial, overdue, cancelled
-  
+  status String @default("draft") // draft, sent, viewed, paid, partial, overdue, cancelled
+
   // Montants
-  subtotal        Float     @default(0)
-  discountPercent Float     @default(0)
-  discountAmount  Float     @default(0)
-  taxRate         Float     @default(0.14975) // TPS 5% + TVQ 9.975%
-  taxAmount       Float     @default(0)
-  total           Float     @default(0)
-  amountPaid      Float     @default(0)
-  amountDue       Float     @default(0)
-  currency        String    @default("CAD")
-  
+  subtotal        Float  @default(0)
+  discountPercent Float  @default(0)
+  discountAmount  Float  @default(0)
+  taxRate         Float  @default(0.14975) // TPS 5% + TVQ 9.975%
+  taxAmount       Float  @default(0)
+  total           Float  @default(0)
+  amountPaid      Float  @default(0)
+  amountDue       Float  @default(0)
+  currency        String @default("CAD")
+
   // Métadonnées
-  notes           String?   @db.Text
-  terms           String?   @db.Text
-  footerNote      String?   @db.Text
-  
+  notes      String? @db.Text
+  terms      String? @db.Text
+  footerNote String? @db.Text
+
   // Suivi
-  sentAt          DateTime?
-  viewedAt        DateTime?
-  paidAt          DateTime?
-  lastReminderAt  DateTime?
-  reminderCount   Int       @default(0)
-  
-  createdBy       String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
+  sentAt         DateTime?
+  viewedAt       DateTime?
+  paidAt         DateTime?
+  lastReminderAt DateTime?
+  reminderCount  Int       @default(0)
+
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  items           InvoiceItem[]
-  payments        Payment[]
-  reminders       PaymentReminder[]
-  
+  items     InvoiceItem[]
+  payments  Payment[]
+  reminders PaymentReminder[]
+
   @@index([projectId])
   @@index([status])
   @@index([dueDate])
@@ -1635,102 +1623,101 @@ model Invoice {
 
 // Lignes de facture
 model InvoiceItem {
-  id              String    @id @default(cuid())
-  invoiceId       String
-  invoice         Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  
-  description     String
-  quantity        Float     @default(1)
-  unitPrice       Float
-  unit            String    @default("unité") // heure, jour, unité, forfait
-  amount          Float     // quantity * unitPrice
-  
+  id        String  @id @default(cuid())
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  description String
+  quantity    Float  @default(1)
+  unitPrice   Float
+  unit        String @default("unité") // heure, jour, unité, forfait
+  amount      Float // quantity * unitPrice
+
   // Optionnel: lien avec projet/phase
-  projectId       String?
-  phaseId         String?
-  
-  sortOrder       Int       @default(0)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
+  projectId String?
+  phaseId   String?
+
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([invoiceId])
 }
 
 // Paiements
 model Payment {
-  id              String    @id @default(cuid())
-  invoiceId       String
-  invoice         Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  
-  amount          Float
-  paymentDate     DateTime  @default(now())
-  paymentMethod   String    @default("virement") // virement, cheque, carte, especes, paypal, stripe
-  reference       String?   // Numéro de transaction/chèque
-  notes           String?   @db.Text
-  
-  recordedBy      String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
+  id        String  @id @default(cuid())
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  amount        Float
+  paymentDate   DateTime @default(now())
+  paymentMethod String   @default("virement") // virement, cheque, carte, especes, paypal, stripe
+  reference     String? // Numéro de transaction/chèque
+  notes         String?  @db.Text
+
+  recordedBy String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
   @@index([invoiceId])
   @@index([paymentDate])
 }
 
 // Relances de paiement
 model PaymentReminder {
-  id              String    @id @default(cuid())
-  invoiceId       String
-  invoice         Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  
-  type            String    @default("email") // email, phone, letter
-  sentAt          DateTime  @default(now())
-  sentBy          String?
-  message         String?   @db.Text
-  response        String?   @db.Text
-  responseAt      DateTime?
-  
+  id        String  @id @default(cuid())
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  type       String    @default("email") // email, phone, letter
+  sentAt     DateTime  @default(now())
+  sentBy     String?
+  message    String?   @db.Text
+  response   String?   @db.Text
+  responseAt DateTime?
+
   // Niveau de relance
-  level           Int       @default(1) // 1: rappel amical, 2: relance ferme, 3: mise en demeure
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
+  level Int @default(1) // 1: rappel amical, 2: relance ferme, 3: mise en demeure
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([invoiceId])
   @@index([sentAt])
 }
-
 
 // ============================================
 // SYSTÈME DE RECOMMANDATIONS
 // ============================================
 
 model Recommendation {
-  id          String   @id @default(cuid())
+  id          String @id @default(cuid())
   title       String
-  description String   @db.Text
-  category    String   @default("general") // general, feature, bug, ux, performance
-  priority    String   @default("medium") // low, medium, high, critical
-  status      String   @default("pending") // pending, reviewing, planned, in_progress, completed, rejected
-  
+  description String @db.Text
+  category    String @default("general") // general, feature, bug, ux, performance
+  priority    String @default("medium") // low, medium, high, critical
+  status      String @default("pending") // pending, reviewing, planned, in_progress, completed, rejected
+
   // Source de la recommandation
-  sourceType  String   // employee, client
-  employeeId  String?
-  employee    Employee? @relation(fields: [employeeId], references: [id])
+  sourceType     String // employee, client
+  employeeId     String?
+  employee       Employee?     @relation(fields: [employeeId], references: [id])
   clientPortalId String?
   clientPortal   ClientPortal? @relation(fields: [clientPortalId], references: [id])
-  
+
   // Réponse de l'équipe
-  adminResponse String?  @db.Text
+  adminResponse String?   @db.Text
   respondedAt   DateTime?
   respondedBy   String?
-  
+
   // Votes
-  votes       RecommendationVote[]
-  voteCount   Int      @default(0)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  votes     RecommendationVote[]
+  voteCount Int                  @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([status])
   @@index([sourceType])
   @@index([employeeId])
@@ -1738,17 +1725,17 @@ model Recommendation {
 }
 
 model RecommendationVote {
-  id               String   @id @default(cuid())
+  id               String         @id @default(cuid())
   recommendationId String
   recommendation   Recommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
-  
+
   // Qui a voté
-  voterType        String   // employee, client
-  employeeId       String?
-  clientPortalId   String?
-  
-  createdAt        DateTime @default(now())
-  
+  voterType      String // employee, client
+  employeeId     String?
+  clientPortalId String?
+
+  createdAt DateTime @default(now())
+
   @@unique([recommendationId, employeeId])
   @@unique([recommendationId, clientPortalId])
   @@index([recommendationId])
@@ -1759,196 +1746,296 @@ model RecommendationVote {
 // ============================================
 
 model Survey {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   title       String
-  description String?  @db.Text
-  status      String   @default("draft") // draft, active, closed
-  
+  description String? @db.Text
+  status      String  @default("draft") // draft, active, closed
+
   // Période de validité
-  startDate   DateTime?
-  endDate     DateTime?
-  
+  startDate DateTime?
+  endDate   DateTime?
+
   // Cible
-  targetType  String   @default("all") // all, department, specific
+  targetType       String  @default("all") // all, department, specific
   targetDepartment String?
-  
+
   // Anonymat
-  isAnonymous Boolean  @default(false)
-  
+  isAnonymous Boolean @default(false)
+
   // Questions et réponses
-  questions   SurveyQuestion[]
-  responses   SurveyResponse[]
-  
-  createdBy   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  questions SurveyQuestion[]
+  responses SurveyResponse[]
+
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([status])
   @@index([startDate])
   @@index([endDate])
 }
 
 model SurveyQuestion {
-  id          String   @id @default(cuid())
-  surveyId    String
-  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  
-  questionText String  @db.Text
-  questionType String  // text, single_choice, multiple_choice, scale, rating
-  
+  id       String @id @default(cuid())
+  surveyId String
+  survey   Survey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  questionText String @db.Text
+  questionType String // text, single_choice, multiple_choice, scale, rating
+
   // Options pour les questions à choix
-  options     String?  @db.Text // JSON array des options
-  
+  options String? @db.Text // JSON array des options
+
   // Configuration
-  isRequired  Boolean  @default(true)
-  order       Int      @default(0)
-  
+  isRequired Boolean @default(true)
+  order      Int     @default(0)
+
   // Pour les échelles
-  scaleMin    Int?     @default(1)
-  scaleMax    Int?     @default(5)
+  scaleMin      Int?    @default(1)
+  scaleMax      Int?    @default(5)
   scaleMinLabel String?
   scaleMaxLabel String?
-  
-  answers     SurveyAnswer[]
-  
-  createdAt   DateTime @default(now())
-  
+
+  answers SurveyAnswer[]
+
+  createdAt DateTime @default(now())
+
   @@index([surveyId])
 }
 
 model SurveyResponse {
-  id          String   @id @default(cuid())
-  surveyId    String
-  survey      Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  
+  id       String @id @default(cuid())
+  surveyId String
+  survey   Survey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
   // Répondant (null si anonyme)
-  employeeId  String?
-  employee    Employee? @relation(fields: [employeeId], references: [id])
-  
+  employeeId String?
+  employee   Employee? @relation(fields: [employeeId], references: [id])
+
   // Réponses aux questions
-  answers     SurveyAnswer[]
-  
+  answers SurveyAnswer[]
+
   completedAt DateTime @default(now())
-  
+
   @@index([surveyId])
   @@index([employeeId])
 }
 
 model SurveyAnswer {
-  id          String   @id @default(cuid())
-  responseId  String
-  response    SurveyResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
-  
-  questionId  String
-  question    SurveyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  
+  id         String         @id @default(cuid())
+  responseId String
+  response   SurveyResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+
+  questionId String
+  question   SurveyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
   // Réponse
-  textAnswer  String?  @db.Text
-  choiceAnswer String? // Pour single_choice
+  textAnswer    String? @db.Text
+  choiceAnswer  String? // Pour single_choice
   choicesAnswer String? // JSON array pour multiple_choice
-  scaleAnswer Int?     // Pour scale et rating
-  
-  createdAt   DateTime @default(now())
-  
+  scaleAnswer   Int? // Pour scale et rating
+
+  createdAt DateTime @default(now())
+
   @@index([responseId])
   @@index([questionId])
 }
 
-
 model CommunicationContextDocument {
-  id              String    @id @default(cuid())
-  clientId        String
-  client          CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  
+  id       String              @id @default(cuid())
+  clientId String
+  client   CommunicationClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   // Document metadata
-  title           String
-  description     String?   @db.Text
-  documentType    String    // brand_guide, company_profile, product_info, audience_data, etc.
-  
+  title        String
+  description  String? @db.Text
+  documentType String // brand_guide, company_profile, product_info, audience_data, etc.
+
   // File storage
-  fileUrl         String    @db.Text // URL du fichier stocké (S3)
-  fileKey         String    @db.Text // Clé S3 pour accès/suppression
-  fileName        String
-  fileSize        Int       // Taille en bytes
-  mimeType        String    // application/pdf, text/plain, etc.
-  
+  fileUrl  String @db.Text // URL du fichier stocké (S3)
+  fileKey  String @db.Text // Clé S3 pour accès/suppression
+  fileName String
+  fileSize Int // Taille en bytes
+  mimeType String // application/pdf, text/plain, etc.
+
   // Content extraction (pour le contexte IA)
-  extractedText   String?   @db.Text // Texte extrait du document pour Leo
-  
+  extractedText String? @db.Text // Texte extrait du document pour Leo
+
   // Metadata
-  uploadedBy      String    // Email de la personne qui a uploadé
-  uploadedAt      DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
+  uploadedBy String // Email de la personne qui a uploadé
+  uploadedAt DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
   @@index([clientId])
   @@index([documentType])
 }
 
-
 model MenuItem {
-  id              String    @id @default(cuid())
-  key             String    @unique // dashboard, employees, projects, etc.
-  label           String
-  icon            String?   // lucide-react icon name
-  path            String?
-  description     String?   @db.Text
-  category        String?   // main, tools, admin, etc.
-  order           Int       @default(0)
-  isActive        Boolean   @default(true)
-  
-  permissions     MenuPermission[]
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
+  id          String  @id @default(cuid())
+  key         String  @unique // dashboard, employees, projects, etc.
+  label       String
+  icon        String? // lucide-react icon name
+  path        String?
+  description String? @db.Text
+  category    String? // main, tools, admin, etc.
+  order       Int     @default(0)
+  isActive    Boolean @default(true)
+
+  permissions MenuPermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([category])
 }
 
 model MenuPermission {
-  id              String    @id @default(cuid())
-  userId          String
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  menuItemId      String
-  menuItem        MenuItem  @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
-  
-  hasAccess       Boolean   @default(true)
-  
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+
+  hasAccess Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([userId, menuItemId])
   @@index([userId])
   @@index([menuItemId])
 }
 
-
 // Personal Tasks - Tâches personnelles des employés
 model PersonalTask {
-  id              String    @id @default(cuid())
-  employeeId      String
-  employee        Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  
-  title           String
-  description     String?   @db.Text
-  status          String    @default("todo") // todo, in_progress, done
-  priority        String    @default("medium") // low, medium, high
-  dueDate         DateTime?
-  
+  id         String   @id @default(cuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?   @db.Text
+  status      String    @default("todo") // todo, in_progress, done
+  priority    String    @default("medium") // low, medium, high
+  dueDate     DateTime?
+
   // Sections (comme dans Asana)
-  section         String?   @default("My Tasks") // My Tasks, In Progress, Done, etc.
-  
+  section String? @default("My Tasks") // My Tasks, In Progress, Done, etc.
+
   // Ordre dans la section
-  order           Int       @default(0)
-  
+  order Int @default(0)
+
   // Métadonnées
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  completedAt     DateTime?
-  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime?
+
   @@index([employeeId])
   @@index([status])
   @@index([priority])
   @@index([dueDate])
   @@index([section])
+}
+
+// ==================== MODULE APPROBATIONS CLIENT ====================
+
+// Workflow d'approbation pour les livrables
+model ApprovalWorkflow {
+  id            String            @id @default(cuid())
+  deliverableId String            @unique
+  deliverable   ClientDeliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  workflowType  String            @default("simple") // simple, multi_step, parallel
+  currentStep   Int               @default(1)
+  status        String            @default("pending") // pending, in_progress, approved, rejected, cancelled
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  steps      ApprovalStep[]
+  signatures ApprovalSignature[]
+  history    ApprovalHistory[]
+
+  @@index([deliverableId])
+  @@index([status])
+}
+
+// Étapes du workflow d'approbation
+model ApprovalStep {
+  id           String           @id @default(cuid())
+  workflowId   String
+  workflow     ApprovalWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  stepNumber   Int // Ordre de l'étape (1, 2, 3...)
+  name         String // Nom de l'étape (ex: "Révision initiale", "Approbation finale")
+  description  String?          @db.Text
+  approverType String // client, employee, specific_user
+  approverId   String? // ID spécifique si approverType = specific_user
+  approverName String? // Nom de l'approbateur
+  isRequired   Boolean          @default(true)
+  status       String           @default("pending") // pending, approved, rejected, skipped
+  approvedAt   DateTime?
+  approvedBy   String?
+  comments     String?          @db.Text
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([workflowId, stepNumber])
+  @@index([workflowId])
+  @@index([stepNumber])
+}
+
+// Signatures électroniques
+model ApprovalSignature {
+  id              String           @id @default(cuid())
+  workflowId      String
+  workflow        ApprovalWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  stepId          String? // Optionnel : signature liée à une étape spécifique
+  signerType      String // client, employee
+  signerName      String
+  signerEmail     String?
+  signatureData   String           @db.Text // Données de la signature (SVG, image base64, etc.)
+  signatureMethod String           @default("draw") // draw, type, upload
+  ipAddress       String?
+  userAgent       String?          @db.Text
+  signedAt        DateTime         @default(now())
+
+  @@index([workflowId])
+  @@index([stepId])
+}
+
+// Historique des approbations
+model ApprovalHistory {
+  id         String           @id @default(cuid())
+  workflowId String
+  workflow   ApprovalWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  stepId     String? // Optionnel : action sur une étape spécifique
+  action     String // approve, reject, request_revision, comment, signature_added
+  actorType  String // client, employee
+  actorName  String
+  actorId    String?
+  comments   String?          @db.Text
+  metadata   String?          @db.Text // JSON pour données supplémentaires
+  createdAt  DateTime         @default(now())
+
+  @@index([workflowId])
+  @@index([createdAt])
+}
+
+// Versions de livrables avec approbations
+model DeliverableVersion {
+  id            String            @id @default(cuid())
+  deliverableId String
+  deliverable   ClientDeliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  versionNumber Int // 1, 2, 3...
+  fileUrl       String?
+  thumbnailUrl  String?
+  changeLog     String?           @db.Text // Description des changements
+  status        String            @default("draft") // draft, submitted, approved, rejected
+  submittedAt   DateTime?
+  approvedAt    DateTime?
+  approvedBy    String?
+  workflowId    String? // Workflow d'approbation pour cette version
+  createdAt     DateTime          @default(now())
+
+  @@unique([deliverableId, versionNumber])
+  @@index([deliverableId])
+  @@index([versionNumber])
 }

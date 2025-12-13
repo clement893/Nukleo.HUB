@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
+import { SignaturePad } from "@/components/SignaturePad";
 import {
   Send,
   MessageSquare,
@@ -45,6 +46,11 @@ import {
   Folder,
   Star,
   Filter,
+  PenTool,
+  History,
+  CheckCircle,
+  XCircle,
+  FileCheck,
 } from "lucide-react";
 
 // Types
@@ -231,6 +237,10 @@ export default function ClientPortalPage() {
   const [showDeliverableModal, setShowDeliverableModal] = useState(false);
   const [selectedDeliverable, setSelectedDeliverable] = useState<Deliverable | null>(null);
   const [deliverableFeedback, setDeliverableFeedback] = useState("");
+  const [workflow, setWorkflow] = useState<any>(null);
+  const [showSignaturePad, setShowSignaturePad] = useState(false);
+  const [loadingWorkflow, setLoadingWorkflow] = useState(false);
+  const [versions, setVersions] = useState<any[]>([]);
   
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -386,6 +396,33 @@ export default function ClientPortalPage() {
     }
   }
 
+  async function fetchWorkflow(deliverableId: string) {
+    setLoadingWorkflow(true);
+    try {
+      const res = await fetch(`/api/portal/${token}/deliverables/${deliverableId}/approval`);
+      if (res.ok) {
+        const data = await res.json();
+        setWorkflow(data);
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+    } finally {
+      setLoadingWorkflow(false);
+    }
+  }
+
+  async function fetchVersions(deliverableId: string) {
+    try {
+      const res = await fetch(`/api/portal/${token}/deliverables/${deliverableId}/versions`);
+      if (res.ok) {
+        const data = await res.json();
+        setVersions(data);
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+    }
+  }
+
   async function handleDeliverableAction(action: string) {
     if (!selectedDeliverable) return;
     
@@ -409,6 +446,71 @@ export default function ClientPortalPage() {
       console.error("Erreur:", error);
     }
   }
+
+  async function handleWorkflowStepAction(stepId: string, action: "approve" | "reject" | "request_revision") {
+    if (!selectedDeliverable) return;
+    
+    try {
+      const res = await fetch(`/api/portal/${token}/deliverables/${selectedDeliverable.id}/approval`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: action === "approve" ? "approve_step" : action === "reject" ? "reject_step" : "request_revision",
+          stepId,
+          comments: deliverableFeedback,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setWorkflow(data);
+        setDeliverableFeedback("");
+        fetchDeliverables();
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+    }
+  }
+
+  function handleShowSignaturePad(stepId?: string) {
+    setShowSignaturePad(true);
+    (window as any).__signatureStepId = stepId;
+  }
+
+  async function handleSignatureSave(signatureData: string) {
+    if (!selectedDeliverable) return;
+    
+    const stepId = (window as any).__signatureStepId;
+    
+    try {
+      const res = await fetch(`/api/portal/${token}/deliverables/${selectedDeliverable.id}/approval`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "add_signature",
+          stepId,
+          signatureData,
+          signatureMethod: "draw",
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setWorkflow(data);
+        setShowSignaturePad(false);
+        (window as any).__signatureStepId = undefined;
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      setShowSignaturePad(false);
+      (window as any).__signatureStepId = undefined;
+    }
+  }
+
+  useEffect(() => {
+    if (showDeliverableModal && selectedDeliverable) {
+      fetchWorkflow(selectedDeliverable.id);
+      fetchVersions(selectedDeliverable.id);
+    }
+  }, [showDeliverableModal, selectedDeliverable]);
 
   async function markNotificationsAsRead() {
     try {
@@ -1140,64 +1242,297 @@ export default function ClientPortalPage() {
       {/* Deliverable Modal */}
       {showDeliverableModal && selectedDeliverable && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#12121a] rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-700 flex items-center justify-between">
+          <div className="bg-[#12121a] rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-700 flex items-center justify-between sticky top-0 bg-[#12121a] z-10">
               <h2 className="text-xl font-semibold text-white">{selectedDeliverable.title}</h2>
               <button
                 onClick={() => {
                   setShowDeliverableModal(false);
                   setSelectedDeliverable(null);
                   setDeliverableFeedback("");
+                  setWorkflow(null);
+                  setVersions([]);
                 }}
                 className="text-gray-400 hover:text-white"
+                aria-label="Fermer"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
             
             <div className="p-6 space-y-6">
-              {selectedDeliverable.thumbnailUrl && (
-                <img
-                  src={selectedDeliverable.thumbnailUrl}
-                  alt={selectedDeliverable.title}
-                  className="w-full rounded-lg"
-                />
-              )}
-              
-              <div>
-                <p className="text-gray-400 text-sm mb-2">Description</p>
-                <p className="text-white">{selectedDeliverable.description || "Aucune description"}</p>
+              {/* Informations du livrable */}
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  {selectedDeliverable.thumbnailUrl && (
+                    <img
+                      src={selectedDeliverable.thumbnailUrl}
+                      alt={selectedDeliverable.title}
+                      className="w-full rounded-lg mb-4"
+                    />
+                  )}
+                  
+                  <div>
+                    <p className="text-gray-400 text-sm mb-2">Description</p>
+                    <p className="text-white">{selectedDeliverable.description || "Aucune description"}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <p className="text-gray-400 text-sm mb-1">Type</p>
+                      <p className="text-white">{selectedDeliverable.type}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-sm mb-1">Version</p>
+                      <p className="text-white">{selectedDeliverable.version}</p>
+                    </div>
+                  </div>
+                  
+                  {selectedDeliverable.fileUrl && (
+                    <a
+                      href={selectedDeliverable.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 mt-4"
+                    >
+                      <Download className="w-4 h-4" />
+                      Télécharger le fichier
+                    </a>
+                  )}
+                </div>
+
+                {/* Workflow d'approbation */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                      <FileCheck className="w-5 h-5" />
+                      Workflow d'approbation
+                    </h3>
+                    {workflow && (
+                      <span className={`px-3 py-1 rounded-full text-xs ${
+                        workflow.status === "approved" ? "bg-green-500/20 text-green-400" :
+                        workflow.status === "rejected" ? "bg-red-500/20 text-red-400" :
+                        workflow.status === "in_progress" ? "bg-blue-500/20 text-blue-400" :
+                        "bg-yellow-500/20 text-yellow-400"
+                      }`}>
+                        {workflow.status === "approved" ? "Approuvé" :
+                         workflow.status === "rejected" ? "Rejeté" :
+                         workflow.status === "in_progress" ? "En cours" : "En attente"}
+                      </span>
+                    )}
+                  </div>
+
+                  {loadingWorkflow ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-purple-400" />
+                    </div>
+                  ) : workflow && workflow.steps && workflow.steps.length > 0 ? (
+                    <div className="space-y-3">
+                      {workflow.steps.map((step: any, index: number) => {
+                        const isCurrentStep = step.stepNumber === workflow.currentStep;
+                        const isCompleted = step.status === "approved";
+                        const isRejected = step.status === "rejected";
+                        
+                        return (
+                          <div
+                            key={step.id}
+                            className={`border rounded-lg p-4 ${
+                              isCurrentStep && !isCompleted && !isRejected
+                                ? "border-purple-500 bg-purple-500/10"
+                                : isCompleted
+                                ? "border-green-500 bg-green-500/10"
+                                : isRejected
+                                ? "border-red-500 bg-red-500/10"
+                                : "border-gray-700 bg-gray-800/50"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                  isCompleted ? "bg-green-500" :
+                                  isRejected ? "bg-red-500" :
+                                  isCurrentStep ? "bg-purple-500" :
+                                  "bg-gray-600"
+                                }`}>
+                                  {isCompleted ? (
+                                    <CheckCircle className="w-4 h-4 text-white" />
+                                  ) : isRejected ? (
+                                    <XCircle className="w-4 h-4 text-white" />
+                                  ) : (
+                                    <span className="text-xs text-white">{step.stepNumber}</span>
+                                  )}
+                                </div>
+                                <div>
+                                  <h4 className="text-white font-medium">{step.name}</h4>
+                                  {step.description && (
+                                    <p className="text-gray-400 text-sm">{step.description}</p>
+                                  )}
+                                </div>
+                              </div>
+                              {step.approvedAt && (
+                                <span className="text-xs text-gray-500">
+                                  {new Date(step.approvedAt).toLocaleDateString("fr-FR")}
+                                </span>
+                              )}
+                            </div>
+
+                            {step.comments && (
+                              <div className="mt-2 p-2 bg-gray-800 rounded text-sm text-gray-300">
+                                {step.comments}
+                              </div>
+                            )}
+
+                            {isCurrentStep && !isCompleted && !isRejected && (
+                              <div className="mt-4 space-y-3">
+                                <div>
+                                  <label className="block text-gray-400 text-sm mb-2">
+                                    Commentaires (optionnel)
+                                  </label>
+                                  <textarea
+                                    value={deliverableFeedback}
+                                    onChange={(e) => setDeliverableFeedback(e.target.value)}
+                                    placeholder="Ajoutez un commentaire..."
+                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                                    rows={2}
+                                  />
+                                </div>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleWorkflowStepAction(step.id, "approve")}
+                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+                                  >
+                                    <CheckCircle className="w-4 h-4" />
+                                    Approuver
+                                  </button>
+                                  <button
+                                    onClick={() => handleWorkflowStepAction(step.id, "request_revision")}
+                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-sm"
+                                  >
+                                    <MessageCircle className="w-4 h-4" />
+                                    Révision
+                                  </button>
+                                  <button
+                                    onClick={() => handleWorkflowStepAction(step.id, "reject")}
+                                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+                                  >
+                                    <XCircle className="w-4 h-4" />
+                                    Rejeter
+                                  </button>
+                                </div>
+                                <button
+                                  onClick={() => handleShowSignaturePad(step.id)}
+                                  className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm"
+                                >
+                                  <PenTool className="w-4 h-4" />
+                                  Ajouter une signature
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-400">
+                      <p>Aucun workflow d'approbation configuré</p>
+                      <p className="text-sm mt-2">Utilisez le système d'approbation simple ci-dessous</p>
+                    </div>
+                  )}
+
+                  {/* Signatures */}
+                  {workflow && workflow.signatures && workflow.signatures.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                        <PenTool className="w-4 h-4" />
+                        Signatures ({workflow.signatures.length})
+                      </h4>
+                      <div className="space-y-2">
+                        {workflow.signatures.map((signature: any) => (
+                          <div key={signature.id} className="bg-gray-800 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-white text-sm">{signature.signerName}</span>
+                              <span className="text-gray-500 text-xs">
+                                {new Date(signature.signedAt).toLocaleDateString("fr-FR")}
+                              </span>
+                            </div>
+                            <img
+                              src={signature.signatureData}
+                              alt={`Signature de ${signature.signerName}`}
+                              className="h-16 bg-white rounded border"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Historique */}
+                  {workflow && workflow.history && workflow.history.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="text-white font-medium mb-3 flex items-center gap-2">
+                        <History className="w-4 h-4" />
+                        Historique
+                      </h4>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {workflow.history.map((item: any) => (
+                          <div key={item.id} className="bg-gray-800 rounded-lg p-2 text-sm">
+                            <div className="flex items-center justify-between">
+                              <span className="text-white">{item.actorName}</span>
+                              <span className="text-gray-500 text-xs">
+                                {new Date(item.createdAt).toLocaleDateString("fr-FR")}
+                              </span>
+                            </div>
+                            <p className="text-gray-400 mt-1">
+                              {item.action === "approve" ? "✓ Approuvé" :
+                               item.action === "reject" ? "✗ Rejeté" :
+                               item.action === "request_revision" ? "↻ Révision demandée" :
+                               item.action === "signature_added" ? "✍ Signature ajoutée" :
+                               item.action}
+                            </p>
+                            {item.comments && (
+                              <p className="text-gray-500 text-xs mt-1">{item.comments}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-              
-              <div className="grid grid-cols-3 gap-4">
+
+              {/* Versions */}
+              {versions.length > 0 && (
                 <div>
-                  <p className="text-gray-400 text-sm mb-1">Type</p>
-                  <p className="text-white">{selectedDeliverable.type}</p>
+                  <h3 className="text-lg font-semibold text-white mb-4">Versions</h3>
+                  <div className="space-y-2">
+                    {versions.map((version) => (
+                      <div key={version.id} className="bg-gray-800 rounded-lg p-4 flex items-center justify-between">
+                        <div>
+                          <span className="text-white font-medium">Version {version.versionNumber}</span>
+                          {version.changeLog && (
+                            <p className="text-gray-400 text-sm mt-1">{version.changeLog}</p>
+                          )}
+                          <span className="text-gray-500 text-xs">
+                            {new Date(version.createdAt).toLocaleDateString("fr-FR")}
+                          </span>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs ${
+                          version.status === "approved" ? "bg-green-500/20 text-green-400" :
+                          version.status === "rejected" ? "bg-red-500/20 text-red-400" :
+                          "bg-gray-500/20 text-gray-400"
+                        }`}>
+                          {version.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-gray-400 text-sm mb-1">Version</p>
-                  <p className="text-white">{selectedDeliverable.version}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400 text-sm mb-1">Statut</p>
-                  <p className="text-white">{selectedDeliverable.status}</p>
-                </div>
-              </div>
-              
-              {selectedDeliverable.fileUrl && (
-                <a
-                  href={selectedDeliverable.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600"
-                >
-                  <Download className="w-4 h-4" />
-                  Télécharger le fichier
-                </a>
               )}
-              
-              {selectedDeliverable.status === "in_review" && (
-                <>
+
+              {/* Système d'approbation simple (fallback) */}
+              {(!workflow || !workflow.steps || workflow.steps.length === 0) && selectedDeliverable.status === "in_review" && (
+                <div className="border-t border-gray-700 pt-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">Approbation simple</h3>
                   <div>
                     <label className="block text-gray-400 text-sm mb-2">Votre feedback (optionnel)</label>
                     <textarea
@@ -1209,7 +1544,7 @@ export default function ClientPortalPage() {
                     />
                   </div>
                   
-                  <div className="flex gap-4">
+                  <div className="flex gap-4 mt-4">
                     <button
                       onClick={() => handleDeliverableAction("approve")}
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
@@ -1224,11 +1559,32 @@ export default function ClientPortalPage() {
                       <MessageCircle className="w-5 h-5" />
                       Demander une révision
                     </button>
+                    <button
+                      onClick={() => handleShowSignaturePad()}
+                      className="flex items-center justify-center gap-2 px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                    >
+                      <PenTool className="w-5 h-5" />
+                      Signer
+                    </button>
                   </div>
-                </>
+                </div>
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Signature Pad Modal */}
+      {showSignaturePad && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
+          <SignaturePad
+            onSave={handleSignatureSave}
+            onCancel={() => {
+              setShowSignaturePad(false);
+              (window as any).__signatureStepId = undefined;
+            }}
+            signerName={portalData?.portal.clientName}
+          />
         </div>
       )}
     </div>

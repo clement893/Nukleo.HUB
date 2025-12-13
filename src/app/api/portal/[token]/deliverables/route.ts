@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 // GET - Récupérer les livrables du client
 export async function GET(
@@ -32,7 +33,7 @@ export async function GET(
 
     return NextResponse.json(deliverables);
   } catch (error) {
-    console.error("Erreur récupération livrables:", error);
+    logger.error("Erreur récupération livrables", error as Error, "GET /api/portal/[token]/deliverables");
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
@@ -107,7 +108,7 @@ export async function PATCH(
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error("Erreur mise à jour livrable:", error);
+    logger.error("Erreur mise à jour livrable", error as Error, "PATCH /api/portal/[token]/deliverables");
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
