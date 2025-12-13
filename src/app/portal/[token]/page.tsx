@@ -207,10 +207,10 @@ const tabs = [
   { id: "dashboard", label: "Tableau de bord", icon: Home },
   { id: "projects", label: "Projets", icon: Briefcase },
   { id: "deliverables", label: "Livrables", icon: FileText },
+  { id: "financial", label: "Financier", icon: DollarSign },
   { id: "messages", label: "Messages", icon: MessageSquare },
   { id: "files", label: "Fichiers", icon: FolderOpen },
   { id: "meetings", label: "Réunions", icon: Calendar },
-  { id: "budget", label: "Budget", icon: DollarSign },
   { id: "support", label: "Support", icon: MessageCircle },
 ];
 
@@ -241,6 +241,12 @@ export default function ClientPortalPage() {
   const [showSignaturePad, setShowSignaturePad] = useState(false);
   const [loadingWorkflow, setLoadingWorkflow] = useState(false);
   const [versions, setVersions] = useState<any[]>([]);
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [financialData, setFinancialData] = useState<any>(null);
+  const [projectHistory, setProjectHistory] = useState<any>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [projectMetrics, setProjectMetrics] = useState<any>(null);
+  const [projectTimeline, setProjectTimeline] = useState<any>(null);
   
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -252,12 +258,17 @@ export default function ClientPortalPage() {
 
   // Fetch tab-specific data
   useEffect(() => {
+    if (activeTab === "dashboard") {
+      fetchDashboard();
+      fetchMilestones();
+    }
     if (activeTab === "deliverables") fetchDeliverables();
+    if (activeTab === "financial") fetchFinancial();
+    if (activeTab === "projects") fetchProjectHistory();
     if (activeTab === "messages") fetchMessages();
     if (activeTab === "files") fetchFiles();
     if (activeTab === "meetings") fetchMeetings();
     if (activeTab === "budget") fetchBudget();
-    if (activeTab === "dashboard") fetchMilestones();
   }, [activeTab, token]);
 
   // Auto-scroll chat
@@ -369,6 +380,66 @@ export default function ClientPortalPage() {
       if (res.ok) {
         const data = await res.json();
         setMilestoneData(data);
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+    }
+  }
+
+  async function fetchDashboard() {
+    try {
+      const res = await fetch(`/api/portal/${token}/dashboard`);
+      if (res.ok) {
+        const data = await res.json();
+        setDashboardData(data);
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+    }
+  }
+
+  async function fetchFinancial() {
+    try {
+      const res = await fetch(`/api/portal/${token}/financial`);
+      if (res.ok) {
+        const data = await res.json();
+        setFinancialData(data);
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+    }
+  }
+
+  async function fetchProjectHistory() {
+    try {
+      const res = await fetch(`/api/portal/${token}/projects/history`);
+      if (res.ok) {
+        const data = await res.json();
+        setProjectHistory(data);
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+    }
+  }
+
+  async function fetchProjectMetrics(projectId: string) {
+    try {
+      const res = await fetch(`/api/portal/${token}/projects/${projectId}/metrics`);
+      if (res.ok) {
+        const data = await res.json();
+        setProjectMetrics(data);
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+    }
+  }
+
+  async function fetchProjectTimeline(projectId: string) {
+    try {
+      const res = await fetch(`/api/portal/${token}/projects/${projectId}/timeline`);
+      if (res.ok) {
+        const data = await res.json();
+        setProjectTimeline(data);
       }
     } catch (error) {
       console.error("Erreur:", error);
