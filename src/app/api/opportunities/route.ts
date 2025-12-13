@@ -17,11 +17,32 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const { page, limit } = getPaginationParams(searchParams);
-    const skip = getSkip(page, limit);
+    const pagination = getPaginationParams(searchParams);
 
-    // Clé de cache
+    // Mode rétrocompatible : si pas de pagination, retourner un tableau simple
+    if (!pagination) {
+      const cacheKey = "opportunities:simple";
+      const cached = cache.get<unknown[]>(cacheKey);
+      if (cached) {
+        return NextResponse.json(cached);
+      }
+
+      const opportunities = await prisma.opportunity.findMany({
+        orderBy: { updatedAt: "desc" },
+        include: {
+          linkedContact: true,
+        },
+      });
+
+      cache.set(cacheKey, opportunities, CACHE_TTL.MEDIUM);
+      return NextResponse.json(opportunities);
+    }
+
+    // Mode paginé
+    const { page, limit } = pagination;
+    const skip = getSkip(page, limit);
     const cacheKey = `opportunities:${page}:${limit}`;
+    
     const cached = cache.get<PaginatedResponse<unknown>>(cacheKey);
     if (cached) {
       return NextResponse.json(cached);

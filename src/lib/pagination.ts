@@ -24,13 +24,18 @@ export interface PaginatedResponse<T> {
 
 /**
  * Extraire les paramètres de pagination depuis les query params
+ * Si aucun paramètre n'est fourni, retourne null pour compatibilité rétroactive
  */
-export function getPaginationParams(searchParams: URLSearchParams): PaginationParams {
-  const result = paginationSchema.safeParse({
-    page: searchParams.get("page"),
-    limit: searchParams.get("limit"),
-  });
+export function getPaginationParams(searchParams: URLSearchParams): PaginationParams | null {
+  const page = searchParams.get("page");
+  const limit = searchParams.get("limit");
   
+  // Si aucun paramètre de pagination n'est fourni, retourner null (mode rétrocompatible)
+  if (!page && !limit) {
+    return null;
+  }
+  
+  const result = paginationSchema.safeParse({ page, limit });
   return result.success ? result.data : { page: 1, limit: 20 };
 }
 

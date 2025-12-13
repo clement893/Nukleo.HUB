@@ -18,13 +18,32 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const isClient = searchParams.get("isClient");
-    const { page, limit } = getPaginationParams(searchParams);
-    const skip = getSkip(page, limit);
+    const pagination = getPaginationParams(searchParams);
 
     const where = isClient === "true" ? { isClient: true } : {};
 
-    // Clé de cache
+    // Mode rétrocompatible : si pas de pagination, retourner un tableau simple
+    if (!pagination) {
+      const cacheKey = `companies:simple:${isClient || "all"}`;
+      const cached = cache.get<unknown[]>(cacheKey);
+      if (cached) {
+        return NextResponse.json(cached);
+      }
+
+      const companies = await prisma.company.findMany({
+        where,
+        orderBy: { name: "asc" },
+      });
+
+      cache.set(cacheKey, companies, CACHE_TTL.MEDIUM);
+      return NextResponse.json(companies);
+    }
+
+    // Mode paginé
+    const { page, limit } = pagination;
+    const skip = getSkip(page, limit);
     const cacheKey = `companies:${isClient}:${page}:${limit}`;
+    
     const cached = cache.get<PaginatedResponse<unknown>>(cacheKey);
     if (cached) {
       return NextResponse.json(cached);

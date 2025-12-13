@@ -23,9 +23,8 @@ export async function GET(request: NextRequest) {
     const year = searchParams.get("year") || "";
     const department = searchParams.get("department") || "";
     
-    // Pagination
-    const { page, limit } = getPaginationParams(searchParams);
-    const skip = getSkip(page, limit);
+    // Pagination (optionnelle pour compatibilité rétroactive)
+    const pagination = getPaginationParams(searchParams);
 
     const where: Record<string, unknown> = {};
 
@@ -53,10 +52,45 @@ export async function GET(request: NextRequest) {
       where.departments = { contains: department, mode: "insensitive" };
     }
 
-    // Clé de cache basée sur les paramètres
+    // Mode rétrocompatible : si pas de pagination, retourner un tableau simple
+    if (!pagination) {
+      const cacheKey = `projects:simple:${JSON.stringify(where)}`;
+      const cached = cache.get<unknown[]>(cacheKey);
+      if (cached) {
+        return NextResponse.json(cached);
+      }
+
+      const projects = await prisma.project.findMany({
+        where,
+        orderBy: { updatedAt: "desc" },
+        include: {
+          company: {
+            select: {
+              id: true,
+              name: true,
+              logoUrl: true,
+              isClient: true,
+            },
+          },
+          contact: {
+            select: {
+              id: true,
+              fullName: true,
+              photoUrl: true,
+              position: true,
+            },
+          },
+        },
+      });
+
+      cache.set(cacheKey, projects, CACHE_TTL.MEDIUM);
+      return NextResponse.json(projects);
+    }
+
+    // Mode paginé
+    const { page, limit } = pagination;
+    const skip = getSkip(page, limit);
     const cacheKey = `projects:${JSON.stringify({ where, page, limit })}`;
-    
-    // Vérifier le cache
     const cached = cache.get<PaginatedResponse<unknown>>(cacheKey);
     if (cached) {
       return NextResponse.json(cached);
@@ -100,8 +134,6 @@ export async function GET(request: NextRequest) {
     ]);
 
     const response = createPaginatedResponse(projects, total, page, limit);
-    
-    // Mettre en cache pour 2 minutes
     cache.set(cacheKey, response, CACHE_TTL.MEDIUM);
 
     return NextResponse.json(response);

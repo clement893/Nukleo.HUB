@@ -16,15 +16,30 @@ export async function GET(request: NextRequest) {
   if (isErrorResponse(auth)) return auth;
 
   try {
-    // Pagination
     const { searchParams } = new URL(request.url);
-    const { page, limit } = getPaginationParams(searchParams);
+    const pagination = getPaginationParams(searchParams);
+
+    // Mode rétrocompatible : si pas de pagination, retourner un tableau simple
+    if (!pagination) {
+      const cacheKey = "contacts:simple";
+      const cached = cache.get<unknown[]>(cacheKey);
+      if (cached) {
+        return NextResponse.json(cached);
+      }
+
+      const contacts = await prisma.contact.findMany({
+        orderBy: { fullName: "asc" },
+      });
+
+      cache.set(cacheKey, contacts, CACHE_TTL.MEDIUM);
+      return NextResponse.json(contacts);
+    }
+
+    // Mode paginé
+    const { page, limit } = pagination;
     const skip = getSkip(page, limit);
-    
-    // Clé de cache basée sur la pagination
     const cacheKey = `contacts:${page}:${limit}`;
     
-    // Vérifier le cache
     const cached = cache.get<PaginatedResponse<unknown>>(cacheKey);
     if (cached) {
       return NextResponse.json(cached);
@@ -53,8 +68,6 @@ export async function GET(request: NextRequest) {
     ]);
 
     const response = createPaginatedResponse(contacts, total, page, limit);
-
-    // Mettre en cache pour 2 minutes
     cache.set(cacheKey, response, CACHE_TTL.MEDIUM);
 
     return NextResponse.json(response);

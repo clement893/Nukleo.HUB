@@ -20,16 +20,51 @@ export async function GET(request: NextRequest) {
     const department = searchParams.get("department");
     const zone = searchParams.get("zone");
     const projectId = searchParams.get("projectId");
-    const { page, limit } = getPaginationParams(searchParams);
-    const skip = getSkip(page, limit);
+    const pagination = getPaginationParams(searchParams);
 
     const where: Record<string, string> = {};
     if (department) where.department = department;
     if (zone) where.zone = zone;
     if (projectId) where.projectId = projectId;
 
-    // Clé de cache
+    // Mode rétrocompatible : si pas de pagination, retourner un tableau simple
+    if (!pagination) {
+      const cacheKey = `tasks:simple:${JSON.stringify(where)}`;
+      const cached = cache.get<unknown[]>(cacheKey);
+      if (cached) {
+        return NextResponse.json(cached);
+      }
+
+      const tasks = await prisma.task.findMany({
+        where,
+        include: {
+          project: {
+            select: {
+              id: true,
+              name: true,
+              client: true,
+            },
+          },
+          assignedEmployee: {
+            select: {
+              id: true,
+              name: true,
+              photoUrl: true,
+            },
+          },
+        },
+        orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+      });
+
+      cache.set(cacheKey, tasks, CACHE_TTL.SHORT);
+      return NextResponse.json(tasks);
+    }
+
+    // Mode paginé
+    const { page, limit } = pagination;
+    const skip = getSkip(page, limit);
     const cacheKey = `tasks:${JSON.stringify({ where, page, limit })}`;
+    
     const cached = cache.get<PaginatedResponse<unknown>>(cacheKey);
     if (cached) {
       return NextResponse.json(cached);
@@ -74,7 +109,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     const response = createPaginatedResponse(tasks, total, page, limit);
-    cache.set(cacheKey, response, CACHE_TTL.SHORT); // Cache court car les tâches changent souvent
+    cache.set(cacheKey, response, CACHE_TTL.SHORT);
     
     return NextResponse.json(response);
   } catch (error) {

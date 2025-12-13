@@ -36,12 +36,30 @@ export async function GET(request: NextRequest) {
       where.type = type;
     }
 
-    // Pagination pour les événements (limite par défaut plus élevée car souvent filtrés par date)
-    const { page, limit } = getPaginationParams(searchParams);
-    const skip = getSkip(page, limit);
+    const pagination = getPaginationParams(searchParams);
 
-    // Clé de cache
+    // Mode rétrocompatible : si pas de pagination, retourner un tableau simple
+    if (!pagination) {
+      const cacheKey = `events:simple:${JSON.stringify(where)}`;
+      const cached = cache.get<unknown[]>(cacheKey);
+      if (cached) {
+        return NextResponse.json(cached);
+      }
+
+      const events = await prisma.event.findMany({
+        where,
+        orderBy: { startDate: "asc" },
+      });
+
+      cache.set(cacheKey, events, CACHE_TTL.SHORT);
+      return NextResponse.json(events);
+    }
+
+    // Mode paginé
+    const { page, limit } = pagination;
+    const skip = getSkip(page, limit);
     const cacheKey = `events:${JSON.stringify({ where, page, limit })}`;
+    
     const cached = cache.get<PaginatedResponse<unknown>>(cacheKey);
     if (cached) {
       return NextResponse.json(cached);
@@ -72,7 +90,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     const response = createPaginatedResponse(events, total, page, limit);
-    cache.set(cacheKey, response, CACHE_TTL.SHORT); // Cache court car les événements changent souvent
+    cache.set(cacheKey, response, CACHE_TTL.SHORT);
     
     return NextResponse.json(response);
   } catch (error) {
