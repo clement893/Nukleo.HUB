@@ -836,6 +836,7 @@ model ClientPortal {
   updatedAt       DateTime         @updatedAt
   tickets         Ticket[]
   recommendations Recommendation[]
+  meetings        ClientMeeting[]
 
   @@index([token])
   @@index([companyId])
@@ -1429,29 +1430,99 @@ model ClientFile {
 
 // Réunions avec le client
 model ClientMeeting {
-  id           String   @id @default(cuid())
-  portalId     String
-  projectId    String?
-  title        String
-  description  String?  @db.Text
-  meetingDate  DateTime
-  duration     Int? // en minutes
-  location     String? // URL de visio ou lieu physique
-  meetingType  String   @default("video") // video, phone, in_person
-  status       String   @default("scheduled") // scheduled, completed, cancelled, rescheduled
-  attendees    String?  @db.Text // JSON array of attendees
-  notes        String?  @db.Text
-  recordingUrl String?
-  agendaItems  String?  @db.Text // JSON array
-  actionItems  String?  @db.Text // JSON array
-  createdBy    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                 String       @id @default(cuid())
+  portalId           String
+  portal             ClientPortal @relation(fields: [portalId], references: [id], onDelete: Cascade)
+  projectId          String?
+  title              String
+  description        String?      @db.Text
+  meetingDate        DateTime
+  startTime          DateTime // Alias pour meetingDate (pour compatibilité)
+  endTime            DateTime? // Calculé à partir de duration
+  duration           Int          @default(30) // en minutes
+  timezone           String       @default("America/Montreal")
+  location           String? // URL de visio ou lieu physique
+  meetingType        String       @default("video") // video, phone, in_person
+  status             String       @default("scheduled") // scheduled, confirmed, completed, cancelled, rescheduled
+  isCancelled        Boolean      @default(false)
+  cancelledAt        DateTime?
+  cancellationReason String?      @db.Text
+
+  // Participants
+  attendees         String? @db.Text // JSON array of attendees
+  clientAttendees   String? @db.Text // JSON array de noms/emails clients
+  employeeAttendees String? @db.Text // JSON array d'employee IDs
+
+  // Intégration calendrier
+  googleCalendarEventId  String? // ID de l'événement Google Calendar
+  outlookCalendarEventId String? // ID de l'événement Outlook
+  calendarSyncStatus     String  @default("pending") // pending, synced, failed
+  calendarSyncError      String? @db.Text
+
+  // Rappels
+  reminderSent    Boolean   @default(false)
+  reminderSentAt  DateTime?
+  reminderMinutes Int[]     @default([1440, 60]) // 24h et 1h avant
+
+  // Notes de réunion
+  notes         String?   @db.Text
+  notesShared   Boolean   @default(false)
+  notesSharedAt DateTime?
+  recordingUrl  String?
+  agendaItems   String?   @db.Text // JSON array
+  actionItems   String?   @db.Text // JSON array
+  createdBy     String? // "client" ou employee ID
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  meetingNotes MeetingNote[]
 
   @@index([portalId])
   @@index([projectId])
   @@index([meetingDate])
+  @@index([startTime])
   @@index([status])
+  @@index([googleCalendarEventId])
+  @@index([outlookCalendarEventId])
+}
+
+// Notes de réunion partagées
+model MeetingNote {
+  id        String        @id @default(cuid())
+  meetingId String
+  meeting   ClientMeeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  content    String  @db.Text
+  authorType String // client, employee
+  authorName String
+  authorId   String? // employee ID si employee
+
+  isShared  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([meetingId])
+  @@index([createdAt])
+}
+
+// Disponibilités pour réservation
+model MeetingAvailability {
+  id          String  @id @default(cuid())
+  employeeId  String? // Si null, disponibilité générale
+  dayOfWeek   Int // 0 = dimanche, 6 = samedi
+  startTime   String // Format HH:mm (ex: "09:00")
+  endTime     String // Format HH:mm (ex: "17:00")
+  timezone    String  @default("America/Montreal")
+  isAvailable Boolean @default(true)
+
+  // Exceptions (dates spécifiques)
+  exceptionDates String? @db.Text // JSON array de dates (YYYY-MM-DD)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([employeeId])
+  @@index([dayOfWeek])
 }
 
 // Suivi du budget projet pour le client

@@ -1,7 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
+import { z } from "zod";
 
-// GET - Récupérer les réunions du client
+const createMeetingSchema = z.object({
+  projectId: z.string().optional(),
+  title: z.string().min(1),
+  description: z.string().optional(),
+  meetingType: z.enum(["video", "phone", "in_person"]).default("video"),
+  location: z.string().optional(),
+  duration: z.number().min(15).max(480).default(30),
+  startTime: z.string(), // ISO string
+  timezone: z.string().default("America/Montreal"),
+  clientAttendees: z.string().optional(), // JSON array
+});
+
+// GET - Liste des réunions
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
@@ -18,37 +32,36 @@ export async function GET(
     }
 
     const { searchParams } = new URL(request.url);
-    const projectId = searchParams.get("projectId");
-    const upcoming = searchParams.get("upcoming") === "true";
-    const past = searchParams.get("past") === "true";
+    const status = searchParams.get("status");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
 
     const where: Record<string, unknown> = { portalId: portal.id };
-    if (projectId) where.projectId = projectId;
-    
-    const now = new Date();
-    if (upcoming) {
-      where.meetingDate = { gte: now };
-      where.status = { in: ["scheduled", "rescheduled"] };
-    } else if (past) {
-      where.OR = [
-        { meetingDate: { lt: now } },
-        { status: "completed" },
-      ];
+    if (status) where.status = status;
+    if (startDate || endDate) {
+      where.meetingDate = {};
+      if (startDate) (where.meetingDate as Record<string, unknown>).gte = new Date(startDate);
+      if (endDate) (where.meetingDate as Record<string, unknown>).lte = new Date(endDate);
     }
 
     const meetings = await prisma.clientMeeting.findMany({
       where,
-      orderBy: { meetingDate: upcoming ? "asc" : "desc" },
+      include: {
+        meetingNotes: {
+          orderBy: { createdAt: "desc" },
+        },
+      },
+      orderBy: { meetingDate: "asc" },
     });
 
     return NextResponse.json(meetings);
   } catch (error) {
-    console.error("Erreur récupération réunions:", error);
+    logger.error("Erreur récupération réunions", error as Error, "GET /api/portal/[token]/meetings");
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
 
-// POST - Demander une réunion (le client peut proposer un créneau)
+// POST - Créer une réunion
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
@@ -65,39 +78,65 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { title, description, preferredDate, projectId, meetingType } = body;
+    const validation = createMeetingSchema.safeParse(body);
 
-    if (!title || !preferredDate) {
-      return NextResponse.json({ error: "Données manquantes" }, { status: 400 });
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: "Données invalides", details: validation.error.issues },
+        { status: 400 }
+      );
     }
 
+    const data = validation.data;
+    const startTime = new Date(data.startTime);
+    const endTime = new Date(startTime.getTime() + data.duration * 60 * 1000);
+
+    // Vérifier les conflits (simplifié - vérifier juste meetingDate)
+    const conflictingMeetings = await prisma.clientMeeting.findMany({
+      where: {
+        portalId: portal.id,
+        status: { in: ["scheduled", "confirmed"] },
+        meetingDate: {
+          gte: new Date(startTime.getTime() - data.duration * 60 * 1000),
+          lte: endTime,
+        },
+      },
+    });
+
+    if (conflictingMeetings.length > 0) {
+      return NextResponse.json(
+        { error: "Conflit avec une réunion existante", conflicts: conflictingMeetings },
+        { status: 409 }
+      );
+    }
+
+    // Créer la réunion
     const meeting = await prisma.clientMeeting.create({
       data: {
         portalId: portal.id,
-        projectId: projectId || null,
-        title,
-        description: description || null,
-        meetingDate: new Date(preferredDate),
-        meetingType: meetingType || "video",
+        projectId: data.projectId,
+        title: data.title,
+        description: data.description,
+        meetingType: data.meetingType,
+        location: data.location,
+        duration: data.duration,
+        meetingDate: startTime,
+        timezone: data.timezone,
+        clientAttendees: data.clientAttendees,
+        createdBy: "client",
         status: "scheduled",
-        createdBy: portal.clientName,
-      },
+      } as any,
+      include: {
+        meetingNotes: true,
+      } as any,
     });
 
-    // Créer une notification pour l'équipe
-    await prisma.clientNotification.create({
-      data: {
-        portalId: portal.id,
-        type: "meeting_requested",
-        title: "Demande de réunion",
-        message: `${portal.clientName} a demandé une réunion: ${title}`,
-        link: `/meetings/${meeting.id}`,
-      },
-    });
+    // TODO: Synchroniser avec Google Calendar/Outlook
+    // await syncMeetingToCalendar(meeting);
 
     return NextResponse.json(meeting);
   } catch (error) {
-    console.error("Erreur création réunion:", error);
+    logger.error("Erreur création réunion", error as Error, "POST /api/portal/[token]/meetings");
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
