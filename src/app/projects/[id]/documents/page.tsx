@@ -253,6 +253,13 @@ export default function ProjectDocumentsPage() {
             </div>
 
             <div className="flex items-center gap-3">
+              <Link
+                href={`/projects/${projectId}/revision-workflows`}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition-colors"
+              >
+                <FileText className="h-4 w-4" />
+                Workflows de révision
+              </Link>
               <button
                 onClick={() => setShowAddLinkModal(true)}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition-colors"
