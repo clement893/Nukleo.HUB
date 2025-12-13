@@ -185,7 +185,8 @@ model Company {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  projects Project[]
+  projects  Project[]
+  contracts Contract[]
 
   @@index([type])
   @@index([industry])
@@ -2038,4 +2039,211 @@ model DeliverableVersion {
   @@unique([deliverableId, versionNumber])
   @@index([deliverableId])
   @@index([versionNumber])
+}
+
+// ==================== MODULE GESTION CONTRATS ====================
+
+// Fournisseurs et sous-traitants
+model Supplier {
+  id          String   @id @default(cuid())
+  name        String
+  type        String // supplier, subcontractor, partner
+  contactName String?
+  email       String?
+  phone       String?
+  address     String?  @db.Text
+  taxId       String? // Numéro de TVA/SIRET
+  website     String?
+  notes       String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  contracts Contract[]
+
+  @@index([type])
+  @@index([isActive])
+}
+
+// Templates de contrats
+model ContractTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  category    String // client, supplier, subcontractor, nda, service, other
+  content     String   @db.Text // Contenu du template (HTML/Markdown)
+  variables   String?  @db.Text // JSON array des variables disponibles
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String? // Employee ID
+
+  contracts Contract[]
+
+  @@index([category])
+  @@index([isActive])
+}
+
+// Contrats
+model Contract {
+  id             String            @id @default(cuid())
+  contractNumber String            @unique // Format: CONTRACT-2024-0001
+  templateId     String?
+  template       ContractTemplate? @relation(fields: [templateId], references: [id])
+
+  // Parties
+  companyId  String? // Si contrat client (via Company)
+  company    Company?  @relation(fields: [companyId], references: [id])
+  supplierId String? // Si contrat fournisseur/sous-traitant
+  supplier   Supplier? @relation(fields: [supplierId], references: [id])
+
+  // Informations contrat
+  title       String
+  description String? @db.Text
+  category    String // client, supplier, subcontractor, nda, service, other
+  type        String? // service, purchase, lease, employment, other
+
+  // Dates
+  startDate         DateTime?
+  endDate           DateTime?
+  renewalDate       DateTime? // Date de renouvellement automatique
+  signatureDeadline DateTime? // Date limite pour signature
+
+  // Statut
+  status String @default("draft") // draft, pending_signature, active, expired, terminated, cancelled
+
+  // Montants
+  totalAmount  Float?
+  currency     String  @default("CAD")
+  paymentTerms String? @db.Text
+
+  // Contenu
+  content String  @db.Text // Contenu final du contrat
+  terms   String? @db.Text // Conditions générales
+
+  // Fichiers
+  documentUrl String? // PDF du contrat
+  attachments String? @db.Text // JSON array de fichiers
+
+  // Signatures
+  requiresSignature Boolean   @default(true)
+  signedByClient    Boolean   @default(false)
+  signedBySupplier  Boolean   @default(false)
+  signedByAgency    Boolean   @default(false)
+  clientSignedAt    DateTime?
+  supplierSignedAt  DateTime?
+  agencySignedAt    DateTime?
+
+  // Notifications
+  renewalReminderDays Int[]     @default([90, 60, 30]) // Jours avant échéance pour rappel
+  lastReminderSent    DateTime?
+
+  // Métadonnées
+  notes     String?  @db.Text
+  tags      String?  @db.Text // JSON array de tags
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String? // Employee ID
+
+  signatures ContractSignature[]
+  renewals   ContractRenewal[]
+  amendments ContractAmendment[]
+
+  @@index([contractNumber])
+  @@index([companyId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([category])
+  @@index([endDate])
+  @@index([renewalDate])
+}
+
+// Signatures électroniques des contrats
+model ContractSignature {
+  id         String   @id @default(cuid())
+  contractId String
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  signerType  String // client, supplier, agency, employee
+  signerId    String? // ID du signataire (clientId, supplierId, employeeId)
+  signerName  String
+  signerEmail String?
+  signerTitle String? // Titre/fonction du signataire
+
+  signatureData   String  @db.Text // Données de la signature (SVG, image base64)
+  signatureMethod String  @default("draw") // draw, type, upload
+  ipAddress       String?
+  userAgent       String? @db.Text
+
+  signedAt DateTime @default(now())
+
+  @@index([contractId])
+  @@index([signerType])
+}
+
+// Renouvellements de contrats
+model ContractRenewal {
+  id         String   @id @default(cuid())
+  contractId String
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  renewalDate DateTime
+  newEndDate  DateTime
+  changes     String?   @db.Text // Changements apportés
+  status      String    @default("pending") // pending, approved, rejected
+  approvedBy  String? // Employee ID
+  approvedAt  DateTime?
+  notes       String?   @db.Text
+
+  createdAt DateTime @default(now())
+  createdBy String? // Employee ID
+
+  @@index([contractId])
+  @@index([renewalDate])
+  @@index([status])
+}
+
+// Amendements aux contrats
+model ContractAmendment {
+  id         String   @id @default(cuid())
+  contractId String
+  contract   Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  amendmentNumber String // Format: AMENDMENT-1, AMENDMENT-2...
+  title           String
+  description     String @db.Text
+  changes         String @db.Text // Détails des changements
+
+  effectiveDate     DateTime
+  requiresSignature Boolean  @default(true)
+  status            String   @default("draft") // draft, pending_signature, approved, rejected
+
+  documentUrl String? // PDF de l'amendement
+
+  createdAt DateTime @default(now())
+  createdBy String? // Employee ID
+
+  signatures ContractAmendmentSignature[]
+
+  @@index([contractId])
+  @@index([effectiveDate])
+  @@index([status])
+}
+
+// Signatures des amendements
+model ContractAmendmentSignature {
+  id          String            @id @default(cuid())
+  amendmentId String
+  amendment   ContractAmendment @relation(fields: [amendmentId], references: [id], onDelete: Cascade)
+
+  signerType      String // client, supplier, agency
+  signerName      String
+  signerEmail     String?
+  signatureData   String   @db.Text
+  signatureMethod String   @default("draw")
+  ipAddress       String?
+  userAgent       String?  @db.Text
+  signedAt        DateTime @default(now())
+
+  @@index([amendmentId])
 }
