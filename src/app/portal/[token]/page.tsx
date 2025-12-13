@@ -623,7 +623,7 @@ export default function ClientPortalPage() {
   const { portal, projects, tickets } = portalData;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f]">
+    <div className="min-h-screen bg-[#0a0a0f] pl-64">
       {/* Header */}
       <header className="bg-gradient-to-r from-purple-600 via-pink-500 to-orange-400 text-white">
         <div className="max-w-7xl mx-auto px-6 py-6">
@@ -711,7 +711,7 @@ export default function ClientPortalPage() {
       </header>
 
       {/* Content */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="w-full px-6 py-8">
         {/* Dashboard Tab */}
         {activeTab === "dashboard" && (
           <div className="space-y-8">
