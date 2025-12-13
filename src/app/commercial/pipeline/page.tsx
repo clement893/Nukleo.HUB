@@ -401,7 +401,7 @@ export default function PipelinePage() {
             </div>
           ) : (
             <div className="flex gap-4 pb-4">
-              {PIPELINE_STAGES.map((stage) => {
+              {PIPELINE_STAGES.map((stage, index) => {
                 const isVisible = visibleColumns.has(stage.id);
                 return (
                   <KanbanColumn
@@ -414,6 +414,7 @@ export default function PipelinePage() {
                     onCardClick={handleCardClick}
                     isCollapsed={!isVisible}
                     onToggleCollapse={() => toggleColumnVisibility(stage.id)}
+                    orderNumber={index + 1}
                   />
                 );
               })}

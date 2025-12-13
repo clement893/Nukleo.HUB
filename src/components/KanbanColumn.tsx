@@ -17,6 +17,7 @@ interface KanbanColumnProps {
   onCardClick: (opportunity: Opportunity) => void;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
+  orderNumber?: number;
 }
 
 export default function KanbanColumn({
@@ -28,6 +29,7 @@ export default function KanbanColumn({
   onCardClick,
   isCollapsed = false,
   onToggleCollapse,
+  orderNumber,
 }: KanbanColumnProps) {
   const totalValue = opportunities.reduce((sum, opp) => sum + (opp.value || 0), 0);
   
@@ -50,6 +52,11 @@ export default function KanbanColumn({
         onDragOver={onDragOver}
         onDrop={(e) => onDrop(e, stage.id)}
       >
+        {orderNumber && (
+          <span className="text-xs font-bold text-muted-foreground mb-1">
+            {orderNumber}
+          </span>
+        )}
         <div
           className="w-3 h-3 rounded-full mb-2"
           style={{ backgroundColor: stage.color }}
@@ -71,6 +78,11 @@ export default function KanbanColumn({
       {/* Column Header */}
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
+          {orderNumber && (
+            <span className="text-xs font-bold text-muted-foreground min-w-[20px]">
+              {orderNumber}.
+            </span>
+          )}
           <div
             className="w-3 h-3 rounded-full"
             style={{ backgroundColor: stage.color }}
