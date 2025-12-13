@@ -152,7 +152,7 @@ export default function InvoicesPage() {
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto ml-64">
         <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm border-b border-border px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
