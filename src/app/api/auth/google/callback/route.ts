@@ -6,9 +6,15 @@ import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const REDIRECT_URI = process.env.NEXT_PUBLIC_APP_URL 
-  ? `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/google/callback`
-  : "https://nukleohub-production.up.railway.app/api/auth/google/callback";
+
+// Construire REDIRECT_URI depuis les variables d'environnement uniquement
+function getRedirectUri(): string {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (!baseUrl) {
+    throw new Error("NEXT_PUBLIC_APP_URL environment variable is required");
+  }
+  return `${baseUrl}/api/auth/google/callback`;
+}
 
 export async function GET(request: NextRequest) {
   // Rate limiting sur l'authentification
@@ -23,8 +29,9 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     await logFailedAuth(`google_oauth_${state || "unknown"}`, ipAddress);
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "";
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || "https://nukleohub-production.up.railway.app"}/teams/employees/${state}?google_error=${error}`
+      `${baseUrl}/teams/employees/${state}?google_error=${error}`
     );
   }
 
@@ -54,15 +61,16 @@ export async function GET(request: NextRequest) {
         client_secret: GOOGLE_CLIENT_SECRET,
         code,
         grant_type: "authorization_code",
-        redirect_uri: REDIRECT_URI,
+        redirect_uri: getRedirectUri(),
       }),
     });
 
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.json();
       console.error("Token exchange error:", errorData);
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "";
       return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_APP_URL || "https://nukleohub-production.up.railway.app"}/teams/employees/${state}?google_error=token_exchange_failed`
+        `${baseUrl}/teams/employees/${state}?google_error=token_exchange_failed`
       );
     }
 
@@ -111,13 +119,15 @@ export async function GET(request: NextRequest) {
     });
 
     // Rediriger vers la page de l'employé avec succès
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "";
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || "https://nukleohub-production.up.railway.app"}/teams/employees/${state}?google_connected=true`
+      `${baseUrl}/teams/employees/${state}?google_connected=true`
     );
   } catch (error) {
     console.error("OAuth callback error:", error);
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "";
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || "https://nukleohub-production.up.railway.app"}/teams/employees/${state}?google_error=server_error`
+      `${baseUrl}/teams/employees/${state}?google_error=server_error`
     );
   }
 }

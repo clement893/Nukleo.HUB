@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
+import { projectCreateSchema, validateBody } from "@/lib/validations";
+import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
+  // Rate limiting
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.read);
+  if (rateLimitError) return rateLimitError;
+
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
@@ -65,28 +72,48 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(projects);
   } catch (error) {
-    console.error("Error fetching projects:", error);
+    logger.error("Error fetching projects", error as Error, "PROJECTS_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la récupération des projets."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to fetch projects" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
 }
 
 export async function POST(request: NextRequest) {
+  // Rate limiting
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.write);
+  if (rateLimitError) return rateLimitError;
+
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
   try {
     const body = await request.json();
+    
+    // Validation avec Zod
+    const validation = validateBody(projectCreateSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error },
+        { status: 400 }
+      );
+    }
+
     const project = await prisma.project.create({
-      data: body,
+      data: validation.data,
     });
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
-    console.error("Error creating project:", error);
+    logger.error("Error creating project", error as Error, "PROJECTS_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la création du projet."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to create project" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

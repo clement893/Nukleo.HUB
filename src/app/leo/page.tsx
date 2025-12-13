@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import DOMPurify from "dompurify";
+import DOMPurify from "isomorphic-dompurify";
 import Sidebar from "@/components/Sidebar";
 import {
   Send,
@@ -146,15 +146,12 @@ export default function LeoPage() {
       })
       .join("");
     // Sanitiser le HTML pour prévenir les attaques XSS (côté client ET serveur)
-    if (typeof window !== "undefined") {
-      return DOMPurify.sanitize(formatted, {
-        ALLOWED_TAGS: ['p', 'strong', 'em', 'ul', 'ol', 'li', 'br', 'a'],
-        ALLOWED_ATTR: ['href', 'class'],
-        ALLOW_DATA_ATTR: false,
-      });
-    }
-    // En SSR, retourner le contenu non formaté (sera sanitisé côté client)
-    return content;
+    // isomorphic-dompurify fonctionne aussi côté serveur
+    return DOMPurify.sanitize(formatted, {
+      ALLOWED_TAGS: ['p', 'strong', 'em', 'ul', 'ol', 'li', 'br', 'a'],
+      ALLOWED_ATTR: ['href', 'class'],
+      ALLOW_DATA_ATTR: false,
+    });
   };
 
   return (

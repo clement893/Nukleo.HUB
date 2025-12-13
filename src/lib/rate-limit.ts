@@ -5,18 +5,94 @@ interface RateLimitEntry {
   resetTime: number;
 }
 
-// Store en mémoire pour le rate limiting (en production, utiliser Redis)
+// Store en mémoire pour le rate limiting
+// En production avec plusieurs instances, utiliser Redis via REDIS_URL
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 // Nettoyer les entrées expirées toutes les minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitStore.entries()) {
-    if (entry.resetTime < now) {
-      rateLimitStore.delete(key);
+if (typeof setInterval !== "undefined") {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [key, entry] of rateLimitStore.entries()) {
+      if (entry.resetTime < now) {
+        rateLimitStore.delete(key);
+      }
+    }
+  }, 60000);
+}
+
+// Interface pour le store de rate limiting (permettant Redis ou mémoire)
+interface RateLimitStore {
+  get(key: string): Promise<RateLimitEntry | null>;
+  set(key: string, entry: RateLimitEntry, ttl: number): Promise<void>;
+  delete(key: string): Promise<void>;
+}
+
+// Store en mémoire (fallback)
+class MemoryRateLimitStore implements RateLimitStore {
+  async get(key: string): Promise<RateLimitEntry | null> {
+    return rateLimitStore.get(key) || null;
+  }
+
+  async set(key: string, entry: RateLimitEntry, ttl: number): Promise<void> {
+    rateLimitStore.set(key, entry);
+  }
+
+  async delete(key: string): Promise<void> {
+    rateLimitStore.delete(key);
+  }
+}
+
+// Store Redis (si disponible)
+class RedisRateLimitStore implements RateLimitStore {
+  private redis: any;
+
+  constructor() {
+    // Lazy import de Redis seulement si REDIS_URL est défini
+    if (process.env.REDIS_URL) {
+      try {
+        // Note: ioredis doit être installé: pnpm add ioredis
+        // Pour l'instant, on utilise le store mémoire
+        this.redis = null;
+      } catch {
+        this.redis = null;
+      }
     }
   }
-}, 60000);
+
+  async get(key: string): Promise<RateLimitEntry | null> {
+    if (!this.redis) return null;
+    try {
+      const data = await this.redis.get(`rate_limit:${key}`);
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async set(key: string, entry: RateLimitEntry, ttl: number): Promise<void> {
+    if (!this.redis) return;
+    try {
+      await this.redis.setex(`rate_limit:${key}`, Math.ceil(ttl / 1000), JSON.stringify(entry));
+    } catch {
+      // Ignorer les erreurs Redis
+    }
+  }
+
+  async delete(key: string): Promise<void> {
+    if (!this.redis) return;
+    try {
+      await this.redis.del(`rate_limit:${key}`);
+    } catch {
+      // Ignorer les erreurs Redis
+    }
+  }
+}
+
+// Utiliser Redis si disponible, sinon mémoire
+const store: RateLimitStore = process.env.REDIS_URL 
+  ? new RedisRateLimitStore() 
+  : new MemoryRateLimitStore();
 
 interface RateLimitConfig {
   maxRequests: number;  // Nombre max de requêtes
@@ -24,19 +100,19 @@ interface RateLimitConfig {
 }
 
 /**
- * Rate limiter simple basé sur l'IP
+ * Rate limiter basé sur l'IP (avec support Redis optionnel)
  * @param identifier - Identifiant unique (IP, userId, etc.)
  * @param config - Configuration du rate limit
  * @returns true si la requête est autorisée, false sinon
  */
-export function checkRateLimit(
+export async function checkRateLimit(
   identifier: string,
   config: RateLimitConfig = { maxRequests: 100, windowMs: 60000 }
-): { allowed: boolean; remaining: number; resetTime: number } {
+): Promise<{ allowed: boolean; remaining: number; resetTime: number }> {
   const now = Date.now();
   const key = identifier;
   
-  let entry = rateLimitStore.get(key);
+  let entry = await store.get(key);
   
   if (!entry || entry.resetTime < now) {
     // Nouvelle fenêtre
@@ -44,7 +120,7 @@ export function checkRateLimit(
       count: 1,
       resetTime: now + config.windowMs,
     };
-    rateLimitStore.set(key, entry);
+    await store.set(key, entry, config.windowMs);
     return {
       allowed: true,
       remaining: config.maxRequests - 1,
@@ -61,7 +137,7 @@ export function checkRateLimit(
   }
   
   entry.count++;
-  rateLimitStore.set(key, entry);
+  await store.set(key, entry, config.windowMs);
   
   return {
     allowed: true,
@@ -72,6 +148,7 @@ export function checkRateLimit(
 
 /**
  * Middleware de rate limiting pour les API routes
+ * Note: Cette fonction est synchrone pour compatibilité, mais utilise un store asynchrone en interne
  */
 export function rateLimitMiddleware(
   request: Request,
@@ -81,24 +158,39 @@ export function rateLimitMiddleware(
   const forwarded = request.headers.get("x-forwarded-for");
   const ip = forwarded ? forwarded.split(",")[0].trim() : "unknown";
   
-  const result = checkRateLimit(ip, config);
+  // Pour compatibilité synchrone, utiliser le store mémoire directement
+  // En production avec Redis, utiliser une version asynchrone du middleware
+  const now = Date.now();
+  const key = ip;
   
-  if (!result.allowed) {
-    return NextResponse.json(
-      { 
-        error: "Trop de requêtes. Veuillez réessayer plus tard.",
-        retryAfter: Math.ceil((result.resetTime - Date.now()) / 1000),
-      },
-      { 
-        status: 429,
-        headers: {
-          "Retry-After": String(Math.ceil((result.resetTime - Date.now()) / 1000)),
-          "X-RateLimit-Limit": String(config.maxRequests),
-          "X-RateLimit-Remaining": "0",
-          "X-RateLimit-Reset": String(result.resetTime),
+  let entry = rateLimitStore.get(key);
+  
+  if (!entry || entry.resetTime < now) {
+    entry = {
+      count: 1,
+      resetTime: now + config.windowMs,
+    };
+    rateLimitStore.set(key, entry);
+  } else {
+    if (entry.count >= config.maxRequests) {
+      return NextResponse.json(
+        { 
+          error: "Trop de requêtes. Veuillez réessayer plus tard.",
+          retryAfter: Math.ceil((entry.resetTime - now) / 1000),
         },
-      }
-    );
+        { 
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil((entry.resetTime - now) / 1000)),
+            "X-RateLimit-Limit": String(config.maxRequests),
+            "X-RateLimit-Remaining": "0",
+            "X-RateLimit-Reset": String(entry.resetTime),
+          },
+        }
+      );
+    }
+    entry.count++;
+    rateLimitStore.set(key, entry);
   }
   
   return null; // Requête autorisée

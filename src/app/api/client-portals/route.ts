@@ -66,12 +66,17 @@ export async function POST(request: NextRequest) {
 
     const { clientName, clientEmail, companyId, welcomeMessage } = validation.data;
 
+    // Définir une expiration par défaut (1 an) si non fournie
+    const expiresAt = new Date();
+    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+
     const portal = await prisma.clientPortal.create({
       data: {
         clientName,
         clientEmail,
         companyId,
         welcomeMessage,
+        expiresAt, // Expiration obligatoire
       },
     });
 

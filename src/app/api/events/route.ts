@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
+import { eventCreateSchema, validateBody } from "@/lib/validations";
+import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
+  // Rate limiting
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.read);
+  if (rateLimitError) return rateLimitError;
+
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
@@ -34,68 +41,60 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(events);
   } catch (error) {
-    console.error("Error fetching events:", error);
+    logger.error("Error fetching events", error as Error, "EVENTS_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la récupération des événements."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to fetch events" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
 }
 
 export async function POST(request: NextRequest) {
+  // Rate limiting
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.write);
+  if (rateLimitError) return rateLimitError;
+
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
   try {
     const body = await request.json();
-    const {
-      title,
-      description,
-      type,
-      startDate,
-      endDate,
-      allDay,
-      location,
-      color,
-      contactId,
-      opportunityId,
-      projectId,
-      companyId,
-      reminder,
-      reminderTime,
-    } = body;
-
-    if (!title || !startDate) {
+    
+    // Validation avec Zod
+    const validation = validateBody(eventCreateSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Title and start date are required" },
+        { error: validation.error },
         { status: 400 }
       );
     }
 
     const event = await prisma.event.create({
       data: {
-        title,
-        description,
-        type: type || "meeting",
-        startDate: new Date(startDate),
-        endDate: endDate ? new Date(endDate) : null,
-        allDay: allDay || false,
-        location,
-        color: color || "#6366f1",
-        contactId,
-        opportunityId,
-        projectId,
-        companyId,
-        reminder: reminder || false,
-        reminderTime,
+        title: validation.data.title,
+        description: validation.data.description || null,
+        type: validation.data.type || "meeting",
+        startDate: new Date(validation.data.startDate),
+        endDate: validation.data.endDate ? new Date(validation.data.endDate) : null,
+        location: validation.data.location || null,
+        contactId: validation.data.relatedId || null,
+        opportunityId: validation.data.relatedType === "opportunity" ? validation.data.relatedId : null,
+        projectId: validation.data.relatedType === "project" ? validation.data.relatedId : null,
+        companyId: validation.data.relatedType === "company" ? validation.data.relatedId : null,
       },
     });
 
     return NextResponse.json(event, { status: 201 });
   } catch (error) {
-    console.error("Error creating event:", error);
+    logger.error("Error creating event", error as Error, "EVENTS_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la création de l'événement."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to create event" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

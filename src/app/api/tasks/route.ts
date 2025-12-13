@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
+import { taskCreateSchema, validateBody } from "@/lib/validations";
+import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
+  // Rate limiting
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.read);
+  if (rateLimitError) return rateLimitError;
+
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
@@ -40,40 +47,48 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(tasks);
   } catch (error) {
-    console.error("Error fetching tasks:", error);
+    logger.error("Error fetching tasks", error as Error, "TASKS_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la récupération des tâches."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to fetch tasks" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
 }
 
 export async function POST(request: NextRequest) {
+  // Rate limiting
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.write);
+  if (rateLimitError) return rateLimitError;
+
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
   try {
     const body = await request.json();
-    const { title, description, zone, department, projectId, priority, dueDate, status, estimatedHours } = body;
-
-    if (!title || !department) {
+    
+    // Validation avec Zod
+    const validation = validateBody(taskCreateSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "Title and department are required" },
+        { error: validation.error },
         { status: 400 }
       );
     }
 
     const task = await prisma.task.create({
       data: {
-        title,
-        description,
-        zone: zone || "shelf",
-        department,
-        status: status || "todo",
-        projectId,
-        priority: priority || "medium",
-        estimatedHours: estimatedHours || 2,
-        dueDate: dueDate ? new Date(dueDate) : null,
+        title: validation.data.title,
+        description: validation.data.description || null,
+        zone: "shelf", // Valeur par défaut
+        department: validation.data.department || "Lab",
+        status: validation.data.status || "todo",
+        projectId: validation.data.projectId || null,
+        priority: validation.data.priority || "medium",
+        estimatedHours: validation.data.estimatedHours || 2,
+        dueDate: validation.data.dueDate ? new Date(validation.data.dueDate) : null,
       },
       include: {
         project: {
@@ -88,9 +103,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(task, { status: 201 });
   } catch (error) {
-    console.error("Error creating task:", error);
+    logger.error("Error creating task", error as Error, "TASKS_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la création de la tâche."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to create task" },
+      { error: errorMessage },
       { status: 500 }
     );
   }

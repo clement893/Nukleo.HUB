@@ -256,11 +256,48 @@ export async function canAccessSpecificResource(
 
     if (!user) return false;
 
-    // Super admin a accès à tout
-    if (user.role === UserRole.SUPER_ADMIN) return true;
+    // Super admin et admin ont accès à tout
+    if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN) {
+      return true;
+    }
 
-    // Pour les utilisateurs normaux, vérifier les permissions du rôle
-    return hasPermission(user.role as UserRole, `view_${resourceType.toLowerCase()}`);
+    // Vérifier les permissions spécifiques de l'utilisateur (UserAccess)
+    const userAccess = await prisma.userAccess.findUnique({
+      where: { userId },
+    });
+
+    if (!userAccess) {
+      // Pas de restrictions = accès à tout par défaut
+      return true;
+    }
+
+    // Vérifier selon le type de ressource
+    if (resourceType === "project") {
+      if (userAccess.projectsAccess === "none") return false;
+      if (userAccess.projectsAccess === "all") return true;
+      if (userAccess.projectsAccess === "specific" && userAccess.allowedProjects) {
+        try {
+          const allowedProjects = JSON.parse(userAccess.allowedProjects) as string[];
+          return allowedProjects.includes(resourceId);
+        } catch {
+          return false;
+        }
+      }
+    } else if (resourceType === "company" || resourceType === "client") {
+      if (userAccess.clientsAccess === "none") return false;
+      if (userAccess.clientsAccess === "all") return true;
+      if (userAccess.clientsAccess === "specific" && userAccess.allowedClients) {
+        try {
+          const allowedClients = JSON.parse(userAccess.allowedClients) as string[];
+          return allowedClients.includes(resourceId);
+        } catch {
+          return false;
+        }
+      }
+    }
+
+    // Par défaut, autoriser si pas de restriction spécifique
+    return true;
   } catch (error) {
     console.error("Error checking specific resource access:", error);
     return false;

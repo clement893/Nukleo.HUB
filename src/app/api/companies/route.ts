@@ -1,8 +1,15 @@
 import { prisma } from "@/lib/prisma";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
+import { companyCreateSchema, validateBody } from "@/lib/validations";
+import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  // Rate limiting
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.read);
+  if (rateLimitError) return rateLimitError;
+
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
@@ -18,28 +25,48 @@ export async function GET(request: Request) {
     });
     return NextResponse.json(companies);
   } catch (error) {
-    console.error("Error fetching companies:", error);
+    logger.error("Error fetching companies", error as Error, "COMPANIES_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la récupération des entreprises."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to fetch companies" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  // Rate limiting
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.write);
+  if (rateLimitError) return rateLimitError;
+
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
   try {
-    const data = await request.json();
+    const body = await request.json();
+    
+    // Validation avec Zod
+    const validation = validateBody(companyCreateSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: validation.error },
+        { status: 400 }
+      );
+    }
+
     const company = await prisma.company.create({
-      data,
+      data: validation.data,
     });
-    return NextResponse.json(company);
+    return NextResponse.json(company, { status: 201 });
   } catch (error) {
-    console.error("Error creating company:", error);
+    logger.error("Error creating company", error as Error, "COMPANIES_API");
+    const errorMessage = process.env.NODE_ENV === "production"
+      ? "Une erreur est survenue lors de la création de l'entreprise."
+      : (error as Error).message;
     return NextResponse.json(
-      { error: "Failed to create company" },
+      { error: errorMessage },
       { status: 500 }
     );
   }
