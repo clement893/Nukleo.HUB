@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import Sidebar from "@/components/Sidebar";
 import { ProtectedPage } from "@/components/ProtectedPage";
@@ -22,6 +23,8 @@ import {
   DollarSign,
   AlertCircle,
 } from "lucide-react";
+import { toast } from "@/lib/toast";
+import { logger } from "@/lib/logger";
 
 interface Contact {
   id: string;
@@ -77,31 +80,36 @@ interface Client {
 }
 
 export default function ClientsPage() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
   const [creatingPortal, setCreatingPortal] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    fetchClients();
-  }, [search]);
-
-  const fetchClients = async () => {
-    try {
-      const params = new URLSearchParams();
-      if (search) params.append("search", search);
-      
-      const response = await fetch(`/api/clients?${params}`);
-      const data = await response.json();
-      setClients(data);
-    } catch (error) {
-      console.error("Error fetching clients:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Utiliser React Query pour le cache et éviter les re-renders
+  const { data: clients = [], isLoading: loading, refetch } = useQuery<Client[]>({
+    queryKey: ["clients", search],
+    queryFn: async () => {
+      try {
+        const params = new URLSearchParams();
+        if (search) params.append("search", search);
+        
+        const response = await fetch(`/api/clients?${params}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch clients");
+        }
+        return response.json();
+      } catch (error) {
+        toast.error("Erreur", "Impossible de charger les clients");
+        const errorObj = error instanceof Error ? error : new Error(String(error));
+        logger.error("Error fetching clients", errorObj, "CLIENTS_PAGE", { search });
+        throw error;
+      }
+    },
+    staleTime: 30 * 1000, // 30 secondes
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+  });
 
   const copyPortalUrl = (token: string) => {
     const url = `${window.location.origin}/portal/${token}`;
@@ -113,14 +121,21 @@ export default function ClientsPage() {
   const createPortalForClient = async (companyId: string) => {
     setCreatingPortal(companyId);
     try {
-      await fetch("/api/clients", {
+      const response = await fetch("/api/clients", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ companyId, createPortal: true }),
       });
-      await fetchClients();
+      if (!response.ok) {
+        throw new Error("Failed to create portal");
+      }
+      // Invalider le cache pour forcer le re-fetch
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
+      toast.success("Succès", "Portail client créé avec succès");
     } catch (error) {
-      console.error("Error creating portal:", error);
+      toast.error("Erreur", "Impossible de créer le portail client");
+      const errorObj = error instanceof Error ? error : new Error(String(error));
+      logger.error("Error creating portal", errorObj, "CLIENTS_PAGE", { companyId });
     } finally {
       setCreatingPortal(null);
     }
