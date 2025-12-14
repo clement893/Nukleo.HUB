@@ -74,7 +74,7 @@ interface Employee {
 }
 
 // Obtenir le lundi de la semaine
-function getWeekStart(date: Date): Date {
+function _getWeekStart(date: Date): Date {
   const d = new Date(date);
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
