@@ -4,7 +4,7 @@ import { requireAuth } from "@/lib/api-auth";
 
 // GET - Détails d'un sondage avec questions
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await requireAuth();
@@ -83,7 +83,7 @@ export async function PUT(
 
 // DELETE - Supprimer un sondage
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await requireAuth();
