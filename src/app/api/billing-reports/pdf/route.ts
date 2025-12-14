@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const month = searchParams.get("month");
-    const viewMode = searchParams.get("viewMode") || "project";
+    const _viewMode = searchParams.get("viewMode") || "project";
 
     // Calculer les dates
     let startDate: Date;
