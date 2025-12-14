@@ -14,7 +14,6 @@ import {
   Shield,
   Compass,
   GripVertical,
-  Users,
   Clock,
   CheckCircle2,
 } from "lucide-react";
