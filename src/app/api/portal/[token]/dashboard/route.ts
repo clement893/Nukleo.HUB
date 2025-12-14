@@ -90,9 +90,6 @@ export async function GET(
     }, 0);
     const totalDue = totalInvoiced - totalPaid;
 
-    // Tâches en cours (via milestones)
-    const tasksInProgress = projects.reduce((sum, p) => sum + p.milestones.length, 0);
-
     // Projets nécessitant attention (en retard ou bloqués)
     const projectsNeedingAttention = projects.filter(p => {
       if (p.status === "on_hold") return true;
