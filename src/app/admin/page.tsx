@@ -14,7 +14,6 @@ import {
   Settings,
   Shield,
   UserCog,
-  FileText,
   AlertCircle,
   CheckCircle2,
   Briefcase,
