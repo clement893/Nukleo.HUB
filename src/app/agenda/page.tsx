@@ -263,13 +263,6 @@ export default function AgendaPage() {
     });
   };
 
-  const getEventsForDate = (date: Date) => {
-    return events.filter((event) => {
-      const eventDate = new Date(event.startDate);
-      return eventDate.toDateString() === date.toDateString();
-    });
-  };
-
   const getEventsForHour = (date: Date, hour: number) => {
     return events.filter((event) => {
       if (event.allDay) return false;
