@@ -168,25 +168,6 @@ export default function VacationsAdminPage() {
     }
   };
 
-  const quickAction = async (requestId: string, action: "approve" | "reject") => {
-    setProcessing(requestId);
-    try {
-      const res = await fetch("/api/admin/vacations", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ requestId, action }),
-      });
-
-      if (res.ok) {
-        fetchRequests();
-      }
-    } catch (error) {
-      console.error("Error processing request:", error);
-    } finally {
-      setProcessing(null);
-    }
-  };
-
   const openEditModal = (request: VacationRequest) => {
     setSelectedRequest(request);
     setEditFormData({
