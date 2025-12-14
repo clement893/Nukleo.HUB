@@ -4,7 +4,7 @@ import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // POST /api/companies/[id]/enrich
 export async function POST(
-  request: NextRequest,
+  _request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAuth();
