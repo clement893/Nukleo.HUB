@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       totalContacts,
       totalEmployees,
       totalOpportunities,
-      totalTimeEntries,
+      _totalTimeEntries,
       recentProjects,
       projectsByStatus,
       projectsByType,
