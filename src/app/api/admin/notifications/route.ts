@@ -25,7 +25,7 @@ async function getAdmin() {
 }
 
 // GET - Liste des notifications (avec filtres)
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (isErrorResponse(auth)) return auth;
 

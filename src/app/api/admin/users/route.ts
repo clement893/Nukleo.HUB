@@ -31,7 +31,7 @@ async function checkAdminAccess() {
 }
 
 // GET - Récupérer tous les utilisateurs avec leurs employés liés
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (isErrorResponse(auth)) return auth;
 
@@ -239,7 +239,7 @@ export async function PATCH(_request: NextRequest) {
 }
 
 // DELETE - Supprimer un utilisateur
-export async function DELETE(_request: NextRequest) {
+export async function DELETE(request: NextRequest) {
   const auth = await requireAdmin();
   if (isErrorResponse(auth)) return auth;
 

@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger";
 import { getCurrentUser } from "@/lib/auth";
 
 // GET - Contrats expirant bientôt
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user || !["admin", "super_admin"].includes(user.role)) {

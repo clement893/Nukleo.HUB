@@ -29,7 +29,7 @@ async function checkAdminAccess() {
 }
 
 // GET - Récupérer les accès d'un utilisateur
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   const auth = await requireAdmin();
   if (isErrorResponse(auth)) return auth;
 
@@ -78,7 +78,7 @@ export async function GET(_request: NextRequest) {
 }
 
 // PUT - Mettre à jour les accès d'un utilisateur
-export async function PUT(_request: NextRequest) {
+export async function PUT(request: NextRequest) {
   const auth = await requireAdmin();
   if (isErrorResponse(auth)) return auth;
 
