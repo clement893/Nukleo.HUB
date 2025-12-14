@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
 }
 
 // POST - Envoyer une notification à un ou plusieurs employés
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
   if (isErrorResponse(auth)) return auth;
 
