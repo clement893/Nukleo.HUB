@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger";
 
 // GET - Vue financière complète (factures, paiements, solde)
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
