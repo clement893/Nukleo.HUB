@@ -36,7 +36,7 @@ export async function GET() {
     }
 
     // Requêtes optimisées en parallèle pour les statistiques
-    const [opportunities, totalCount] = await Promise.all([
+    const [opportunities, _totalCount] = await Promise.all([
       prisma.opportunity.findMany({
         select: {
           id: true,
