@@ -14,8 +14,8 @@ function getFaviconUrl(websiteUrl: string): string {
   }
 }
 
-// Alternative: DuckDuckGo favicon service
-function getDuckDuckGoFaviconUrl(websiteUrl: string): string {
+// Alternative: DuckDuckGo favicon service (not currently used)
+function _getDuckDuckGoFaviconUrl(websiteUrl: string): string {
   try {
     const url = new URL(websiteUrl);
     const domain = url.hostname;
