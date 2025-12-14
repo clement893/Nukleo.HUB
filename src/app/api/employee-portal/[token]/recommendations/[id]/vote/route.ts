@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 // POST - Voter pour une recommandation
 export async function POST(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ token: string; id: string }> }
 ) {
   const { token, id: recommendationId } = await params;
