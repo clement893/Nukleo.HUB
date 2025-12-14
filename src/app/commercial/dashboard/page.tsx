@@ -11,7 +11,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Building2,
-  User,
 } from "lucide-react";
 
 interface DashboardStats {
