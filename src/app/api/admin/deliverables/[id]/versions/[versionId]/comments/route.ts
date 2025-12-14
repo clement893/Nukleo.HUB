@@ -15,7 +15,7 @@ const createCommentSchema = z.object({
 
 // GET - Récupérer les commentaires d'une version
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string; versionId: string }> }
 ) {
   try {
