@@ -45,7 +45,7 @@ export async function POST(
     }
 
     // Extract basic info from HTML
-    const titleMatch = websiteContent.match(/<title[^>]*>([^<]+)<\/title>/i);
+    const _titleMatch = websiteContent.match(/<title[^>]*>([^<]+)<\/title>/i);
     const descriptionMatch = websiteContent.match(
       /<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i
     ) || websiteContent.match(
