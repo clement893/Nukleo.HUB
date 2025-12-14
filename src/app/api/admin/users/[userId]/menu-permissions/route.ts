@@ -4,7 +4,7 @@ import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // GET - Récupérer les permissions d'un utilisateur
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
   const auth = await requireAuth();
