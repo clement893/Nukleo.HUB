@@ -26,7 +26,7 @@ const createRevisionWorkflowSchema = z.object({
 
 // GET - Récupérer le workflow de révision d'un livrable
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
