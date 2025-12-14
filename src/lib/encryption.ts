@@ -99,3 +99,5 @@ export function isEncrypted(text: string): boolean {
   const parts = text.split(":");
   return parts.length === 3 && parts.every(part => /^[0-9a-f]+$/i.test(part));
 }
+
+

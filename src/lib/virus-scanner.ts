@@ -108,3 +108,5 @@ export async function scanBuffer(
   const file = new File([uint8Array], fileName, { type: mimeType });
   return scanFile(file);
 }
+
+

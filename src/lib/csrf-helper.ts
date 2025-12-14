@@ -58,3 +58,5 @@ export async function checkCSRF(request: NextRequest): Promise<NextResponse | nu
  * Cependant, avec Next.js et sameSite: "lax", la protection est déjà bonne
  * pour la plupart des cas d'usage. Cette implémentation est optionnelle.
  */
+
+

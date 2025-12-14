@@ -32,7 +32,20 @@ export interface LogEntry {
 class Logger {
   private isDevelopment = process.env.NODE_ENV === "development";
   private logBuffer: LogEntry[] = [];
-  private maxBufferSize = 1000;
+  private maxBufferSize = process.env.NODE_ENV === "production" ? 100 : 1000; // Réduire en production
+  private bufferFlushInterval: NodeJS.Timeout | null = null;
+
+  constructor() {
+    // Flush périodique du buffer en production pour éviter la surcharge mémoire
+    if (!this.isDevelopment) {
+      this.bufferFlushInterval = setInterval(() => {
+        if (this.logBuffer.length > this.maxBufferSize * 0.8) {
+          // Garder seulement les 50% les plus récents
+          this.logBuffer = this.logBuffer.slice(-Math.floor(this.maxBufferSize / 2));
+        }
+      }, 60000); // Toutes les minutes
+    }
+  }
 
   /**
    * Enregistre un log
@@ -49,7 +62,8 @@ class Logger {
       level,
       message,
       context,
-      data,
+      // Optimisation: limiter la taille des données en production
+      data: this.isDevelopment ? data : this.limitDataSize(data),
     };
 
     if (error) {
@@ -60,9 +74,10 @@ class Logger {
       };
     }
 
-    // Ajouter au buffer
+    // Ajouter au buffer avec gestion de la taille
     this.logBuffer.push(entry);
     if (this.logBuffer.length > this.maxBufferSize) {
+      // Supprimer les entrées les plus anciennes (FIFO)
       this.logBuffer.shift();
     }
 
@@ -73,6 +88,23 @@ class Logger {
     if (!this.isDevelopment && level !== LogLevel.DEBUG) {
       this.sendToLoggingService(entry);
     }
+  }
+
+  /**
+   * Limite la taille des données pour éviter la surcharge mémoire
+   */
+  private limitDataSize(data?: Record<string, unknown>): Record<string, unknown> | undefined {
+    if (!data) return undefined;
+    
+    const limited: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data)) {
+      const stringValue = typeof value === "string" ? value : JSON.stringify(value);
+      // Limiter à 200 caractères par valeur
+      limited[key] = stringValue.length > 200 
+        ? stringValue.substring(0, 200) + "..." 
+        : value;
+    }
+    return limited;
   }
 
   /**
@@ -181,6 +213,17 @@ class Logger {
    * Vide le buffer de logs
    */
   clearLogs(): void {
+    this.logBuffer = [];
+  }
+
+  /**
+   * Nettoyage lors de la destruction
+   */
+  destroy(): void {
+    if (this.bufferFlushInterval) {
+      clearInterval(this.bufferFlushInterval);
+      this.bufferFlushInterval = null;
+    }
     this.logBuffer = [];
   }
 

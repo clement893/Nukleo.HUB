@@ -27,10 +27,41 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(cached);
       }
 
+      // Optimisation: utiliser select au lieu de include pour réduire la taille des données
       const opportunities = await prisma.opportunity.findMany({
         orderBy: { updatedAt: "desc" },
-        include: {
-          linkedContact: true,
+        select: {
+          id: true,
+          name: true,
+          value: true,
+          company: true,
+          referredBy: true,
+          leadSourceType: true,
+          contact: true,
+          contactId: true,
+          completedAt: true,
+          stage: true,
+          proposal: true,
+          assignee: true,
+          closedDate: true,
+          openDate: true,
+          region: true,
+          segment: true,
+          proposalSentDate: true,
+          projectType: true,
+          createdAt: true,
+          updatedAt: true,
+          linkedContact: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+              phone: true,
+              company: true,
+              position: true,
+              photoUrl: true,
+            },
+          },
         },
       });
 

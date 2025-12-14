@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
+import { cache, CACHE_TTL } from "@/lib/cache";
 
 const SESSION_COOKIE_NAME = "nukleo_session";
 
@@ -25,9 +26,30 @@ export async function getAuthUser(): Promise<AuthUser | null> {
       return null;
     }
 
+    // Cache de courte durée pour éviter les requêtes répétées
+    const cacheKey = `auth:user:${sessionToken}`;
+    const cached = cache.get<AuthUser>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    // Optimisation: utiliser select au lieu de include
     const session = await prisma.session.findUnique({
       where: { token: sessionToken },
-      include: { user: true },
+      select: {
+        id: true,
+        expiresAt: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            photoUrl: true,
+            role: true,
+            isActive: true,
+          },
+        },
+      },
     });
 
     if (!session || session.expiresAt < new Date()) {
@@ -41,13 +63,18 @@ export async function getAuthUser(): Promise<AuthUser | null> {
       return null;
     }
 
-    return {
+    const user: AuthUser = {
       id: session.user.id,
       email: session.user.email,
       name: session.user.name,
       photoUrl: session.user.photoUrl,
       role: session.user.role,
     };
+
+    // Mettre en cache pour 30 secondes (sécurité)
+    cache.set(cacheKey, user, CACHE_TTL.SHORT);
+
+    return user;
   } catch (error) {
     console.error("Error getting auth user:", error);
     return null;

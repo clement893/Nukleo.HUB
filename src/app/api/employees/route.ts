@@ -19,11 +19,26 @@ export async function GET(request: NextRequest) {
 
     const where = department ? { department } : {};
 
+    // Optimisation: utiliser select au lieu de include pour réduire la taille des données transférées
     const employees = await prisma.employee.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        photoUrl: true,
+        role: true,
+        department: true,
+        capacityHoursPerWeek: true,
         currentTask: {
-          include: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            zone: true,
+            priority: true,
+            dueDate: true,
             project: {
               select: {
                 id: true,

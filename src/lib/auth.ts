@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { randomBytes } from "crypto";
+import { cache as memoryCache, CACHE_TTL } from "@/lib/cache";
 
 const SESSION_COOKIE_NAME = "nukleo_session";
 const SESSION_DURATION_DAYS = 7; // Réduit de 30 à 7 jours
@@ -70,15 +71,36 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       return null;
     }
 
+    // Cache de courte durée pour éviter les requêtes répétées dans la même requête
+    const cacheKey = `user:session:${sessionToken}`;
+    const cached = memoryCache.get<AuthUser>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    // Optimisation: utiliser select au lieu de include pour réduire les données
     const session = await prisma.session.findUnique({
       where: { token: sessionToken },
-      include: { user: true },
+      select: {
+        id: true,
+        expiresAt: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            photoUrl: true,
+            role: true,
+            isActive: true,
+          },
+        },
+      },
     });
 
     if (!session || session.expiresAt < new Date()) {
       // Session expirée ou invalide
       if (session) {
-        await prisma.session.delete({ where: { id: session.id } });
+        await prisma.session.delete({ where: { id: session.id } }).catch(() => {});
       }
       return null;
     }
@@ -86,6 +108,17 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     if (!session.user.isActive) {
       return null;
     }
+
+    const user: AuthUser = {
+      id: session.user.id,
+      email: session.user.email,
+      name: session.user.name,
+      photoUrl: session.user.photoUrl,
+      role: session.user.role,
+    };
+
+    // Mettre en cache pour 30 secondes (sécurité)
+    memoryCache.set(cacheKey, user, CACHE_TTL.SHORT);
 
     // Sliding window: renouveler la session à chaque activité
     if (SESSION_SLIDING_WINDOW) {
@@ -101,13 +134,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       });
     }
 
-    return {
-      id: session.user.id,
-      email: session.user.email,
-      name: session.user.name,
-      photoUrl: session.user.photoUrl,
-      role: session.user.role,
-    };
+    return user;
   } catch (error) {
     console.error("Error getting current user:", error);
     return null;

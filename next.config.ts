@@ -152,6 +152,8 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "2mb",
     },
+    // Optimiser les imports de React
+    optimizeCss: true,
   },
   
   // Optimisations de compilation

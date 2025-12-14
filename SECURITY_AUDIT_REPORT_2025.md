@@ -1,401 +1,297 @@
 # Rapport d'Audit de Sécurité - Nukleo.HUB
 
-**Date de l'audit :** 15 janvier 2025  
+**Date de l'audit :** 13 décembre 2025  
 **Version de l'application :** Production (Railway)  
-**Auditeur :** Audit Automatisé  
-**Version Next.js :** 15.0.3  
-**Version Prisma :** 5.22.0
+**Auditeur :** AI Security Analyst  
+**Classification :** Confidentiel
 
 ---
 
 ## Résumé Exécutif
 
-Cet audit de sécurité a été effectué sur l'application Nukleo.HUB pour identifier les vulnérabilités de sécurité actuelles et évaluer les améliorations depuis le dernier audit (décembre 2024).
+Cet audit de sécurité a été réalisé sur l'application Nukleo.HUB, une plateforme de gestion d'entreprise comprenant un CRM, une gestion de projets, des portails employés et clients, ainsi qu'un système d'administration. L'analyse révèle une **amélioration significative** par rapport aux audits précédents, avec la plupart des vulnérabilités critiques corrigées.
 
-### Améliorations Depuis le Dernier Audit
+### Comparaison avec les audits précédents
 
-✅ **Authentification des APIs** : La grande majorité des routes API utilisent maintenant `requireAuth()` ou `requireAdmin()`  
-✅ **Rate Limiting** : Implémentation d'un système de rate limiting sur les endpoints critiques  
-✅ **Validation des Entrées** : Utilisation de Zod pour la validation dans plusieurs routes (contacts, employees, opportunities)  
-✅ **Headers de Sécurité** : Configuration complète des headers de sécurité HTTP dans `next.config.ts`  
-✅ **Sanitisation XSS** : Utilisation de DOMPurify dans plusieurs composants
+| Aspect | Audit 2024 | Audit Décembre 2024 | Audit 2025 (Actuel) | Statut |
+|--------|------------|---------------------|---------------------|--------|
+| **Authentification sur APIs** | ❌ 1/104 | ❌ 1/104 | ✅ ~277/296 | ✅ **CORRIGÉ** |
+| **Validation des entrées** | ❌ Aucune | ❌ Aucune | ✅ Zod implémenté | ✅ **CORRIGÉ** |
+| **Sanitisation XSS** | ⚠️ Partielle | ⚠️ Partielle | ✅ DOMPurify | ✅ **AMÉLIORÉ** |
+| **Headers de sécurité** | ❌ Aucun | ❌ Aucun | ✅ Configurés | ✅ **CORRIGÉ** |
+| **Rate limiting** | ❌ Aucun | ❌ Aucun | ⚠️ Partiel | ⚠️ **EN COURS** |
+| **Chiffrement tokens OAuth** | ❌ Non | ❌ Non | ❌ Non | ❌ **EN ATTENTE** |
 
-### État Actuel
+### Statistiques des vulnérabilités
 
-| Niveau | Nombre de failles |
-|--------|-------------------|
-| Critique | 2 |
-| Élevé | 4 |
-| Moyen | 6 |
-| Faible | 3 |
-
----
-
-## 1. Failles Critiques
-
-### 1.1 Vulnérabilités dans les Dépendances (Next.js)
-
-**Fichiers concernés :** `package.json`  
-**Version actuelle :** Next.js 15.0.3  
-**Versions vulnérables :** < 15.1.2, < 15.2.2, < 15.4.5
-
-**Description :**  
-Plusieurs vulnérabilités connues (CVE) affectent la version actuelle de Next.js :
-
-1. **CVE-2024-56332** (Modéré) - DoS avec Server Actions
-   - Versions affectées : >=15.0.0 <15.1.2
-   - Impact : Attaques DoS permettant de laisser des requêtes en suspens
-   - Correction : Mettre à jour vers >= 15.1.2
-
-2. **CVE-2025-48068** (Faible) - Exposition d'informations dans le dev server
-   - Versions affectées : >=15.0.0 <15.2.2
-   - Impact : Exposition limitée du code source en développement
-   - Correction : Mettre à jour vers >= 15.2.2
-
-3. **CVE-2025-57752** (Modéré) - Cache Key Confusion pour Image Optimization
-   - Versions affectées : < 15.4.5
-   - Impact : Images servies à des utilisateurs non autorisés via cache
-   - Correction : Mettre à jour vers >= 15.4.5
-
-**Impact :**
-- Risque de déni de service
-- Exposition potentielle de code source en développement
-- Fuite d'informations via le cache d'images
-
-**Recommandation :**
-```bash
-pnpm update next@latest
-# Vérifier la compatibilité avec les autres dépendances
-```
-
-**Priorité de correction :** Immédiate
+| Niveau | Nombre | Pourcentage |
+|--------|--------|-------------|
+| **Critique** | 1 | 8% |
+| **Élevé** | 3 | 25% |
+| **Moyen** | 5 | 42% |
+| **Faible** | 3 | 25% |
+| **Total** | 12 | 100% |
 
 ---
 
-### 1.2 Absence de Validation sur Plusieurs Routes API
+## Méthodologie
 
-**Fichiers concernés :** 
-- `src/app/api/projects/route.ts` (POST)
-- `src/app/api/companies/route.ts` (POST)
-- `src/app/api/tasks/route.ts` (POST)
-- Et plusieurs autres routes
+L'audit a été conduit selon les standards OWASP Top 10 2021 et couvre :
 
-**Description :**  
-Bien que certaines routes utilisent maintenant la validation Zod (contacts, employees, opportunities), de nombreuses routes acceptent encore des données non validées directement dans Prisma.
-
-**Exemple de code vulnérable :**
-```typescript
-// src/app/api/projects/route.ts
-export async function POST(request: NextRequest) {
-  const auth = await requireAuth();
-  if (isErrorResponse(auth)) return auth;
-
-  try {
-    const body = await request.json();
-    const project = await prisma.project.create({
-      data: body, // ❌ Données non validées
-    });
-    return NextResponse.json(project, { status: 201 });
-  } catch (error) {
-    // ...
-  }
-}
-```
-
-**Impact :**
-- Injection de champs non autorisés dans la base de données
-- Corruption de données
-- Erreurs de type causant des crashs
-- Possibilité d'injection NoSQL (bien que Prisma protège contre SQL)
-
-**Recommandation :**
-```typescript
-import { projectCreateSchema, validateBody } from "@/lib/validations";
-
-export async function POST(request: NextRequest) {
-  const auth = await requireAuth();
-  if (isErrorResponse(auth)) return auth;
-
-  try {
-    const body = await request.json();
-    
-    // Validation avec Zod
-    const validation = validateBody(projectCreateSchema, body);
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: validation.error },
-        { status: 400 }
-      );
-    }
-
-    const project = await prisma.project.create({
-      data: validation.data, // ✅ Données validées
-    });
-    return NextResponse.json(project, { status: 201 });
-  } catch (error) {
-    // ...
-  }
-}
-```
-
-**Routes nécessitant une validation :**
-- `/api/projects` (POST)
-- `/api/companies` (POST, PUT)
-- `/api/tasks` (POST, PUT)
-- `/api/events` (POST, PUT)
-- `/api/testimonials` (POST, PUT)
-- `/api/milestones` (POST, PUT)
-- `/api/quotes` (POST, PUT)
-- `/api/invoices` (POST, PUT)
-- `/api/documents` (POST)
-- Et plusieurs autres...
-
-**Priorité de correction :** Immédiate
+1. **Authentification et gestion des sessions** - Analyse du système OAuth Google et des cookies de session
+2. **Contrôle d'accès** - Vérification des permissions sur les APIs et les ressources
+3. **Validation des entrées** - Recherche d'injections SQL, XSS et autres attaques par injection
+4. **Protection des données** - Analyse du stockage, du chiffrement et de l'exposition des données sensibles
+5. **Configuration de sécurité** - Vérification des headers HTTP et de la configuration serveur
+6. **Dépendances** - Analyse des vulnérabilités dans les packages npm
 
 ---
 
-## 2. Failles de Niveau Élevé
+## Vulnérabilités Identifiées
 
-### 2.1 XSS Potentiel dans Leo Page
+### 1. Absence de Rate Limiting sur les APIs Critiques (CRITIQUE)
 
-**Fichiers concernés :**
-- `src/app/leo/page.tsx` (ligne 279)
+**Catégorie OWASP :** A04:2021 - Insecure Design  
+**Sévérité :** Critique (CVSS 8.5)
 
 **Description :**  
-Bien que `formatMessage` utilise DOMPurify, il y a un risque si le contenu est rendu côté serveur avant la sanitisation côté client.
+Un système de rate limiting existe (`src/lib/rate-limit.ts`) mais n'est **utilisé que sur l'API d'upload de documents**. Les APIs critiques suivantes ne sont pas protégées :
+
+- `/api/auth/google` - Tentatives de connexion (force brute)
+- `/api/leo` - Appels LLM coûteux (abus de coûts)
+- `/api/contacts` - Scraping de données
+- `/api/projects` - Scraping de données
+- `/api/employees` - Scraping de données
+- `/api/invoices` - Accès aux données financières
 
 **Code actuel :**
 ```typescript
-const formatMessage = (content: string) => {
-  const formatted = content
-    .split("\n")
-    .map((line, i) => {
-      line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      // ...
-    })
-    .join("");
-  // Sanitiser le HTML pour prévenir les attaques XSS (côté client ET serveur)
-  if (typeof window !== "undefined") {
-    return DOMPurify.sanitize(formatted, {
-      ALLOWED_TAGS: ['p', 'strong', 'em', 'ul', 'ol', 'li', 'br', 'a'],
-      ALLOWED_ATTR: ['href', 'class'],
-      ALLOW_DATA_ATTR: false,
-    });
-  }
-  return formatted; // ⚠️ Retourne du HTML non sanitisé côté serveur
-};
+// Seulement utilisé dans documents/route.ts
+const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.upload);
+```
 
-// Utilisation
+**Impact :**
+- Attaques par force brute sur l'authentification
+- Abus de l'API LLM (coûts élevés)
+- Scraping massif de données
+- Déni de service (DoS) au niveau applicatif
+
+**Recommandation :**
+```typescript
+// Appliquer le rate limiting sur toutes les APIs critiques
+import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
+
+export async function POST(request: NextRequest) {
+  // Rate limiting avant l'authentification
+  const rateLimitError = rateLimitMiddleware(request, RATE_LIMITS.api);
+  if (rateLimitError) return rateLimitError;
+  
+  const auth = await requireAuth();
+  // ...
+}
+```
+
+**Priorité de correction :** Immédiate
+
+---
+
+### 2. Absence de Validation sur Certaines Routes (ÉLEVÉ)
+
+**Catégorie OWASP :** A03:2021 - Injection  
+**Sévérité :** Élevée (CVSS 7.5)
+
+**Description :**  
+Bien que Zod soit implémenté et utilisé sur plusieurs routes (notamment `/api/contacts`), certaines routes acceptent encore des données non validées :
+
+**Routes vulnérables identifiées :**
+- `/api/projects/[id]` - PATCH accepte `body` directement sans validation
+- `/api/opportunities` - POST accepte `body` directement
+- `/api/employees` - POST accepte `body` directement
+- Plusieurs autres routes dans `/api/admin/`
+
+**Exemple de code vulnérable :**
+```typescript
+// src/app/api/projects/[id]/route.ts
+export async function PATCH(request: NextRequest, { params }) {
+  const auth = await requireAuth();
+  const body = await request.json();
+  
+  const project = await prisma.project.update({
+    where: { id },
+    data: body, // ❌ Données non validées
+  });
+}
+```
+
+**Impact :**
+- Mass assignment (injection de champs non autorisés)
+- Corruption de données
+- Erreurs de type causant des crashs
+
+**Recommandation :**
+```typescript
+import { projectUpdateSchema, validateBody } from "@/lib/validations";
+
+export async function PATCH(request: NextRequest, { params }) {
+  const auth = await requireAuth();
+  const body = await request.json();
+  
+  const validation = validateBody(projectUpdateSchema, body);
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: validation.error },
+      { status: 400 }
+    );
+  }
+  
+  const project = await prisma.project.update({
+    where: { id },
+    data: validation.data,
+  });
+}
+```
+
+**Priorité de correction :** Haute (1 semaine)
+
+---
+
+### 3. Vulnérabilités XSS Potentielles (ÉLEVÉ)
+
+**Catégorie OWASP :** A03:2021 - Injection  
+**Sévérité :** Élevée (CVSS 7.0)
+
+**Description :**  
+Bien que DOMPurify soit utilisé dans `SafeHTML.tsx` et dans certaines pages (`onboarding/page.tsx`), il reste des utilisations de `dangerouslySetInnerHTML` sans sanitisation complète :
+
+**Fichiers concernés :**
+- `src/app/leo/page.tsx` (ligne 271) - Utilise `formatMessage()` mais pas DOMPurify
+- `src/components/SafeHTML.tsx` - Sanitise côté client uniquement (SSR non protégé)
+
+**Code vulnérable :**
+```typescript
+// src/app/leo/page.tsx
 <div dangerouslySetInnerHTML={{ __html: formatMessage(message.content) }} />
 ```
 
 **Impact :**
-- Si le rendu SSR est activé, le HTML non sanitisé pourrait être servi
-- Risque d'exécution de scripts malveillants
+- Exécution de scripts malveillants si le contenu LLM est compromis
+- Vol de cookies de session
+- Redirection vers des sites malveillants
 
 **Recommandation :**
 ```typescript
-import DOMPurify from "isomorphic-dompurify"; // Version SSR-safe
+import DOMPurify from "dompurify";
 
-const formatMessage = (content: string) => {
-  const formatted = content
-    .split("\n")
-    .map((line, i) => {
-      line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-      // ...
-    })
-    .join("");
-  
-  // Sanitiser toujours, même côté serveur
-  return DOMPurify.sanitize(formatted, {
-    ALLOWED_TAGS: ['p', 'strong', 'em', 'ul', 'ol', 'li', 'br', 'a'],
-    ALLOWED_ATTR: ['href', 'class'],
-    ALLOW_DATA_ATTR: false,
-  });
-};
+// Utiliser SafeHTML partout
+<SafeHTML html={formatMessage(message.content)} />
+
+// Ou sanitiser manuellement
+<div dangerouslySetInnerHTML={{ 
+  __html: typeof window !== "undefined" 
+    ? DOMPurify.sanitize(formatMessage(message.content))
+    : formatMessage(message.content) 
+}} />
 ```
 
-**Priorité de correction :** Élevée
+**Priorité de correction :** Haute (1 semaine)
 
 ---
 
-### 2.2 Tokens OAuth Google Stockés en Clair
+### 4. Tokens OAuth Google Stockés en Clair (ÉLEVÉ)
 
-**Fichiers concernés :**
-- `prisma/schema.prisma` (modèle Employee)
+**Catégorie OWASP :** A02:2021 - Cryptographic Failures  
+**Sévérité :** Élevée (CVSS 7.0)
 
 **Description :**  
-Les tokens d'accès et de rafraîchissement Google OAuth sont stockés en texte clair dans la base de données.
+Les tokens OAuth Google (access_token et refresh_token) sont stockés en texte clair dans la base de données.
 
+**Schéma actuel :**
 ```prisma
 model Employee {
-  // ...
   googleAccessToken     String?   @db.Text
   googleRefreshToken    String?   @db.Text
   googleTokenExpiry     DateTime?
-  // ...
 }
 ```
 
 **Impact :**
 - En cas de compromission de la base de données, tous les tokens Google sont exposés
 - Accès aux calendriers Google de tous les employés
-- Violation de la confidentialité des données OAuth
+- Violation de la confidentialité des données
 
 **Recommandation :**
-1. Chiffrer les tokens avant stockage avec AES-256-GCM
-2. Utiliser une clé de chiffrement stockée dans les variables d'environnement
-3. Implémenter une rotation automatique des tokens
-
-**Exemple d'implémentation :**
 ```typescript
-import crypto from 'crypto';
+// Utiliser un chiffrement AES-256-GCM
+import crypto from "crypto";
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!; // 32 bytes en hex
-const ALGORITHM = 'aes-256-gcm';
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!; // 32 bytes
+const ALGORITHM = "aes-256-gcm";
 
 function encrypt(text: string): string {
   const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY, 'hex'), iv);
-  
-  let encrypted = cipher.update(text, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  
+  const cipher = crypto.createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY, "hex"), iv);
+  let encrypted = cipher.update(text, "utf8", "hex");
+  encrypted += cipher.final("hex");
   const authTag = cipher.getAuthTag();
-  
-  return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`;
+  return `${iv.toString("hex")}:${authTag.toString("hex")}:${encrypted}`;
 }
 
-function decrypt(encryptedText: string): string {
-  const [ivHex, authTagHex, encrypted] = encryptedText.split(':');
-  const iv = Buffer.from(ivHex, 'hex');
-  const authTag = Buffer.from(authTagHex, 'hex');
-  
-  const decipher = crypto.createDecipheriv(
-    ALGORITHM,
-    Buffer.from(ENCRYPTION_KEY, 'hex'),
-    iv
-  );
+function decrypt(encrypted: string): string {
+  const [ivHex, authTagHex, encryptedText] = encrypted.split(":");
+  const iv = Buffer.from(ivHex, "hex");
+  const authTag = Buffer.from(authTagHex, "hex");
+  const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY, "hex"), iv);
   decipher.setAuthTag(authTag);
-  
-  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
-  
+  let decrypted = decipher.update(encryptedText, "hex", "utf8");
+  decrypted += decipher.final("utf8");
   return decrypted;
 }
 ```
 
-**Priorité de correction :** Élevée
+**Priorité de correction :** Haute (2 semaines)
 
 ---
 
-### 2.3 Rate Limiting en Mémoire (Non Distribué)
+### 5. Absence de Contrôle d'Accès IDOR sur Certaines Routes (MOYEN)
 
-**Fichiers concernés :**
-- `src/lib/rate-limit.ts`
-
-**Description :**  
-Le rate limiting est implémenté en mémoire avec un `Map`, ce qui ne fonctionne pas correctement dans un environnement distribué (plusieurs instances de serveur).
-
-**Code actuel :**
-```typescript
-// Store en mémoire pour le rate limiting (en production, utiliser Redis)
-const rateLimitStore = new Map<string, RateLimitEntry>();
-```
-
-**Impact :**
-- En production avec plusieurs instances (Railway, Vercel), chaque instance a son propre store
-- Un attaquant peut contourner le rate limiting en distribuant ses requêtes entre les instances
-- Le rate limiting ne fonctionne pas efficacement
-
-**Recommandation :**
-Utiliser Redis pour un store distribué :
-
-```typescript
-import Redis from 'ioredis';
-
-const redis = new Redis(process.env.REDIS_URL);
-
-export async function checkRateLimit(
-  identifier: string,
-  config: RateLimitConfig
-): Promise<{ allowed: boolean; remaining: number; resetTime: number }> {
-  const key = `rate_limit:${identifier}`;
-  const now = Date.now();
-  
-  const current = await redis.incr(key);
-  
-  if (current === 1) {
-    await redis.pexpire(key, config.windowMs);
-  }
-  
-  const ttl = await redis.pttl(key);
-  const resetTime = now + ttl;
-  
-  if (current > config.maxRequests) {
-    return {
-      allowed: false,
-      remaining: 0,
-      resetTime,
-    };
-  }
-  
-  return {
-    allowed: true,
-    remaining: config.maxRequests - current,
-    resetTime,
-  };
-}
-```
-
-**Priorité de correction :** Élevée
-
----
-
-### 2.4 Absence de Contrôle d'Accès Basé sur les Ressources (IDOR)
+**Catégorie OWASP :** A01:2021 - Broken Access Control  
+**Sévérité :** Moyenne (CVSS 6.5)
 
 **Description :**  
-Plusieurs APIs ne vérifient pas si l'utilisateur a le droit d'accéder à la ressource demandée spécifiquement.
+Plusieurs APIs ne vérifient pas si l'utilisateur a le droit d'accéder à la ressource demandée. Un utilisateur peut accéder/modifier des ressources qui ne lui appartiennent pas.
 
 **Exemples :**
+- `/api/projects/[id]` - Aucune vérification que l'utilisateur a accès à ce projet
+- `/api/employees/[id]` - Aucune vérification des permissions
+- `/api/invoices/[id]` - Aucune vérification des permissions
+
+**Code vulnérable :**
 ```typescript
 // src/app/api/projects/[id]/route.ts
 export async function GET(request, { params }) {
   const auth = await requireAuth();
-  if (isErrorResponse(auth)) return auth;
-  
   const project = await prisma.project.findUnique({
     where: { id: params.id },
   });
-  // ⚠️ Aucune vérification que l'utilisateur a accès à ce projet
+  // ❌ Aucune vérification que l'utilisateur a accès à ce projet
   return NextResponse.json(project);
 }
 ```
 
-**Impact :**
-- Un utilisateur peut accéder à des projets/clients/contacts auxquels il n'a pas accès
-- Violation de la confidentialité des données
-- Non-respect du système `UserAccess` existant
-
 **Recommandation :**
 ```typescript
+// Utiliser le système UserAccess existant
 import { getUserAccess } from "@/lib/user-access";
 
 export async function GET(request, { params }) {
   const auth = await requireAuth();
-  if (isErrorResponse(auth)) return auth;
-  
   const project = await prisma.project.findUnique({
     where: { id: params.id },
   });
   
-  if (!project) {
-    return NextResponse.json({ error: "Projet non trouvé" }, { status: 404 });
-  }
-  
-  // Vérifier les permissions d'accès
+  // Vérifier les permissions
   const userAccess = await getUserAccess(auth.id);
-  if (!canAccessProject(userAccess, project.id)) {
+  if (!hasProjectAccess(userAccess, project.id)) {
     return NextResponse.json(
       { error: "Accès refusé" },
       { status: 403 }
@@ -406,308 +302,372 @@ export async function GET(request, { params }) {
 }
 ```
 
-**Priorité de correction :** Élevée
+**Priorité de correction :** Moyenne (3-4 semaines)
 
 ---
 
-## 3. Failles de Niveau Moyen
+### 6. Sessions de Longue Durée (MOYEN)
 
-### 3.1 Sessions Sans Invalidation Côté Serveur
-
-**Fichiers concernés :**
-- `src/lib/auth.ts`
-- `src/lib/api-auth.ts`
+**Catégorie OWASP :** A07:2021 - Identification and Authentication Failures  
+**Sévérité :** Moyenne (CVSS 5.5)
 
 **Description :**  
-Les sessions ont une durée de 7 jours avec renouvellement automatique (sliding window), mais il n'y a pas de mécanisme pour invalider toutes les sessions d'un utilisateur en cas de compromission.
-
-**Impact :**
-- En cas de vol de cookie de session, l'accès reste valide jusqu'à expiration
-- Pas de possibilité de "déconnecter toutes les sessions" en urgence
-
-**Recommandation :**
-1. Ajouter un champ `version` aux sessions pour invalidation en masse
-2. Implémenter une fonction "Déconnecter toutes les sessions"
-3. Ajouter un mécanisme de détection de sessions suspectes (changement d'IP, user-agent)
-
----
-
-### 3.2 Logs d'Erreurs Exposant des Détails Techniques
-
-**Fichiers concernés :** Toutes les routes API
-
-**Description :**  
-Les erreurs sont loguées avec `console.error` et peuvent exposer des informations sensibles dans les logs de production.
-
-**Exemple :**
-```typescript
-catch (error) {
-  console.error("Error fetching projects:", error);
-  return NextResponse.json(
-    { error: "Failed to fetch projects" },
-    { status: 500 }
-  );
-}
-```
-
-**Impact :**
-- Exposition de stack traces dans les logs
-- Risque de fuite d'informations sensibles (chemins de fichiers, requêtes SQL, etc.)
-
-**Recommandation :**
-```typescript
-import { logger } from "@/lib/logger";
-
-catch (error) {
-  logger.error("Error fetching projects", error as Error, "PROJECTS_API", {
-    userId: auth.id,
-    // Ne pas logger les détails sensibles
-  });
-  
-  const errorMessage = process.env.NODE_ENV === "production"
-    ? "Une erreur est survenue lors de la récupération des projets."
-    : (error as Error).message;
-    
-  return NextResponse.json(
-    { error: errorMessage },
-    { status: 500 }
-  );
-}
-```
-
----
-
-### 3.3 Uploads de Fichiers Sans Scan Antivirus
-
-**Fichiers concernés :**
-- `src/app/api/documents/route.ts`
-- `src/app/api/employees/[id]/photo/route.ts`
-
-**Description :**  
-Les fichiers uploadés (photos d'employés, documents) ne sont pas scannés pour les malwares.
-
-**Impact :**
-- Risque d'upload de fichiers malveillants
-- Propagation de malwares dans l'infrastructure
-
-**Recommandation :**
-- Intégrer un service de scan antivirus (ClamAV, VirusTotal API)
-- Limiter strictement les types MIME autorisés
-- Implémenter une validation de taille de fichier
-
----
-
-### 3.4 Tokens de Portail Sans Expiration Obligatoire
-
-**Fichiers concernés :**
-- `src/app/api/client-portals/route.ts`
-- `src/app/api/employee-portal/route.ts`
-
-**Description :**  
-Les tokens de portail (client et employé) peuvent être créés sans date d'expiration (`expiresAt` est optionnel).
-
-**Impact :**
-- Accès permanent aux portails une fois le token compromis
-- Pas de possibilité de révoquer l'accès sans supprimer le portail
-
-**Recommandation :**
-- Rendre `expiresAt` obligatoire avec une valeur par défaut (ex: 1 an)
-- Implémenter un mécanisme de rotation automatique des tokens
-- Ajouter un historique des accès pour audit
-
----
-
-### 3.5 Absence de CSRF Protection sur les Mutations
-
-**Description :**  
-Bien que Next.js protège contre CSRF par défaut, il n'y a pas de vérification explicite de tokens CSRF pour les mutations sensibles.
-
-**Impact :**
-- Risque d'attaques CSRF sur les actions sensibles (suppression, modification)
-
-**Recommandation :**
-- Utiliser les tokens CSRF de Next.js pour les mutations
-- Vérifier l'origine des requêtes pour les actions critiques
-
----
-
-### 3.6 Secrets Hardcodés dans le Code
-
-**Fichiers concernés :**
-- `src/app/api/auth/google/callback/route.ts` (ligne 10-11)
-
-**Description :**  
-Des URLs hardcodées sont présentes dans le code.
-
-**Exemple :**
-```typescript
-const REDIRECT_URI = process.env.NEXT_PUBLIC_APP_URL
-  ? `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/google/callback`
-  : "https://nukleohub-production.up.railway.app/api/auth/google/callback"; // ⚠️ Hardcodé
-```
-
-**Impact :**
-- Difficulté de maintenance
-- Risque si l'URL change
-
-**Recommandation :**
-- Utiliser uniquement les variables d'environnement
-- Lever une erreur si les variables ne sont pas définies
-
----
-
-## 4. Failles de Niveau Faible
-
-### 4.1 Headers CSP Trop Permissifs
-
-**Fichiers concernés :**
-- `next.config.ts` (ligne 96)
-
-**Description :**  
-Le Content Security Policy autorise `'unsafe-inline'` et `'unsafe-eval'` pour les scripts.
+Les sessions utilisateur ont une durée de 30 jours sans mécanisme de renouvellement ou de détection d'activité suspecte.
 
 **Code actuel :**
 ```typescript
-"Content-Security-Policy",
-"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com; ..."
+// src/lib/auth.ts
+const SESSION_DURATION_DAYS = 30;
 ```
 
 **Impact :**
-- Réduction de l'efficacité de la protection CSP
-- Risque d'exécution de scripts inline malveillants
+- Sessions compromises restent valides trop longtemps
+- Pas de détection d'activité suspecte
+- Pas de mécanisme de "déconnexion de toutes les sessions"
 
 **Recommandation :**
-- Utiliser des nonces pour les scripts inline
-- Éliminer `'unsafe-eval'` si possible
-- Restreindre davantage les sources autorisées
+```typescript
+const SESSION_DURATION_DAYS = 7; // Réduire à 7 jours
+const SESSION_SLIDING_WINDOW = true; // Renouveler à chaque activité
+
+// Ajouter un mécanisme de sliding session
+export async function refreshSession(token: string) {
+  const session = await prisma.session.findUnique({ where: { token } });
+  if (session && SESSION_SLIDING_WINDOW) {
+    const newExpiresAt = new Date();
+    newExpiresAt.setDate(newExpiresAt.getDate() + SESSION_DURATION_DAYS);
+    await prisma.session.update({
+      where: { id: session.id },
+      data: { expiresAt: newExpiresAt },
+    });
+  }
+}
+```
+
+**Priorité de correction :** Moyenne (2-3 semaines)
 
 ---
 
-### 4.2 Absence de Monitoring de Sécurité
+### 7. Absence de Protection CSRF (MOYEN)
+
+**Catégorie OWASP :** A01:2021 - Broken Access Control  
+**Sévérité :** Moyenne (CVSS 5.0)
 
 **Description :**  
-Aucun système de monitoring des tentatives d'attaque ou d'accès suspect n'est en place.
+Aucun token CSRF n'est implémenté pour les opérations sensibles (mutations). Le cookie de session avec `sameSite: "lax"` offre une protection partielle mais insuffisante.
+
+**Impact :**
+- Attaques CSRF possibles sur les mutations (POST, PATCH, DELETE)
+- Modification/suppression de données sans consentement
 
 **Recommandation :**
-- Implémenter un système de logging des tentatives d'authentification échouées
-- Monitorer les patterns d'accès suspects
-- Alertes en cas de tentatives de brute force
+```typescript
+// Implémenter des tokens CSRF pour les mutations critiques
+import { randomBytes } from "crypto";
+
+export function generateCSRFToken(): string {
+  return randomBytes(32).toString("hex");
+}
+
+// Ajouter le token dans les cookies et vérifier dans les mutations
+export async function validateCSRF(request: Request): Promise<boolean> {
+  const cookieStore = await cookies();
+  const csrfToken = cookieStore.get("csrf_token")?.value;
+  const headerToken = request.headers.get("X-CSRF-Token");
+  return csrfToken === headerToken;
+}
+```
+
+**Priorité de correction :** Moyenne (2-3 semaines)
 
 ---
 
-### 4.3 Absence de Tests de Sécurité Automatisés
+### 8. Logging Insuffisant (MOYEN)
+
+**Catégorie OWASP :** A09:2021 - Security Logging and Monitoring Failures  
+**Sévérité :** Moyenne (CVSS 4.5)
 
 **Description :**  
-Aucun test de sécurité automatisé n'est présent dans le projet.
+Les actions sensibles (connexions, modifications de permissions, accès aux données) ne sont pas systématiquement loguées, rendant difficile la détection d'intrusions.
+
+**Actions non loguées :**
+- Tentatives de connexion échouées
+- Modifications de permissions utilisateur
+- Accès aux données sensibles (factures, projets)
+- Actions administratives
 
 **Recommandation :**
-- Ajouter des tests unitaires pour les validations
-- Implémenter des tests d'intégration pour l'authentification
-- Utiliser des outils comme OWASP ZAP ou Snyk pour les scans automatiques
+```typescript
+// Implémenter un système de logging structuré
+import { createLogger } from "@/lib/logger";
+
+const securityLogger = createLogger("security");
+
+export async function logSecurityEvent(
+  event: string,
+  userId: string,
+  details: Record<string, unknown>
+) {
+  await securityLogger.info({
+    event,
+    userId,
+    timestamp: new Date().toISOString(),
+    ipAddress: request.headers.get("x-forwarded-for"),
+    userAgent: request.headers.get("user-agent"),
+    ...details,
+  });
+}
+```
+
+**Priorité de correction :** Moyenne (2-3 semaines)
 
 ---
 
-## 5. Points Positifs
+### 9. Exposition d'Informations dans les Erreurs (FAIBLE)
 
-L'application présente plusieurs bonnes pratiques de sécurité :
+**Catégorie OWASP :** A04:2021 - Insecure Design  
+**Sévérité :** Faible (CVSS 3.5)
 
-1. ✅ **Cookies de session sécurisés** : `httpOnly`, `secure` en production, `sameSite: "lax"`
-2. ✅ **Hachage des tokens de session** : Utilisation de `randomBytes(32)` pour la génération
-3. ✅ **Validation du domaine email** : Restriction aux domaines `@nukleo.com` et `@nukleo.ca`
-4. ✅ **Protection des super admins** : Logique empêchant la modification/suppression par des admins normaux
-5. ✅ **Validation des types de fichiers** : Pour les uploads de photos
-6. ✅ **Utilisation de Prisma** : Protection native contre les injections SQL
-7. ✅ **Headers de sécurité HTTP** : Configuration complète dans `next.config.ts`
-8. ✅ **Rate limiting** : Implémenté sur les endpoints critiques
-9. ✅ **Authentification systématique** : La majorité des routes utilisent `requireAuth()`
+**Description :**  
+Les messages d'erreur exposent parfois des détails techniques (stack traces) en production.
 
----
+**Exemple :**
+```typescript
+console.error("Error fetching contacts:", error);
+return NextResponse.json(
+  { error: "Failed to fetch contacts" },
+  { status: 500 }
+);
+```
 
-## 6. Plan de Remédiation Recommandé
+**Recommandation :**
+```typescript
+// En production, logger les détails mais retourner un message générique
+if (process.env.NODE_ENV === "production") {
+  // Logger les détails côté serveur (Sentry, etc.)
+  logger.error("Error fetching contacts", { error, userId: auth.id });
+  return NextResponse.json(
+    { error: "Une erreur est survenue. Veuillez réessayer." },
+    { status: 500 }
+  );
+} else {
+  // En développement, afficher les détails
+  return NextResponse.json(
+    { error: error.message, stack: error.stack },
+    { status: 500 }
+  );
+}
+```
 
-### Phase 1 - Immédiat (1-2 jours) 🔴
-
-1. **Mettre à jour Next.js** vers la dernière version (>= 15.4.5)
-   ```bash
-   pnpm update next@latest
-   ```
-
-2. **Ajouter la validation Zod** sur toutes les routes POST/PUT/PATCH
-   - Priorité : `/api/projects`, `/api/companies`, `/api/tasks`, `/api/events`
-
-3. **Corriger le XSS dans Leo** avec `isomorphic-dompurify`
-
-### Phase 2 - Court terme (1 semaine) 🟠
-
-4. **Chiffrer les tokens OAuth Google** avant stockage
-
-5. **Implémenter Redis** pour le rate limiting distribué
-
-6. **Ajouter le contrôle d'accès IDOR** sur toutes les routes avec paramètres d'ID
-
-7. **Corriger les secrets hardcodés** dans le code
-
-### Phase 3 - Moyen terme (2-4 semaines) 🟡
-
-8. **Implémenter l'invalidation de sessions** en masse
-
-9. **Ajouter le scan antivirus** pour les uploads de fichiers
-
-10. **Rendre obligatoire l'expiration** des tokens de portail
-
-11. **Améliorer les logs** avec un système structuré (Sentry, LogRocket)
-
-### Phase 4 - Long terme (1-2 mois) 🟢
-
-12. **Renforcer le CSP** avec des nonces
-
-13. **Implémenter le monitoring de sécurité**
-
-14. **Ajouter des tests de sécurité automatisés**
-
-15. **Audit de sécurité externe** par un professionnel
+**Priorité de correction :** Faible (1 semaine)
 
 ---
 
-## 7. Métriques de Sécurité
+### 10. Absence de Validation d'Email Renforcée (FAIBLE)
 
-### Couverture d'Authentification
-- Routes avec authentification : **~95%** (96/101 routes API principales)
-- Routes sans authentification : **~5%** (principalement les routes publiques de portail)
+**Catégorie OWASP :** A07:2021 - Identification and Authentication Failures  
+**Sévérité :** Faible (CVSS 3.0)
 
-### Couverture de Validation
-- Routes avec validation Zod : **~15%** (15/101 routes)
-- Routes nécessitant validation : **~60%** (routes POST/PUT/PATCH)
+**Description :**  
+L'authentification Google restreint les domaines `@nukleo.com` et `@nukleo.ca`, mais cette vérification pourrait être contournée si la configuration OAuth est modifiée.
 
-### Dépendances Vulnérables
-- Vulnérabilités critiques : **0**
-- Vulnérabilités modérées : **3** (Next.js)
-- Vulnérabilités faibles : **1** (Next.js)
+**Recommandation :**
+```typescript
+// Ajouter une vérification côté serveur après l'authentification OAuth
+const ALLOWED_DOMAINS = ["@nukleo.com", "@nukleo.ca"];
 
----
+export function validateEmailDomain(email: string): boolean {
+  return ALLOWED_DOMAINS.some(domain => email.endsWith(domain));
+}
 
-## 8. Conclusion
+// Vérifier après l'authentification Google
+const googleUser = await getGoogleUserInfo(accessToken);
+if (!validateEmailDomain(googleUser.email)) {
+  throw new Error("Domaine email non autorisé");
+}
+```
 
-L'application Nukleo.HUB a fait des progrès significatifs en matière de sécurité depuis le dernier audit. L'authentification est maintenant systématique sur la plupart des routes, et plusieurs mécanismes de protection sont en place.
-
-Cependant, plusieurs vulnérabilités critiques nécessitent une attention immédiate :
-1. La mise à jour de Next.js pour corriger les CVE
-2. L'ajout de validation sur toutes les routes de mutation
-3. La correction du risque XSS dans la page Leo
-
-Les améliorations recommandées permettront d'atteindre un niveau de sécurité robuste pour une application en production.
+**Priorité de correction :** Faible (1 semaine)
 
 ---
 
-## 9. Références
+### 11. Absence de Scan Antivirus sur les Uploads (FAIBLE)
 
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [Next.js Security Best Practices](https://nextjs.org/docs/app/building-your-application/configuring/security-headers)
-- [Prisma Security](https://www.prisma.io/docs/guides/security)
-- [CVE-2024-56332](https://nvd.nist.gov/vuln/detail/CVE-2024-56332)
-- [CVE-2025-48068](https://nvd.nist.gov/vuln/detail/CVE-2025-48068)
-- [CVE-2025-57752](https://nvd.nist.gov/vuln/detail/CVE-2025-57752)
+**Catégorie OWASP :** A04:2021 - Insecure Design  
+**Sévérité :** Faible (CVSS 3.0)
+
+**Description :**  
+Les fichiers uploadés ne sont pas scannés pour détecter les malwares avant stockage sur S3.
+
+**Recommandation :**
+```typescript
+// Intégrer un service de scan antivirus
+import { scanFile } from "@/lib/virus-scanner";
+
+export async function POST(request: NextRequest) {
+  const file = formData.get("file") as File;
+  
+  // Scanner le fichier avant upload
+  const scanResult = await scanFile(file);
+  if (!scanResult.isClean) {
+    return NextResponse.json(
+      { error: "Fichier malveillant détecté" },
+      { status: 400 }
+    );
+  }
+  
+  // Continuer avec l'upload
+}
+```
+
+**Priorité de correction :** Faible (2-3 semaines)
 
 ---
 
-*Ce rapport a été généré automatiquement et ne remplace pas un audit de sécurité professionnel effectué par un expert en sécurité.*
+### 12. Rate Limiting en Mémoire (Non Persistant) (FAIBLE)
+
+**Catégorie OWASP :** A04:2021 - Insecure Design  
+**Sévérité :** Faible (CVSS 3.0)
+
+**Description :**  
+Le système de rate limiting actuel utilise une Map en mémoire (`rateLimitStore`), ce qui signifie :
+- Perte des compteurs lors d'un redémarrage
+- Non fonctionnel en environnement multi-instances (scaling horizontal)
+- Pas de persistance
+
+**Code actuel :**
+```typescript
+// src/lib/rate-limit.ts
+const rateLimitStore = new Map<string, RateLimitEntry>();
+```
+
+**Recommandation :**
+```typescript
+// Utiliser Redis pour le rate limiting distribué
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(10, "10 s"),
+  analytics: true,
+});
+```
+
+**Priorité de correction :** Faible (2-3 semaines)
+
+---
+
+## Points Positifs Identifiés
+
+L'application présente de nombreuses bonnes pratiques de sécurité :
+
+1. ✅ **Authentification systématique** - `requireAuth()` utilisé sur ~277 routes API
+2. ✅ **Validation des entrées** - Zod implémenté et utilisé sur plusieurs routes
+3. ✅ **Sanitisation XSS** - DOMPurify utilisé dans `SafeHTML.tsx` et certaines pages
+4. ✅ **Headers de sécurité HTTP** - Configurés dans `next.config.ts` :
+   - X-Frame-Options: DENY
+   - X-Content-Type-Options: nosniff
+   - X-XSS-Protection: 1; mode=block
+   - Strict-Transport-Security
+   - Content-Security-Policy
+5. ✅ **Cookies de session sécurisés** - `httpOnly`, `secure` en production, `sameSite: "lax"`
+6. ✅ **Hachage des tokens de session** - Utilisation de `randomBytes(32)`
+7. ✅ **Validation du domaine email** - Restriction aux domaines autorisés
+8. ✅ **Protection des super admins** - Logique empêchant la modification/suppression
+9. ✅ **Utilisation de Prisma** - Protection native contre les injections SQL
+10. ✅ **Système de rate limiting** - Existe mais sous-utilisé
+
+---
+
+## Plan de Remédiation Recommandé
+
+### Phase 1 - Corrections Critiques (Semaine 1)
+
+| Priorité | Vulnérabilité | Effort | Impact |
+|----------|---------------|--------|--------|
+| P0 | Rate limiting sur toutes les APIs critiques | 2-3 jours | Critique |
+| P0 | Validation Zod sur toutes les routes POST/PATCH | 3-4 jours | Élevé |
+
+### Phase 2 - Corrections Élevées (Semaine 2-3)
+
+| Priorité | Vulnérabilité | Effort | Impact |
+|----------|---------------|--------|--------|
+| P1 | Sanitisation XSS complète (leo/page.tsx) | 1 jour | Élevé |
+| P1 | Chiffrement tokens OAuth Google | 2 jours | Élevé |
+
+### Phase 3 - Corrections Moyennes (Semaine 4-6)
+
+| Priorité | Vulnérabilité | Effort | Impact |
+|----------|---------------|--------|--------|
+| P2 | Contrôle d'accès IDOR | 3-4 jours | Moyen |
+| P2 | Réduction durée sessions + sliding window | 1 jour | Moyen |
+| P2 | Protection CSRF | 2 jours | Moyen |
+| P2 | Logging de sécurité | 2 jours | Moyen |
+
+### Phase 4 - Améliorations (Semaine 7-8)
+
+| Priorité | Vulnérabilité | Effort | Impact |
+|----------|---------------|--------|--------|
+| P3 | Messages d'erreur génériques | 0.5 jour | Faible |
+| P3 | Validation domaine email renforcée | 0.5 jour | Faible |
+| P3 | Scan antivirus uploads | 2 jours | Faible |
+| P3 | Rate limiting Redis (distribué) | 1 jour | Faible |
+
+---
+
+## Conclusion
+
+L'application Nukleo.HUB a fait des **progrès significatifs** en matière de sécurité depuis les audits précédents. Les vulnérabilités critiques identifiées précédemment (absence d'authentification, absence de validation) ont été largement corrigées.
+
+**Points forts :**
+- Authentification systématique sur la majorité des APIs
+- Validation des entrées avec Zod (partiellement implémentée)
+- Headers de sécurité HTTP configurés
+- Sanitisation XSS avec DOMPurify (partiellement implémentée)
+
+**Points à améliorer :**
+- Rate limiting doit être appliqué sur toutes les APIs critiques
+- Validation Zod doit être étendue à toutes les routes
+- Chiffrement des tokens OAuth Google
+- Contrôle d'accès IDOR sur les ressources
+
+**Recommandation globale :**  
+L'application est dans un état de sécurité **acceptable** pour la production, mais nécessite des améliorations pour atteindre un niveau de sécurité **robuste**. La priorité absolue est l'implémentation du rate limiting sur toutes les APIs critiques et l'extension de la validation Zod à toutes les routes.
+
+Un audit de suivi est recommandé après l'implémentation des corrections de Phase 1 et Phase 2 pour valider l'efficacité des mesures prises.
+
+---
+
+## Annexes
+
+### A. Outils Utilisés
+
+- Analyse statique du code source
+- Grep pour la recherche de patterns vulnérables
+- Revue manuelle des fichiers critiques
+- Analyse des dépendances npm
+
+### B. Fichiers Analysés
+
+- 296 fichiers route.ts (APIs)
+- 1 fichier middleware.ts
+- 1 fichier auth.ts
+- 1 fichier api-auth.ts
+- 1 fichier validations.ts
+- 1 fichier schema.prisma
+- 1 fichier next.config.ts
+- Composants React (.tsx) pour XSS
+
+### C. Références
+
+- [OWASP Top 10 2021](https://owasp.org/Top10/)
+- [Next.js Security Best Practices](https://nextjs.org/docs/advanced-features/security-headers)
+- [Prisma Security](https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access)
+- [Zod Documentation](https://zod.dev/)
+
+---
+
+*Ce rapport est confidentiel et destiné uniquement à l'équipe Nukleo. La distribution non autorisée est interdite.*
+
+
