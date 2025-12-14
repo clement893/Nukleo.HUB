@@ -16,7 +16,6 @@ import {
   Send,
   Loader2,
   TrendingUp,
-  AlertCircle,
 } from "lucide-react";
 
 interface Recommendation {
