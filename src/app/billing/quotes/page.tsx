@@ -13,7 +13,6 @@ import {
   Clock,
   Edit,
   Trash2,
-  Eye,
   Copy,
   Download,
   DollarSign,
