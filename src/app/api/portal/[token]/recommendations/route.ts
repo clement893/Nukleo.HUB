@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 // GET - Liste des recommandations (pour le client)
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
   const { token } = await params;
