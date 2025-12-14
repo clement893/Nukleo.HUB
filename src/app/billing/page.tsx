@@ -14,7 +14,6 @@ import {
   ChevronDown,
   ChevronRight,
   BarChart3,
-  PieChart,
 } from "lucide-react";
 
 interface Employee {
