@@ -25,7 +25,7 @@ const stageMigrations: Record<string, string> = {
 };
 
 // POST - Exécuter la migration des étapes du pipeline
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user || (user.role !== "admin" && user.role !== "super_admin")) {
