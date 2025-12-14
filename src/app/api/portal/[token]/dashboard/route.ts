@@ -18,8 +18,6 @@ export async function GET(
       return NextResponse.json({ error: "Portail non trouvé" }, { status: 404 });
     }
 
-    const _companyId = portal.companyId;
-
     // Récupérer les projets (via le nom du client)
     const projects = await prisma.project.findMany({
       where: {
