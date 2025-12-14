@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 // GET - Récupérer les demandes de vacances et le solde de l'employé
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
