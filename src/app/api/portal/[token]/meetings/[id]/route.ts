@@ -16,7 +16,7 @@ const updateMeetingSchema = z.object({
 
 // GET - Récupérer une réunion
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ token: string; id: string }> }
 ) {
   try {
@@ -137,7 +137,7 @@ export async function PUT(
 
 // DELETE - Annuler une réunion
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ token: string; id: string }> }
 ) {
   try {
