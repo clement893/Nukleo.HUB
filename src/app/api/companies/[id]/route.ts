@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAuth();
@@ -60,7 +60,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAuth();
