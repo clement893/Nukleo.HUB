@@ -17,7 +17,6 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
-  GripVertical,
   X,
   Save,
 } from "lucide-react";
