@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 // GET - Récupérer les données du portail client (accès public avec token)
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
