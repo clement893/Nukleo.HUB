@@ -312,7 +312,7 @@ function generateFallbackResponse(
   const searchTerms = lowerMessage.split(/\s+/).filter(t => t.length > 2);
 
   // Recherche de personne spécifique (contact ou employé)
-  const personSearch = searchTerms.some(term => 
+  const personSearch = searchTerms.some(_term => 
     lowerMessage.includes("qui est") || 
     lowerMessage.includes("c'est qui") ||
     lowerMessage.includes("connais-tu") ||
