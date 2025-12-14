@@ -4,7 +4,7 @@ import { requireAuth, AuthUser } from "@/lib/api-auth";
 
 // GET - Détails d'une recommandation
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await requireAuth();
@@ -70,7 +70,7 @@ export async function PATCH(
 
 // DELETE - Supprimer une recommandation
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await requireAuth();
