@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-  ChevronRight,
   Filter,
   Search,
   User,
