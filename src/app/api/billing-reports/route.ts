@@ -11,7 +11,6 @@ export async function GET(request: NextRequest) {
     const month = searchParams.get("month"); // Format: YYYY-MM
     const projectId = searchParams.get("projectId");
     const employeeId = searchParams.get("employeeId");
-    const groupBy = searchParams.get("groupBy") || "project"; // project, employee
 
     // Calculer les dates de début et fin du mois
     let startDate: Date;
