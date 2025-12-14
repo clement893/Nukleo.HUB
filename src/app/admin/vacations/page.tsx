@@ -14,7 +14,6 @@ import {
   Calendar,
   User,
   MessageSquare,
-  Filter,
   ChevronDown,
   Edit,
   Trash2,
