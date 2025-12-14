@@ -4,7 +4,7 @@ import { requireAuth, requireAdmin, isErrorResponse } from "@/lib/api-auth";
 
 // GET - Détail d'un sondage avec résultats
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await requireAuth();
@@ -115,7 +115,7 @@ export async function PATCH(
 
 // DELETE - Supprimer un sondage (admin)
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const authResult = await requireAdmin();
