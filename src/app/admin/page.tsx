@@ -15,7 +15,6 @@ import {
   Shield,
   UserCog,
   AlertCircle,
-  CheckCircle2,
   Briefcase,
   Target,
   Ticket,
