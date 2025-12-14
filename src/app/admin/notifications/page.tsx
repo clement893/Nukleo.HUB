@@ -5,7 +5,6 @@ import Sidebar from "@/components/Sidebar";
 import {
   Bell,
   Search,
-  Filter,
   Send,
   Trash2,
   Loader2,
