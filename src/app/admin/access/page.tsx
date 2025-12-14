@@ -12,7 +12,6 @@ import {
   FolderKanban,
   Save,
   Check,
-  X,
   Search,
   Users,
   DollarSign,

@@ -156,9 +156,6 @@ const nextConfig: NextConfig = {
     optimizeCss: true,
   },
   
-  // Optimisations de compilation
-  swcMinify: true,
-  
   // Optimisations de production
   productionBrowserSourceMaps: false,
   
