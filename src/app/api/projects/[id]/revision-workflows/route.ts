@@ -5,7 +5,7 @@ import { logger } from "@/lib/logger";
 
 // GET - Récupérer tous les workflows de révision d'un projet
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
