@@ -15,7 +15,6 @@ import {
   Compass,
   GripVertical,
   Clock,
-  CheckCircle2,
 } from "lucide-react";
 
 interface OnboardingStep {
