@@ -7,7 +7,6 @@ import {
   FileText,
   Plus,
   Search,
-  MoreVertical,
   Send,
   CheckCircle,
   XCircle,
