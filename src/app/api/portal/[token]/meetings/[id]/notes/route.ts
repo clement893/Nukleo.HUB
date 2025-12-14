@@ -10,7 +10,7 @@ const createNoteSchema = z.object({
 
 // GET - Récupérer les notes d'une réunion
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ token: string; id: string }> }
 ) {
   try {
