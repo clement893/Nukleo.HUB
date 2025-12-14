@@ -13,7 +13,6 @@ import {
   Clock,
   Edit,
   Trash2,
-  Copy,
   Download,
   DollarSign,
   Calendar,
