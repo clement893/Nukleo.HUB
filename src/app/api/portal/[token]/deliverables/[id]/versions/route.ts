@@ -11,7 +11,7 @@ const createVersionSchema = z.object({
 
 // GET - Récupérer toutes les versions d'un livrable
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ token: string; id: string }> }
 ) {
   try {
