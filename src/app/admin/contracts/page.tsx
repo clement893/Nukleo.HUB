@@ -47,7 +47,7 @@ export default function ContractsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
-  const [showContractModal, setShowContractModal] = useState(false);
+  const [_showContractModal, setShowContractModal] = useState(false);
   const [showSignaturePad, setShowSignaturePad] = useState(false);
   const [signatureType, setSignatureType] = useState<"client" | "supplier" | "agency">("agency");
 
