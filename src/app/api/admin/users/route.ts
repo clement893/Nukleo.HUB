@@ -31,7 +31,7 @@ async function checkAdminAccess() {
 }
 
 // GET - Récupérer tous les utilisateurs avec leurs employés liés
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const auth = await requireAdmin();
   if (isErrorResponse(auth)) return auth;
 
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
 }
 
 // POST - Créer un utilisateur (legacy, gardé pour compatibilité)
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   const auth = await requireAdmin();
   if (isErrorResponse(auth)) return auth;
 
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
 }
 
 // PATCH - Modifier un utilisateur (rôle, statut actif, liaison employé)
-export async function PATCH(request: NextRequest) {
+export async function PATCH(_request: NextRequest) {
   const auth = await requireAdmin();
   if (isErrorResponse(auth)) return auth;
 
@@ -239,7 +239,7 @@ export async function PATCH(request: NextRequest) {
 }
 
 // DELETE - Supprimer un utilisateur
-export async function DELETE(request: NextRequest) {
+export async function DELETE(_request: NextRequest) {
   const auth = await requireAdmin();
   if (isErrorResponse(auth)) return auth;
 

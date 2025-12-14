@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 
 // GET - Récupérer toutes les demandes de vacances (pour admin)
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user || !["admin", "super_admin"].includes(user.role)) {
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
 }
 
 // PATCH - Approuver ou refuser une demande
-export async function PATCH(request: NextRequest) {
+export async function PATCH(_request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user || !["admin", "super_admin"].includes(user.role)) {
@@ -192,7 +192,7 @@ export async function PATCH(request: NextRequest) {
 }
 
 // PUT - Mettre à jour le solde de vacances d'un employé
-export async function PUT(request: NextRequest) {
+export async function PUT(_request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user || !["admin", "super_admin"].includes(user.role)) {

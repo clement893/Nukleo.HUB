@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // GET /api/export/contacts
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 

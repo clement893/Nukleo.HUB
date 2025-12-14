@@ -30,7 +30,7 @@ const createContractSchema = z.object({
 });
 
 // GET - Liste des contrats
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user || !["admin", "super_admin"].includes(user.role)) {

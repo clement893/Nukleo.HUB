@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // GET - Récupérer les permissions de l'utilisateur connecté
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 }
 
 // PATCH - Mettre à jour les permissions d'un utilisateur (admin only)
-export async function PATCH(request: NextRequest) {
+export async function PATCH(_request: NextRequest) {
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 

@@ -55,7 +55,7 @@ export async function GET() {
 }
 
 // POST - Créer une nouvelle invitation
-export async function POST(request: NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
     const admin = await checkAdminAccess();
     if (!admin) {
@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
 }
 
 // PATCH - Renvoyer une invitation
-export async function PATCH(request: NextRequest) {
+export async function PATCH(_request: NextRequest) {
   try {
     const admin = await checkAdminAccess();
     if (!admin) {
