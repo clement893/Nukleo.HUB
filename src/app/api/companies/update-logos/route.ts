@@ -14,17 +14,6 @@ function getFaviconUrl(websiteUrl: string): string {
   }
 }
 
-// Alternative: DuckDuckGo favicon service (not currently used)
-function _getDuckDuckGoFaviconUrl(websiteUrl: string): string {
-  try {
-    const url = new URL(websiteUrl);
-    const domain = url.hostname;
-    return `https://icons.duckduckgo.com/ip3/${domain}.ico`;
-  } catch {
-    return "";
-  }
-}
-
 export async function POST() {
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
