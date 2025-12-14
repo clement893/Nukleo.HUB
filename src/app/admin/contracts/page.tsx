@@ -6,7 +6,6 @@ import {
   Plus,
   Search,
   Calendar,
-  CheckCircle,
   Clock,
   XCircle,
   Download,
