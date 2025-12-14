@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         })
         .filter(Boolean);
 
-      const phases = await prisma.projectPhase.createMany({
+      await prisma.projectPhase.createMany({
         data: phasesToCreate as any[],
       });
 
