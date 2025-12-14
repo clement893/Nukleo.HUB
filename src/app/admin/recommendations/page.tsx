@@ -6,7 +6,6 @@ import {
   Lightbulb,
   ArrowLeft,
   Search,
-  Filter,
   ThumbsUp,
   MessageSquare,
   User,
