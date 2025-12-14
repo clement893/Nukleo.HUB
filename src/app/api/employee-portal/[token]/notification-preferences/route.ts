@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 // GET - Récupérer les préférences de notifications
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
