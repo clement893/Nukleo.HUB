@@ -13,7 +13,6 @@ import {
   TrendingUp,
   ChevronDown,
   ChevronRight,
-  Filter,
   BarChart3,
   PieChart,
 } from "lucide-react";
