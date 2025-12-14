@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger";
 
 // GET - Dashboard personnalisé du client
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
