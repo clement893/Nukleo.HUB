@@ -4,7 +4,7 @@ import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // GET - Récupérer une facture
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAuth();
@@ -204,7 +204,7 @@ export async function PATCH(
 
 // DELETE - Supprimer une facture
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAuth();
