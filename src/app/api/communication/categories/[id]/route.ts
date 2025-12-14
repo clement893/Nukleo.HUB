@@ -31,7 +31,7 @@ export async function PATCH(
 
 // DELETE - Supprimer une catégorie
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAuth();
