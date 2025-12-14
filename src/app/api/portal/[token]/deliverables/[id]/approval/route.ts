@@ -33,7 +33,7 @@ const addSignatureSchema = z.object({
 
 // GET - Récupérer le workflow d'approbation d'un livrable
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ token: string; id: string }> }
 ) {
   try {
