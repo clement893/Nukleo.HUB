@@ -73,10 +73,6 @@ interface Employee {
   department: string;
 }
 
-function formatDateISO(date: Date): string {
-  return date.toISOString().split("T")[0];
-}
-
 function formatDateFR(date: Date): string {
   return date.toLocaleDateString("fr-CA", { day: "numeric", month: "short", year: "numeric" });
 }
