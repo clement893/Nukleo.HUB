@@ -149,7 +149,7 @@ export async function GET() {
 
     // Week agenda (simulated based on real data)
     const weekDays = ["Lun", "Mar", "Mer", "Jeu", "Ven"];
-    const agenda = weekDays.map((day, index) => ({
+    const agenda = weekDays.map((day, _index) => ({
       day,
       events: Math.min(Math.floor(Math.random() * 4) + (recentActivity.length > 0 ? 1 : 0), 5),
     }));
