@@ -14,7 +14,7 @@ const updateVacationSchema = z.object({
 
 // GET - Récupérer une vacation spécifique
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -248,7 +248,7 @@ export async function PUT(
 
 // DELETE - Supprimer une vacation
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
