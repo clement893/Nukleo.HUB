@@ -5,7 +5,7 @@ import { storagePut } from "@/lib/storage";
 
 // GET - Récupérer les documents de contexte d'un client
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ clientId: string }> }
 ) {
   const auth = await requireAuth();
