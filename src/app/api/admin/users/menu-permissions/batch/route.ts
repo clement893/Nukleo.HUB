@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // POST - Mettre à jour les permissions en batch
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
