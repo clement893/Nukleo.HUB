@@ -14,8 +14,6 @@ import {
   Shield,
   Compass,
   GripVertical,
-  ChevronDown,
-  ChevronUp,
   Users,
   Clock,
   CheckCircle2,
