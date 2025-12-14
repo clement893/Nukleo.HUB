@@ -44,7 +44,7 @@ export async function GET(_request: NextRequest) {
 }
 
 // PATCH - Mettre à jour les permissions d'un utilisateur (admin only)
-export async function PATCH(_request: NextRequest) {
+export async function PATCH(request: NextRequest) {
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 

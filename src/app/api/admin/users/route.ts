@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
 }
 
 // POST - Créer un utilisateur (legacy, gardé pour compatibilité)
-export async function POST(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   const auth = await requireAdmin();
   if (isErrorResponse(auth)) return auth;
 
@@ -140,7 +140,7 @@ export async function POST(_request: NextRequest) {
 }
 
 // PATCH - Modifier un utilisateur (rôle, statut actif, liaison employé)
-export async function PATCH(_request: NextRequest) {
+export async function PATCH(request: NextRequest) {
   const auth = await requireAdmin();
   if (isErrorResponse(auth)) return auth;
 
