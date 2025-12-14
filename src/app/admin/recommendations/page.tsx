@@ -12,7 +12,6 @@ import {
   Building2,
   Clock,
   CheckCircle2,
-  XCircle,
   Eye,
   Send,
   Loader2,
