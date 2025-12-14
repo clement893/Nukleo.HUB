@@ -4,7 +4,7 @@ import { requireAuth, isErrorResponse } from "@/lib/api-auth";
 
 // GET /api/milestones/[id]
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAuth();
@@ -105,7 +105,7 @@ export async function PATCH(
 
 // DELETE /api/milestones/[id]
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAuth();
