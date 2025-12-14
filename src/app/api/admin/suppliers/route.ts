@@ -18,7 +18,7 @@ const createSupplierSchema = z.object({
 });
 
 // GET - Liste des fournisseurs
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user || !["admin", "super_admin"].includes(user.role)) {
