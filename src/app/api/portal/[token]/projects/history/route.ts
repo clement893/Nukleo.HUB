@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger";
 
 // GET - Historique complet de tous les projets
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
