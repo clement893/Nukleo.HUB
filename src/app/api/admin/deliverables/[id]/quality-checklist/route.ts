@@ -15,7 +15,7 @@ const updateCheckSchema = z.object({
 
 // GET - Récupérer la checklist qualité d'un livrable
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
