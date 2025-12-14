@@ -9,7 +9,6 @@ import {
   Send,
   Download,
   DollarSign,
-  CheckCircle,
   FileText,
   Mail,
   Phone,
