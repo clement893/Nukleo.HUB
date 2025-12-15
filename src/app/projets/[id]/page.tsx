@@ -27,7 +27,6 @@ import {
   CheckCircle2,
   Circle,
   PlayCircle,
-  MoreVertical,
   GripVertical,
   Send,
   X,
