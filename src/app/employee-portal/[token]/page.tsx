@@ -24,7 +24,6 @@ import {
   ChevronLeft,
   Timer,
   Target,
-  TrendingUp,
   Briefcase,
   MessageSquare,
   X,
