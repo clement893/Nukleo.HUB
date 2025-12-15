@@ -25,7 +25,6 @@ import {
   Video,
   FileEdit,
   Sparkles,
-  TrendingUp,
   Users,
   Hash,
   Link,
