@@ -407,7 +407,7 @@ export default function ClientPortalPage() {
     }
   }
 
-  async function fetchProjectMetrics(projectId: string) {
+  async function _fetchProjectMetrics(projectId: string) {
     try {
       const res = await fetch(`/api/portal/${token}/projects/${projectId}/metrics`);
       if (res.ok) {
@@ -419,7 +419,7 @@ export default function ClientPortalPage() {
     }
   }
 
-  async function fetchProjectTimeline(projectId: string) {
+  async function _fetchProjectTimeline(projectId: string) {
     try {
       const res = await fetch(`/api/portal/${token}/projects/${projectId}/timeline`);
       if (res.ok) {
