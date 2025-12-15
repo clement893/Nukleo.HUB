@@ -230,8 +230,8 @@ export default function ClientPortalPage() {
   const [_financialData, setFinancialData] = useState<any>(null);
   const [_projectHistory, setProjectHistory] = useState<any>(null);
   const [_selectedProjectId, _setSelectedProjectId] = useState<string | null>(null);
-  const [_projectMetrics, setProjectMetrics] = useState<any>(null);
-  const [_projectTimeline, setProjectTimeline] = useState<any>(null);
+  const [_projectMetrics, _setProjectMetrics] = useState<any>(null);
+  const [_projectTimeline, _setProjectTimeline] = useState<any>(null);
   
   const chatEndRef = useRef<HTMLDivElement>(null);
 
