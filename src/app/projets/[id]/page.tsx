@@ -32,7 +32,6 @@ import {
   X,
   Eye,
   Flag,
-  Milestone as MilestoneIcon,
   FolderOpen,
 } from "lucide-react";
 
