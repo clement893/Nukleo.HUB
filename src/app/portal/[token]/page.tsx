@@ -26,7 +26,6 @@ import {
   DollarSign,
   X,
   ExternalLink,
-  Play,
   Pause,
   Settings,
   Home,
