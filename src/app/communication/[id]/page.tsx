@@ -25,7 +25,6 @@ import {
   Video,
   FileEdit,
   Sparkles,
-  Hash,
   Link,
   Facebook,
   Instagram,
