@@ -16,7 +16,6 @@ import {
   Check,
   Plus,
   TrendingUp,
-  Mail,
   Phone,
   ChevronRight,
   Globe,
