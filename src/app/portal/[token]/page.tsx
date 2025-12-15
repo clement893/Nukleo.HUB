@@ -24,8 +24,6 @@ import {
   ThumbsUp,
   MessageCircle,
   DollarSign,
-  TrendingUp,
-  Users,
   BarChart3,
   X,
   ExternalLink,
