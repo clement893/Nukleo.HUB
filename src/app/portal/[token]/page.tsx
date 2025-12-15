@@ -26,7 +26,6 @@ import {
   DollarSign,
   X,
   ExternalLink,
-  Settings,
   Home,
   Briefcase,
   Mail,
