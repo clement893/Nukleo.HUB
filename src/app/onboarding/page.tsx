@@ -78,7 +78,6 @@ function OnboardingContent() {
 
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [steps, setSteps] = useState<OnboardingStep[]>([]);
-  const [policies, setPolicies] = useState<Policy[]>([]);
   const [pendingPolicies, setPendingPolicies] = useState<Policy[]>([]);
   const [progress, setProgress] = useState({ total: 0, completed: 0, percent: 0 });
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -99,7 +98,6 @@ function OnboardingContent() {
       
       setEmployee(data.employee);
       setSteps(data.steps);
-      setPolicies(data.policies);
       setPendingPolicies(data.pendingPolicies);
       setProgress(data.progress);
       setIsComplete(data.isComplete);
