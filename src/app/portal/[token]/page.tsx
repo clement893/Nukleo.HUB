@@ -17,7 +17,6 @@ import {
   FileText,
   Bell,
   Download,
-  Upload,
   Video,
   Phone,
   MapPin,
