@@ -44,7 +44,6 @@ import {
   Lightbulb,
   ClipboardList,
   ThumbsUp,
-  MessageCircle,
 } from "lucide-react";
 
 interface Employee {
