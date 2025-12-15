@@ -10,7 +10,6 @@ import {
   Building2,
   Megaphone,
   Calendar,
-  Lightbulb,
   TrendingUp,
   Users,
   ExternalLink,
