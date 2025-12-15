@@ -140,7 +140,7 @@ export default function ClientHubPage({ params }: { params: Promise<{ id: string
   const [calendarItems, setCalendarItems] = useState<ContentCalendar[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showCalendarModal, setShowCalendarModal] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [_selectedDate, setSelectedDate] = useState<Date | null>(null);
   
   // Briefs state
   const [briefs, setBriefs] = useState<CommunicationBrief[]>([]);
