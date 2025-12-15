@@ -218,7 +218,7 @@ export default function ClientPortalPage() {
   const [newMessage, setNewMessage] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
   const [selectedProject, setSelectedProject] = useState<string | null>(null);
-  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [_showTicketModal, setShowTicketModal] = useState(false);
   const [showDeliverableModal, setShowDeliverableModal] = useState(false);
   const [selectedDeliverable, setSelectedDeliverable] = useState<Deliverable | null>(null);
   const [deliverableFeedback, setDeliverableFeedback] = useState("");
