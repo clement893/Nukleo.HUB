@@ -199,9 +199,6 @@ export default function PipelinePage() {
     return acc;
   }, {} as Record<string, Opportunity[]>);
 
-  // Filter visible stages
-  const visibleStages = PIPELINE_STAGES.filter(stage => visibleColumns.has(stage.id));
-
   // Calculate totals
   const totalValue = filteredOpportunities.reduce(
     (sum, opp) => sum + (opp.value || 0),
