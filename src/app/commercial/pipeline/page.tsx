@@ -5,7 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import KanbanColumn from "@/components/KanbanColumn";
 import OpportunityModal from "@/components/OpportunityModal";
 import { Opportunity, PIPELINE_STAGES, REGIONS, SEGMENTS } from "@/types/opportunity";
-import { Filter, RefreshCw, Search, Download, ChevronLeft, ChevronRight, Settings, X } from "lucide-react";
+import { Filter, RefreshCw, Search, Download, ChevronRight, Settings, X } from "lucide-react";
 
 export default function PipelinePage() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
