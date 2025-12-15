@@ -226,12 +226,12 @@ export default function ClientPortalPage() {
   const [showSignaturePad, setShowSignaturePad] = useState(false);
   const [loadingWorkflow, setLoadingWorkflow] = useState(false);
   const [versions, setVersions] = useState<any[]>([]);
-  const [dashboardData, setDashboardData] = useState<any>(null);
-  const [financialData, setFinancialData] = useState<any>(null);
-  const [projectHistory, setProjectHistory] = useState<any>(null);
+  const [_dashboardData, setDashboardData] = useState<any>(null);
+  const [_financialData, setFinancialData] = useState<any>(null);
+  const [_projectHistory, setProjectHistory] = useState<any>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [projectMetrics, setProjectMetrics] = useState<any>(null);
-  const [projectTimeline, setProjectTimeline] = useState<any>(null);
+  const [_projectMetrics, setProjectMetrics] = useState<any>(null);
+  const [_projectTimeline, setProjectTimeline] = useState<any>(null);
   
   const chatEndRef = useRef<HTMLDivElement>(null);
 
