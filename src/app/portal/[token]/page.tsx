@@ -1360,7 +1360,7 @@ export default function ClientPortalPage() {
                     </div>
                   ) : workflow && workflow.steps && workflow.steps.length > 0 ? (
                     <div className="space-y-3">
-                      {workflow.steps.map((step: any, index: number) => {
+                      {workflow.steps.map((step: any, _index: number) => {
                         const isCurrentStep = step.stepNumber === workflow.currentStep;
                         const isCompleted = step.status === "approved";
                         const isRejected = step.status === "rejected";
