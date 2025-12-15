@@ -15,7 +15,6 @@ import {
   ChevronRight,
   RefreshCw,
   CheckSquare,
-  FileCheck,
 } from "lucide-react";
 
 interface RevisionWorkflow {
