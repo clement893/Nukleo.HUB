@@ -21,7 +21,6 @@ import {
   ChevronRight,
   X,
   ThumbsUp,
-  Eye,
   MessageSquare,
   Loader2,
   Image as ImageIcon,
