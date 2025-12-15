@@ -12,7 +12,6 @@ import {
   AlertCircle,
   Plus,
   Loader2,
-  Building2,
   Calendar,
   Target,
   FileText,
