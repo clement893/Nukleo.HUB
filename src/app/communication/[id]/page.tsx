@@ -17,7 +17,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Send,
-  Edit,
   Trash2,
   ChevronLeft,
   ChevronRight,
