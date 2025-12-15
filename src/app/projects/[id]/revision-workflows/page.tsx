@@ -357,7 +357,7 @@ export default function RevisionWorkflowsPage() {
 function WorkflowDetailModal({
   workflow,
   onClose,
-  onUpdate,
+  onUpdate: _onUpdate,
 }: {
   workflow: RevisionWorkflow;
   onClose: () => void;
