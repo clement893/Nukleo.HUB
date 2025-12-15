@@ -31,7 +31,6 @@ import {
   Image,
   File,
   Archive,
-  Folder,
   Star,
   Filter,
   PenTool,
