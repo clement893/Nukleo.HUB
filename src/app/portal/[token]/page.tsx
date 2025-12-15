@@ -28,7 +28,6 @@ import {
   ExternalLink,
   Home,
   Briefcase,
-  Mail,
   Image,
   File,
   Archive,
