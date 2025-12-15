@@ -22,7 +22,6 @@ import {
   X,
   ThumbsUp,
   Loader2,
-  Image as ImageIcon,
   Video,
   FileEdit,
   Sparkles,
