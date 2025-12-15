@@ -9,14 +9,11 @@ import {
   Loader2,
   Mail,
   Smartphone,
-  Clock,
   CheckCircle2,
   XCircle,
   ClipboardList,
   MessageSquare,
   Moon,
-  ToggleLeft,
-  ToggleRight,
 } from "lucide-react";
 
 interface NotificationPreferences {
