@@ -407,30 +407,6 @@ export default function ClientPortalPage() {
     }
   }
 
-  async function _fetchProjectMetrics(projectId: string) {
-    try {
-      const res = await fetch(`/api/portal/${token}/projects/${projectId}/metrics`);
-      if (res.ok) {
-        const data = await res.json();
-        setProjectMetrics(data);
-      }
-    } catch (error) {
-      console.error("Erreur:", error);
-    }
-  }
-
-  async function _fetchProjectTimeline(projectId: string) {
-    try {
-      const res = await fetch(`/api/portal/${token}/projects/${projectId}/timeline`);
-      if (res.ok) {
-        const data = await res.json();
-        setProjectTimeline(data);
-      }
-    } catch (error) {
-      console.error("Erreur:", error);
-    }
-  }
-
   async function sendMessage() {
     if (!newMessage.trim() || sendingMessage) return;
     
