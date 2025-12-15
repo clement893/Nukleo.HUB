@@ -22,7 +22,6 @@ import {
   MapPin,
   ChevronRight,
   ThumbsUp,
-  ThumbsDown,
   MessageCircle,
   DollarSign,
   TrendingUp,
