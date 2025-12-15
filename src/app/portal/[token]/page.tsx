@@ -31,8 +31,6 @@ import {
   Image,
   File,
   Archive,
-  Star,
-  Filter,
   PenTool,
   History,
   CheckCircle,
