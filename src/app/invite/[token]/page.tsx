@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Loader2, CheckCircle, XCircle, Mail, Shield, ArrowRight } from "lucide-react";
+import { Loader2, XCircle, Mail, Shield, ArrowRight } from "lucide-react";
 
 interface InvitationData {
   email: string;
