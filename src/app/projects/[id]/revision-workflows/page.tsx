@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import Sidebar from "@/components/Sidebar";
 import {
@@ -88,7 +88,6 @@ interface RevisionWorkflow {
 
 export default function RevisionWorkflowsPage() {
   const params = useParams();
-  const router = useRouter();
   const projectId = params.id as string;
   const [workflows, setWorkflows] = useState<RevisionWorkflow[]>([]);
   const [loading, setLoading] = useState(true);
