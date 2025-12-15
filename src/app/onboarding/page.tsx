@@ -18,8 +18,6 @@ import {
   Award,
   Sparkles,
   BookOpen,
-  Building2,
-  Users,
   Rocket,
   PartyPopper,
 } from "lucide-react";
