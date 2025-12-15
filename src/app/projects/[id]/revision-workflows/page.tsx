@@ -14,7 +14,6 @@ import {
   MessageSquare,
   ChevronRight,
   RefreshCw,
-  Filter,
   CheckSquare,
   FileCheck,
 } from "lucide-react";
