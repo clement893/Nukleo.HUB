@@ -229,7 +229,7 @@ export default function ClientPortalPage() {
   const [_dashboardData, setDashboardData] = useState<any>(null);
   const [_financialData, setFinancialData] = useState<any>(null);
   const [_projectHistory, setProjectHistory] = useState<any>(null);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [_selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [_projectMetrics, setProjectMetrics] = useState<any>(null);
   const [_projectTimeline, setProjectTimeline] = useState<any>(null);
   
