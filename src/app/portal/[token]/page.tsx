@@ -21,7 +21,6 @@ import {
   Phone,
   MapPin,
   ChevronRight,
-  Eye,
   ThumbsUp,
   ThumbsDown,
   MessageCircle,
