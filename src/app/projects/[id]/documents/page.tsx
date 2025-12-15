@@ -18,7 +18,6 @@ import {
   ExternalLink,
   Trash2,
   Search,
-  Filter,
   Plus,
   X,
   Loader2,
