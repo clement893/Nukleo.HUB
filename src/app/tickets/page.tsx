@@ -59,14 +59,6 @@ interface Ticket {
   _count: { responses: number };
 }
 
-const _statusColors: Record<string, string> = {
-  open: "bg-blue-500",
-  in_progress: "bg-yellow-500",
-  waiting: "bg-purple-500",
-  resolved: "bg-green-500",
-  closed: "bg-gray-500",
-};
-
 const statusLabels: Record<string, string> = {
   open: "Ouvert",
   in_progress: "En cours",
