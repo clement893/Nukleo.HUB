@@ -28,6 +28,7 @@ import {
   Image,
   Archive,
   File,
+  ExternalLink,
 } from "lucide-react";
 
 // Types
