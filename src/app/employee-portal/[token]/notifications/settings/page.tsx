@@ -11,8 +11,6 @@ import {
   Smartphone,
   CheckCircle2,
   XCircle,
-  ClipboardList,
-  MessageSquare,
   Moon,
 } from "lucide-react";
 

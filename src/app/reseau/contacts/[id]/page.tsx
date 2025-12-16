@@ -21,7 +21,6 @@ import {
   Plus,
   ExternalLink,
   Star,
-  Tag,
 } from "lucide-react";
 
 interface Contact {

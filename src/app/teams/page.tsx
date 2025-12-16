@@ -24,7 +24,6 @@ import {
   Shield,
   Linkedin,
   Play,
-  Pause,
   Square,
   Timer,
   Paperclip,

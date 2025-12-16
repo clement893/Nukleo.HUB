@@ -6,7 +6,6 @@ import {
   MessageSquare,
   Plus,
   Search,
-  Filter,
   Copy,
   ExternalLink,
   Clock,
@@ -19,7 +18,6 @@ import {
   ChevronUp,
   Trash2,
   Link as LinkIcon,
-  Eye,
   X,
 } from "lucide-react";
 

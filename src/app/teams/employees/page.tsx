@@ -13,12 +13,9 @@ import {
   Building2,
   Mail,
   Phone,
-  Briefcase,
   UserCheck,
   UserX,
-  MoreVertical,
   Camera,
-  Loader2,
   ExternalLink,
   User,
 } from "lucide-react";

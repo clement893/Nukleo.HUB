@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import DOMPurify from "dompurify";
 import {
@@ -12,14 +12,10 @@ import {
   HelpCircle,
   Shield,
   Compass,
-  ChevronRight,
-  ChevronLeft,
-  Clock,
-  Award,
-  Sparkles,
-  BookOpen,
   Rocket,
   PartyPopper,
+  Sparkles,
+  Award,
 } from "lucide-react";
 
 interface OnboardingStep {

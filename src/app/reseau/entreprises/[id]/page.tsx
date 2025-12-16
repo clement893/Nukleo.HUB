@@ -16,7 +16,6 @@ import {
   Users,
   Briefcase,
   FileText,
-  MessageSquare,
   History,
   Edit,
   Trash2,

@@ -6,11 +6,9 @@ import Sidebar from "@/components/Sidebar";
 import { ProtectedEmployeePortal } from "@/components/ProtectedEmployeePortal";
 import {
   ArrowLeft,
-  User,
   Clock,
   Calendar,
   Timer,
-  Play,
   Square,
   TrendingUp,
   FolderOpen,
@@ -18,14 +16,11 @@ import {
   BarChart3,
   Linkedin,
   Mail,
-  Briefcase,
-  Edit,
   Trash2,
   ExternalLink,
   Link2,
   Copy,
   Check,
-  Settings,
   Plus,
 } from "lucide-react";
 

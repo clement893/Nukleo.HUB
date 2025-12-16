@@ -12,7 +12,6 @@ import {
   Calendar,
   BarChart3,
   RefreshCw,
-  ChevronRight,
 } from "lucide-react";
 
 interface WorkloadData {
