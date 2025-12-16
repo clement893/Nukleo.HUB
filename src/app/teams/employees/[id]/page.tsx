@@ -107,7 +107,7 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
   const [_showCalendarConfig, setShowCalendarConfig] = useState(false);
   const [calendarId, setCalendarId] = useState("");
   const [calendarSync, setCalendarSync] = useState(false);
-  const [savingCalendar, setSavingCalendar] = useState(false);
+  const [_savingCalendar, setSavingCalendar] = useState(false);
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: "", description: "", startDate: "", startTime: "", endDate: "", endTime: "", allDay: false });
   const [addingEvent, setAddingEvent] = useState(false);
