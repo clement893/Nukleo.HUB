@@ -42,6 +42,7 @@ import {
   Timer,
   Briefcase,
   ThumbsUp,
+  MessageSquare,
 } from "lucide-react";
 
 interface Employee {
