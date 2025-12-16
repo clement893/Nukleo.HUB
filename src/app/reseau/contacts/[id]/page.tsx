@@ -11,7 +11,6 @@ import {
   Phone,
   Linkedin,
   MapPin,
-  Calendar,
   Briefcase,
   Users,
   FileText,
