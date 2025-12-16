@@ -16,7 +16,6 @@ import {
   Check,
   Plus,
   TrendingUp,
-  Phone,
   ChevronRight,
   Globe,
   DollarSign,
