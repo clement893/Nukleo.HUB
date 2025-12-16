@@ -2,7 +2,7 @@
  * Hook pour navigation au clavier améliorée
  */
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback } from "react";
 import React from "react";
 
 interface UseKeyboardNavigationOptions {
