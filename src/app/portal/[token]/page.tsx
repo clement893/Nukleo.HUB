@@ -25,6 +25,9 @@ import {
   MessageCircle,
   ChevronRight,
   Target,
+  Image,
+  Archive,
+  File,
 } from "lucide-react";
 
 // Types
