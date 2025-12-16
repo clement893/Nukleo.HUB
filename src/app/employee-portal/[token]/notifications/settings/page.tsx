@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   XCircle,
   Moon,
+  ClipboardList,
 } from "lucide-react";
 
 interface NotificationPreferences {
