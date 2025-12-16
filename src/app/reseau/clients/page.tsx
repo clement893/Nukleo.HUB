@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -82,8 +82,8 @@ export default function ClientsPage() {
   const [creatingPortal, setCreatingPortal] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  // Utiliser React Query pour le cache et éviter les re-renders
-  const { data: clients = [], isLoading: loading, refetch } = useQuery<Client[]>({
+  // Utiliser React Query pour le cache et Ã©viter les re-renders
+  const { data: clients = [], isLoading: loading } = useQuery<Client[]>({
     queryKey: ["clients", search],
     queryFn: async () => {
       try {
@@ -127,9 +127,9 @@ export default function ClientsPage() {
       }
       // Invalider le cache pour forcer le re-fetch
       queryClient.invalidateQueries({ queryKey: ["clients"] });
-      toast.success("Succès", "Portail client créé avec succès");
+      toast.success("SuccÃ¨s", "Portail client crÃ©Ã© avec succÃ¨s");
     } catch (error) {
-      toast.error("Erreur", "Impossible de créer le portail client");
+      toast.error("Erreur", "Impossible de crÃ©er le portail client");
       const errorObj = error instanceof Error ? error : new Error(String(error));
       logger.error("Error creating portal", errorObj, "CLIENTS_PAGE", { companyId });
     } finally {
@@ -142,8 +142,8 @@ export default function ClientsPage() {
       case "en cours":
       case "actif":
         return "bg-green-500/20 text-green-400";
-      case "terminé":
-      case "complété":
+      case "terminÃ©":
+      case "complÃ©tÃ©":
         return "bg-blue-500/20 text-blue-400";
       case "en attente":
       case "pause":
@@ -172,7 +172,7 @@ export default function ClientsPage() {
             <div>
               <h1 className="text-3xl font-bold text-white">Clients</h1>
               <p className="text-gray-400 mt-1">
-                Gérez vos relations clients avec leurs projets, contacts et portails
+                GÃ©rez vos relations clients avec leurs projets, contacts et portails
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -252,7 +252,7 @@ export default function ClientsPage() {
             ) : clients.length === 0 ? (
               <div className="col-span-2 text-center py-12">
                 <Building2 className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400">Aucun client trouvé</p>
+                <p className="text-gray-400">Aucun client trouvÃ©</p>
                 <p className="text-sm text-gray-500 mt-2">
                   Marquez des entreprises comme "Client" pour les voir ici
                 </p>
@@ -316,7 +316,7 @@ export default function ClientsPage() {
                       </div>
                       <div className="flex items-center gap-2 text-gray-400">
                         <TrendingUp className="w-4 h-4" />
-                        <span>{client.stats.opportunityCount} opportunités</span>
+                        <span>{client.stats.opportunityCount} opportunitÃ©s</span>
                       </div>
                     </div>
                   </div>
@@ -325,7 +325,7 @@ export default function ClientsPage() {
                   {client.projects.length > 0 && (
                     <div className="p-4 border-b border-gray-800">
                       <h4 className="text-xs font-semibold text-gray-500 uppercase mb-3">
-                        Projets récents
+                        Projets rÃ©cents
                       </h4>
                       <div className="space-y-2">
                         {client.projects.slice(0, 3).map((project) => (
@@ -353,7 +353,7 @@ export default function ClientsPage() {
                   {client.contacts.length > 0 && (
                     <div className="p-4 border-b border-gray-800">
                       <h4 className="text-xs font-semibold text-gray-500 uppercase mb-3">
-                        Contacts clés
+                        Contacts clÃ©s
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {client.contacts.slice(0, 4).map((contact) => (
@@ -411,7 +411,7 @@ export default function ClientsPage() {
                             {copiedToken === client.portal.token ? (
                               <>
                                 <Check className="w-4 h-4" />
-                                Copié !
+                                CopiÃ© !
                               </>
                             ) : (
                               <>
@@ -436,11 +436,11 @@ export default function ClientsPage() {
                         className="flex items-center gap-2 px-4 py-2 bg-violet-500/20 text-violet-400 rounded-lg hover:bg-violet-500/30 transition-colors text-sm w-full justify-center"
                       >
                         {creatingPortal === client.id ? (
-                          "Création..."
+                          "CrÃ©ation..."
                         ) : (
                           <>
                             <Plus className="w-4 h-4" />
-                            Créer un portail client
+                            CrÃ©er un portail client
                           </>
                         )}
                       </button>
