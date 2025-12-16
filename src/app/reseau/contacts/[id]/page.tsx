@@ -99,7 +99,7 @@ export default function ContactDetailPage() {
   const router = useRouter();
   const [contact, setContact] = useState<Contact | null>(null);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, _setProjects] = useState<Project[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
