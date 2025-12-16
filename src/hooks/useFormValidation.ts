@@ -4,8 +4,8 @@
  * Pour l'instant, utiliser directement Zod côté client
  */
 
-import { z } from "zod";
-import { toast } from "@/lib/toast";
+// import { z } from "zod";
+// import { toast } from "@/lib/toast";
 
 // Temporairement désactivé jusqu'à ce que React Hook Form soit nécessaire
 // import { useForm } from "react-hook-form";
