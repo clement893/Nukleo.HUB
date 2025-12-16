@@ -34,7 +34,7 @@ export default function OpportunityModal({
   onClose,
   onSave,
   onDelete,
-  onConvert,
+  onConvert: _onConvert,
 }: OpportunityModalProps) {
   const [formData, setFormData] = useState<Partial<Opportunity>>({});
   const [saving, setSaving] = useState(false);
