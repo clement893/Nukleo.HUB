@@ -8,7 +8,6 @@ import {
   Home,
   TrendingUp,
   Users,
-  Building2,
   FolderKanban,
   UsersRound,
   Calendar,
