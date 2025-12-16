@@ -1411,7 +1411,7 @@ export default function EmployeePortalPage() {
                 </div>
               ) : weekEntries.length === 0 ? (
                 <div className="text-center py-8 text-slate-400">
-                  <ClockIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
                   <p>Aucune entrée de temps pour cette semaine</p>
                 </div>
               ) : (
