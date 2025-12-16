@@ -13,6 +13,7 @@ import {
   XCircle,
   Moon,
   ClipboardList,
+  MessageSquare,
 } from "lucide-react";
 
 interface NotificationPreferences {
