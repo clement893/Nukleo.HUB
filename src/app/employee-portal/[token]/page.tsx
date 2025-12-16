@@ -1832,7 +1832,7 @@ export default function EmployeePortalPage() {
                           req.status === "rejected" ? "bg-red-500/10 text-red-400" :
                           "bg-slate-500/10 text-slate-400"
                         }`}>
-                          {req.status === "pending" && <ClockIcon className="w-3 h-3" />}
+                          {req.status === "pending" && <Clock className="w-3 h-3" />}
                           {req.status === "approved" && <CheckCircle2 className="w-3 h-3" />}
                           {req.status === "rejected" && <XCircle className="w-3 h-3" />}
                           {req.status === "pending" ? "En attente" :
