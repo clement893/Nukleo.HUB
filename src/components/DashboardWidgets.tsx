@@ -23,7 +23,7 @@ const formatCurrency = (value: number) => {
 };
 
 export function KPICards() {
-  const { data, isLoading: loading, refetch } = useDashboard();
+  const { data, isLoading: loading, refetch: _refetch } = useDashboard();
   const dashboardData = data as HomeData | undefined;
 
   if (loading) {
