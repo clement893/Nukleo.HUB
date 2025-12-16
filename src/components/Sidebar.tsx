@@ -18,7 +18,6 @@ import {
   Sun,
   Moon,
   Sparkles,
-  Receipt,
   Megaphone,
   GraduationCap,
   Brain,
