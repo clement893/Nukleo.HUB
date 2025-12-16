@@ -18,6 +18,8 @@ import {
   Award,
   BookOpen,
   Clock,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 interface OnboardingStep {
