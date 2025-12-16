@@ -41,6 +41,7 @@ import {
   ChevronRight,
   Timer,
   Briefcase,
+  ThumbsUp,
 } from "lucide-react";
 
 interface Employee {
