@@ -80,7 +80,7 @@ interface ErrorBoundaryProps {
   onError?: (error: Error, errorInfo: { componentStack: string }) => void;
 }
 
-export function ErrorBoundary({ children, fallback, onError }: ErrorBoundaryProps) {
+export function ErrorBoundary({ children, fallback: _fallback, onError }: ErrorBoundaryProps) {
   return (
     <ReactErrorBoundary
       FallbackComponent={ErrorFallback}
