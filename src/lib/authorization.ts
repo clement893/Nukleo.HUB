@@ -170,7 +170,7 @@ export class PermissionManager {
     userId: string,
     action: string,
     resourceType: string,
-    resourceId?: string
+    _resourceId?: string
   ): Promise<boolean> {
     try {
       const user = await prisma.user.findUnique({
