@@ -841,7 +841,7 @@ export default function TransformationPage() {
                     {quotePhases
                       .filter((p) => p.selected)
                       .map((phase) => {
-                        const template = TRANSFORMATION_PHASES.find((t) => t.id === phase.id)!;
+                        const _template = TRANSFORMATION_PHASES.find((t) => t.id === phase.id)!;
                         const hours = phase.customHours ?? phase.estimatedHours;
                         const rate = phase.customRate ?? phase.hourlyRate;
                         return (
