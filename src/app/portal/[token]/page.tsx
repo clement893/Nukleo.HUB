@@ -24,6 +24,7 @@ import {
   DollarSign,
   MessageCircle,
   ChevronRight,
+  Target,
 } from "lucide-react";
 
 // Types
