@@ -139,7 +139,7 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
     }
   };
 
-  const saveCalendarConfig = async () => {
+  const _saveCalendarConfig = async () => {
     setSavingCalendar(true);
     try {
       const res = await fetch(`/api/employees/${resolvedParams.id}/calendar`, {
