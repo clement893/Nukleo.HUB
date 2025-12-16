@@ -23,6 +23,7 @@ import {
   Briefcase,
   DollarSign,
   MessageCircle,
+  ChevronRight,
 } from "lucide-react";
 
 // Types
