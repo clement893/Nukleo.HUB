@@ -19,7 +19,6 @@ import {
   Moon,
   Sparkles,
   Megaphone,
-  GraduationCap,
   Brain,
   Ticket,
   Shield,
