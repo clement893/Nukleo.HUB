@@ -24,7 +24,6 @@ import {
   Shield,
   LogOut,
   Loader2,
-  Palmtree,
   User,
   ExternalLink,
   Briefcase,
