@@ -11,7 +11,6 @@ import {
   FolderKanban,
   UsersRound,
   Calendar,
-  CalendarDays,
   Search,
   Settings,
   ChevronDown,
