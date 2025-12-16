@@ -279,7 +279,7 @@ export default function WorkloadPage() {
               Charge par semaine
             </h2>
             <div className="space-y-3">
-              {data.weeklyWorkload.map((week, index) => (
+              {data.weeklyWorkload.map((week, _index) => (
                 <div key={week.weekStart} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-foreground">
