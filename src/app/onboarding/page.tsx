@@ -17,6 +17,7 @@ import {
   Sparkles,
   Award,
   BookOpen,
+  Clock,
 } from "lucide-react";
 
 interface OnboardingStep {
