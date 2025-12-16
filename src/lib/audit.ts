@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+// import { prisma } from "@/lib/prisma";
 
 /**
  * Système d'Audit Trail pour Next.js
