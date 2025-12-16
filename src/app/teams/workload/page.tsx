@@ -78,7 +78,7 @@ export default function WorkloadPage() {
   const [data, setData] = useState<WorkloadData | null>(null);
   const [loading, setLoading] = useState(true);
   const [weeks, setWeeks] = useState(4);
-  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
+  const [selectedDepartment, _setSelectedDepartment] = useState<string | null>(null);
 
   useEffect(() => {
     fetchWorkload();
