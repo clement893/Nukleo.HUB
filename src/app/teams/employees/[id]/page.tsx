@@ -104,7 +104,7 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
   const [portalLoading, setPortalLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [calendarEvents, setCalendarEvents] = useState<GoogleCalendarEvent[]>([]);
-  const [showCalendarConfig, setShowCalendarConfig] = useState(false);
+  const [_showCalendarConfig, setShowCalendarConfig] = useState(false);
   const [calendarId, setCalendarId] = useState("");
   const [calendarSync, setCalendarSync] = useState(false);
   const [savingCalendar, setSavingCalendar] = useState(false);
