@@ -29,6 +29,13 @@ import {
   Archive,
   File,
   ExternalLink,
+  X,
+  CheckCircle,
+  FileCheck,
+  History,
+  PenTool,
+  ThumbsUp,
+  XCircle,
 } from "lucide-react";
 
 // Types
