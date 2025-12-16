@@ -7,7 +7,6 @@ import { ContactCard } from "@/components/ContactCard";
 import Sidebar from "@/components/Sidebar";
 import {
   Search,
-  Filter,
   Grid3X3,
   List,
   Users,
