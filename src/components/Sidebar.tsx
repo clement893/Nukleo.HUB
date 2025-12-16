@@ -157,7 +157,7 @@ export default function Sidebar() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [userAccess, setUserAccess] = useState<any>(null);
   const [portalUrl, setPortalUrl] = useState<string | null>(null);
-  const [_loadingPortal, setLoadingPortal] = useState(false);
+  const [_loadingPortal, _setLoadingPortal] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
