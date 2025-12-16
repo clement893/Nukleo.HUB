@@ -105,7 +105,7 @@ export default function ContactDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [newNote, setNewNote] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
+  const [_isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (params.id) {
