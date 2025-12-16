@@ -139,36 +139,6 @@ export default function EmployeeProfilePage({ params }: { params: Promise<{ id: 
     }
   };
 
-  const _saveCalendarConfig = async () => {
-    setSavingCalendar(true);
-    try {
-      const res = await fetch(`/api/employees/${resolvedParams.id}/calendar`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          googleCalendarId: calendarId,
-          googleCalendarSync: calendarSync,
-        }),
-      });
-      if (res.ok) {
-        setShowCalendarConfig(false);
-        fetchCalendarEvents();
-        // Mettre à jour l'employé local
-        if (employee) {
-          setEmployee({
-            ...employee,
-            googleCalendarId: calendarId,
-            googleCalendarSync: calendarSync,
-          });
-        }
-      }
-    } catch (error) {
-      console.error("Error saving calendar config:", error);
-    } finally {
-      setSavingCalendar(false);
-    }
-  };
-
   const handleAddEvent = async () => {
     if (!newEvent.title || !newEvent.startDate) return;
     setAddingEvent(true);
