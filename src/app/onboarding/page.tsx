@@ -16,6 +16,7 @@ import {
   PartyPopper,
   Sparkles,
   Award,
+  BookOpen,
 } from "lucide-react";
 
 interface OnboardingStep {
