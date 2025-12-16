@@ -9,7 +9,6 @@ import {
   Calendar,
   Clock,
   ArrowUpRight,
-  RefreshCw,
 } from "lucide-react";
 import { useDashboard, type HomeData } from "@/hooks/useDashboard";
 
