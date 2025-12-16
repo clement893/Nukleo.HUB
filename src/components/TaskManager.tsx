@@ -8,7 +8,6 @@ import {
   Circle,
   AlertCircle,
   Loader2,
-  GripVertical,
   Calendar,
   Flag,
 } from "lucide-react";
