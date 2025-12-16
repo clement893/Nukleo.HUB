@@ -25,7 +25,7 @@ interface AIChatWidgetProps {
   employeeName?: string;
 }
 
-export default function AIChatWidget({ employeeId, employeeName }: AIChatWidgetProps) {
+export default function AIChatWidget({ employeeId: _employeeId, employeeName }: AIChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
