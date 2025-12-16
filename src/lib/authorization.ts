@@ -81,7 +81,7 @@ export function hasRole(userRole: UserRole | string, ...roles: UserRole[]): bool
 export async function canAccessResource(
   userId: string,
   resourceType: string,
-  resourceId: string,
+  _resourceId: string,
   action: string
 ): Promise<boolean> {
   try {
