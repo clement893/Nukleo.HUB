@@ -38,6 +38,7 @@ import {
   Lightbulb,
   ClipboardList,
   ChevronLeft,
+  ChevronRight,
   Timer,
   Briefcase,
 } from "lucide-react";
