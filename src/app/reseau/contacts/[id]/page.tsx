@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -11,7 +11,6 @@ import {
   Phone,
   Linkedin,
   MapPin,
-  Globe,
   Calendar,
   Briefcase,
   Users,
@@ -84,17 +83,17 @@ interface ActivityLog {
 
 const TABS = [
   { id: "overview", label: "Vue d'ensemble", icon: User },
-  { id: "opportunities", label: "Opportunités", icon: Briefcase },
+  { id: "opportunities", label: "OpportunitÃ©s", icon: Briefcase },
   { id: "projects", label: "Projets", icon: FileText },
   { id: "notes", label: "Notes", icon: MessageSquare },
   { id: "history", label: "Historique", icon: History },
 ];
 
 const LEVELS: Record<number, string> = {
-  1: "Exécutif (C-Level)",
+  1: "ExÃ©cutif (C-Level)",
   2: "Direction (VP, Directeur)",
   3: "Management (Gestionnaire)",
-  4: "Opérationnel (Contributeur)",
+  4: "OpÃ©rationnel (Contributeur)",
 };
 
 export default function ContactDetailPage() {
@@ -182,7 +181,7 @@ export default function ContactDetailPage() {
   };
 
   const handleDeleteContact = async () => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce contact ?")) return;
+    if (!confirm("ÃŠtes-vous sÃ»r de vouloir supprimer ce contact ?")) return;
     try {
       const response = await fetch(`/api/contacts/${params.id}`, {
         method: "DELETE",
@@ -223,7 +222,7 @@ export default function ContactDetailPage() {
         <Sidebar />
         <main className="flex-1 ml-64 p-8">
           <div className="text-center py-12">
-            <p className="text-muted-foreground">Contact non trouvé</p>
+            <p className="text-muted-foreground">Contact non trouvÃ©</p>
             <button
               onClick={() => router.push("/reseau/contacts")}
               className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg"
@@ -401,16 +400,16 @@ export default function ContactDetailPage() {
           {activeTab === "overview" && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">Informations détaillées</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">Informations dÃ©taillÃ©es</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-4">
                     <div>
                       <label className="text-xs text-muted-foreground uppercase tracking-wide">Langue</label>
-                      <p className="text-foreground">{contact.language || "Non spécifié"}</p>
+                      <p className="text-foreground">{contact.language || "Non spÃ©cifiÃ©"}</p>
                     </div>
                     <div>
                       <label className="text-xs text-muted-foreground uppercase tracking-wide">Date de naissance</label>
-                      <p className="text-foreground">{contact.birthday || "Non spécifié"}</p>
+                      <p className="text-foreground">{contact.birthday || "Non spÃ©cifiÃ©"}</p>
                     </div>
                     <div>
                       <label className="text-xs text-muted-foreground uppercase tracking-wide">Tags</label>
@@ -419,7 +418,7 @@ export default function ContactDetailPage() {
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-xs text-muted-foreground uppercase tracking-wide">Créé le</label>
+                      <label className="text-xs text-muted-foreground uppercase tracking-wide">CrÃ©Ã© le</label>
                       <p className="text-foreground">
                         {new Date(contact.createdAt).toLocaleDateString("fr-FR", {
                           day: "numeric",
@@ -429,7 +428,7 @@ export default function ContactDetailPage() {
                       </p>
                     </div>
                     <div>
-                      <label className="text-xs text-muted-foreground uppercase tracking-wide">Dernière mise à jour</label>
+                      <label className="text-xs text-muted-foreground uppercase tracking-wide">DerniÃ¨re mise Ã  jour</label>
                       <p className="text-foreground">
                         {new Date(contact.updatedAt).toLocaleDateString("fr-FR", {
                           day: "numeric",
@@ -447,10 +446,10 @@ export default function ContactDetailPage() {
           {activeTab === "opportunities" && (
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-foreground">Opportunités liées</h3>
+                <h3 className="text-lg font-semibold text-foreground">OpportunitÃ©s liÃ©es</h3>
               </div>
               {opportunities.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">Aucune opportunité liée à ce contact</p>
+                <p className="text-muted-foreground text-center py-8">Aucune opportunitÃ© liÃ©e Ã  ce contact</p>
               ) : (
                 <div className="space-y-3">
                   {opportunities.map((opp) => (
@@ -480,9 +479,9 @@ export default function ContactDetailPage() {
 
           {activeTab === "projects" && (
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">Projets associés</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-4">Projets associÃ©s</h3>
               {projects.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">Aucun projet associé à ce contact</p>
+                <p className="text-muted-foreground text-center py-8">Aucun projet associÃ© Ã  ce contact</p>
               ) : (
                 <div className="space-y-3">
                   {projects.map((project) => (
@@ -541,7 +540,7 @@ export default function ContactDetailPage() {
                       <p className="text-foreground whitespace-pre-wrap">{note.content}</p>
                       <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                         <span>{note.authorName || "Anonyme"}</span>
-                        <span>•</span>
+                        <span>â€¢</span>
                         <span>
                           {new Date(note.createdAt).toLocaleDateString("fr-FR", {
                             day: "numeric",
@@ -561,9 +560,9 @@ export default function ContactDetailPage() {
 
           {activeTab === "history" && (
             <div>
-              <h3 className="text-lg font-semibold text-foreground mb-4">Historique des activités</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-4">Historique des activitÃ©s</h3>
               {activities.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">Aucune activité enregistrée</p>
+                <p className="text-muted-foreground text-center py-8">Aucune activitÃ© enregistrÃ©e</p>
               ) : (
                 <div className="space-y-4">
                   {activities.map((activity) => (
@@ -574,8 +573,8 @@ export default function ContactDetailPage() {
                       <div className="flex-1">
                         <p className="text-foreground">{activity.description || activity.action}</p>
                         <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                          <span>{activity.userName || "Système"}</span>
-                          <span>•</span>
+                          <span>{activity.userName || "SystÃ¨me"}</span>
+                          <span>â€¢</span>
                           <span>
                             {new Date(activity.createdAt).toLocaleDateString("fr-FR", {
                               day: "numeric",
