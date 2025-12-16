@@ -39,6 +39,7 @@ import {
   ClipboardList,
   ChevronLeft,
   Timer,
+  Briefcase,
 } from "lucide-react";
 
 interface Employee {
