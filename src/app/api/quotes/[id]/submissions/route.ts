@@ -8,7 +8,7 @@ import { logger } from "@/lib/logger";
  * Liste toutes les soumissions d'un devis
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAuth();
