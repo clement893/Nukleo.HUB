@@ -95,7 +95,7 @@ export async function checkContractExpirations() {
  */
 export async function createContractExpirationNotification(
   contractId: string,
-  daysUntilExpiry: number
+  _daysUntilExpiry: number
 ) {
   try {
     const contract = await prisma.contract.findUnique({
@@ -106,7 +106,7 @@ export async function createContractExpirationNotification(
     if (!contract) return;
 
     // TODO: Créer une notification dans le système de notifications
-    // const title = `Contrat expirant dans ${daysUntilExpiry} jour(s)`; // À utiliser lors de l'implémentation
+    // const title = `Contrat expirant dans ${_daysUntilExpiry} jour(s)`; // À utiliser lors de l'implémentation
     // const message = `Le contrat "${contract.title}" (${contract.contractNumber}) expire le ${contract.endDate?.toLocaleDateString("fr-FR")}.`; // À utiliser lors de l'implémentation
     // await prisma.notification.create({ ... });
 
