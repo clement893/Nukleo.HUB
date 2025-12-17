@@ -105,10 +105,9 @@ export async function createContractExpirationNotification(
 
     if (!contract) return;
 
-    const title = `Contrat expirant dans ${daysUntilExpiry} jour(s)`;
-    const message = `Le contrat "${contract.title}" (${contract.contractNumber}) expire le ${contract.endDate?.toLocaleDateString("fr-FR")}.`;
-
     // TODO: Créer une notification dans le système de notifications
+    // const title = `Contrat expirant dans ${daysUntilExpiry} jour(s)`; // À utiliser lors de l'implémentation
+    // const message = `Le contrat "${contract.title}" (${contract.contractNumber}) expire le ${contract.endDate?.toLocaleDateString("fr-FR")}.`; // À utiliser lors de l'implémentation
     // await prisma.notification.create({ ... });
 
     logger.info(
