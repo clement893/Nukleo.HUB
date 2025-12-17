@@ -8,7 +8,7 @@ import { logger } from "@/lib/logger";
  * GET /api/admin/api-keys
  * Liste toutes les clés API
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const auth = await requireAdmin();
   if (isErrorResponse(auth)) return auth;
 
