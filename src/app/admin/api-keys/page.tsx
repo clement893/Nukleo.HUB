@@ -39,6 +39,9 @@ export default function ApiKeysPage() {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [testingKey, setTestingKey] = useState(false);
+  const [testKeyValue, setTestKeyValue] = useState("");
+  const [testResult, setTestResult] = useState<any>(null);
   const [editForm, setEditForm] = useState<{
     rateLimit: string;
     allowedIps: string;
@@ -190,6 +193,32 @@ export default function ApiKeysPage() {
     }
   };
 
+  const handleTestKey = async () => {
+    if (!testKeyValue.trim()) {
+      setError("Veuillez entrer une clé API à tester");
+      return;
+    }
+
+    setError(null);
+    setTestingKey(true);
+    setTestResult(null);
+
+    try {
+      const response = await fetch("/api/admin/api-keys/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey: testKeyValue.trim() }),
+      });
+
+      const data = await response.json();
+      setTestResult(data);
+    } catch (err) {
+      setError("Erreur lors du test de la clé API");
+    } finally {
+      setTestingKey(false);
+    }
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     alert("Clé copiée dans le presse-papiers !");
@@ -259,6 +288,74 @@ export default function ApiKeysPage() {
           </div>
         </div>
       )}
+
+      {/* Section de test de clé API */}
+      <div className="mb-6 p-6 bg-card border rounded-lg">
+        <h2 className="text-xl font-bold mb-4">Tester une clé API</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Clé API à tester
+            </label>
+            <input
+              type="text"
+              value={testKeyValue}
+              onChange={(e) => setTestKeyValue(e.target.value)}
+              placeholder="nk_40b933b07bcac5e8997104397f16950bf05b8f75b2c76ba2d31c210b0a90ca12"
+              className="w-full px-3 py-2 border rounded-lg font-mono text-sm"
+            />
+          </div>
+          <button
+            onClick={handleTestKey}
+            disabled={testingKey}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          >
+            {testingKey ? "Test en cours..." : "Tester la clé"}
+          </button>
+          {testResult && (
+            <div className={`p-4 rounded-lg ${testResult.found ? "bg-green-50 dark:bg-green-900/20" : "bg-red-50 dark:bg-red-900/20"}`}>
+              <h3 className="font-bold mb-2">
+                {testResult.found ? "✅ Clé trouvée dans la base de données" : "❌ Clé non trouvée"}
+              </h3>
+              <div className="space-y-2 text-sm">
+                <p><strong>Préfixe:</strong> <code>{testResult.apiKey.prefix}</code></p>
+                <p><strong>Hash SHA-256:</strong> <code className="text-xs">{testResult.apiKey.hash}</code></p>
+                {testResult.keyRecord ? (
+                  <div className="mt-4 space-y-1">
+                    <p><strong>Nom:</strong> {testResult.keyRecord.name}</p>
+                    <p><strong>Statut:</strong> {testResult.keyRecord.isActive ? "✅ Active" : "❌ Inactive"}</p>
+                    {testResult.keyRecord.expiresAt && (
+                      <p><strong>Expire le:</strong> {formatDate(testResult.keyRecord.expiresAt)}</p>
+                    )}
+                    {testResult.keyRecord.allowedEndpoints && (
+                      <p><strong>Endpoints autorisés:</strong> {JSON.parse(testResult.keyRecord.allowedEndpoints).join(", ")}</p>
+                    )}
+                    {testResult.keyRecord.allowedIps && (
+                      <p><strong>IPs autorisées:</strong> {JSON.parse(testResult.keyRecord.allowedIps).join(", ")}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="mt-4">
+                    <p className="text-red-600 dark:text-red-400">
+                      Cette clé n'existe pas dans la base de données. Vérifiez que le hash correspond.
+                    </p>
+                    {testResult.keysWithSimilarPrefix && testResult.keysWithSimilarPrefix.length > 0 && (
+                      <div className="mt-2">
+                        <p className="font-medium">Clés avec un préfixe similaire:</p>
+                        <ul className="list-disc list-inside mt-1">
+                          {testResult.keysWithSimilarPrefix.map((k: ApiKey) => (
+                            <li key={k.id}>{k.name} ({k.keyPrefix}) - {k.isActive ? "Active" : "Inactive"}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {showCreateForm && (
         <div className="mb-6 p-6 bg-card border rounded-lg">

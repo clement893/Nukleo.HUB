@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { cache, CACHE_TTL } from "@/lib/cache";
 import { createHash } from "crypto";
+import { logger } from "@/lib/logger";
 
 const SESSION_COOKIE_NAME = "nukleo_session";
 
@@ -172,20 +173,28 @@ export async function verifyApiKey(request: NextRequest): Promise<{ id: string; 
     }
 
     if (!apiKey) {
+      logger.warn("[API_AUTH] No API key found in headers", "API_AUTH");
       return null;
     }
 
     // Hash la clé pour la recherche
     const hashedKey = hashApiKey(apiKey);
+    const keyPrefix = apiKey.substring(0, 11); // nk_ + 8 premiers caractères
 
     // Récupérer le chemin de la requête pour vérifier les endpoints autorisés
     const url = new URL(request.url);
     const pathname = url.pathname;
 
+    logger.info(
+      `[API_AUTH] Verifying API key - Prefix: ${keyPrefix}..., Path: ${pathname}`,
+      "API_AUTH"
+    );
+
     // Cache de courte durée (inclure le pathname pour éviter les conflits)
     const cacheKey = `api_key:${hashedKey}:${pathname}`;
     const cached = cache.get<{ id: string; name: string; rateLimit: number }>(cacheKey);
     if (cached) {
+      logger.info(`[API_AUTH] API key found in cache`, "API_AUTH");
       return cached;
     }
 
@@ -203,12 +212,25 @@ export async function verifyApiKey(request: NextRequest): Promise<{ id: string; 
       },
     });
 
-    if (!keyRecord || !keyRecord.isActive) {
+    if (!keyRecord) {
+      logger.warn(
+        `[API_AUTH] API key not found in database - Hash: ${hashedKey.substring(0, 16)}...`,
+        "API_AUTH"
+      );
+      return null;
+    }
+
+    if (!keyRecord.isActive) {
+      logger.warn(`[API_AUTH] API key is inactive - Key ID: ${keyRecord.id}`, "API_AUTH");
       return null;
     }
 
     // Vérifier l'expiration
     if (keyRecord.expiresAt && keyRecord.expiresAt < new Date()) {
+      logger.warn(
+        `[API_AUTH] API key expired - Key ID: ${keyRecord.id}, Expires: ${keyRecord.expiresAt}`,
+        "API_AUTH"
+      );
       return null;
     }
 
@@ -219,7 +241,16 @@ export async function verifyApiKey(request: NextRequest): Promise<{ id: string; 
                       request.headers.get("x-real-ip") ||
                       "unknown";
       
+      logger.info(
+        `[API_AUTH] Checking IP restriction - Client IP: ${clientIp}, Allowed IPs: ${allowedIps.join(", ")}`,
+        "API_AUTH"
+      );
+      
       if (!allowedIps.includes(clientIp)) {
+        logger.warn(
+          `[API_AUTH] IP not allowed - Key ID: ${keyRecord.id}, Client IP: ${clientIp}`,
+          "API_AUTH"
+        );
         return null;
       }
     }
@@ -227,6 +258,11 @@ export async function verifyApiKey(request: NextRequest): Promise<{ id: string; 
     // Vérifier les endpoints autorisés
     if (keyRecord.allowedEndpoints) {
       const allowedEndpoints = JSON.parse(keyRecord.allowedEndpoints) as string[];
+      logger.info(
+        `[API_AUTH] Checking endpoint restriction - Path: ${pathname}, Allowed: ${allowedEndpoints.join(", ")}`,
+        "API_AUTH"
+      );
+      
       // Vérifier si le chemin correspond à un des endpoints autorisés
       const isAllowed = allowedEndpoints.some(endpoint => {
         const trimmedEndpoint = endpoint.trim();
@@ -240,9 +276,18 @@ export async function verifyApiKey(request: NextRequest): Promise<{ id: string; 
       });
       
       if (!isAllowed) {
+        logger.warn(
+          `[API_AUTH] Endpoint not allowed - Key ID: ${keyRecord.id}, Path: ${pathname}`,
+          "API_AUTH"
+        );
         return null;
       }
     }
+
+    logger.info(
+      `[API_AUTH] API key verified successfully - Key ID: ${keyRecord.id}, Name: ${keyRecord.name}`,
+      "API_AUTH"
+    );
 
     // Mettre à jour lastUsedAt (de manière asynchrone pour ne pas bloquer)
     prisma.apiKey.update({
@@ -261,7 +306,7 @@ export async function verifyApiKey(request: NextRequest): Promise<{ id: string; 
 
     return result;
   } catch (error) {
-    console.error("Error verifying API key:", error);
+    logger.error("Error verifying API key", error as Error, "API_AUTH");
     return null;
   }
 }

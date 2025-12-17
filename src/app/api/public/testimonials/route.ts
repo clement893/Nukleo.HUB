@@ -16,20 +16,36 @@ import { logger } from "@/lib/logger";
  * - limit: nombre maximum de témoignages à retourner (optionnel, défaut: 100)
  */
 export async function GET(request: NextRequest) {
-  // Vérifier la clé API
-  const apiKeyAuth = await requireApiKey(request);
-  if (apiKeyAuth instanceof NextResponse) {
-    return apiKeyAuth;
-  }
-
-  // Rate limiting basé sur la clé API
-  const rateLimitError = rateLimitMiddleware(
-    request,
-    { maxRequests: apiKeyAuth.rateLimit, windowMs: 3600000 } // rateLimit de la clé par heure (3600s = 3600000ms)
-  );
-  if (rateLimitError) return rateLimitError;
-
   try {
+    // Logger pour debug
+    const authHeader = request.headers.get("authorization");
+    const apiKeyHeader = request.headers.get("x-api-key");
+    logger.info(
+      `[PUBLIC_API] Testimonials API called - Auth: ${authHeader ? 'present' : 'missing'}, X-API-Key: ${apiKeyHeader ? 'present' : 'missing'}`,
+      "PUBLIC_API"
+    );
+
+    // Vérifier la clé API
+    const apiKeyAuth = await requireApiKey(request);
+    if (apiKeyAuth instanceof NextResponse) {
+      // S'assurer que la réponse d'erreur est bien en JSON
+      logger.warn(
+        `[PUBLIC_API] API key authentication failed`,
+        "PUBLIC_API"
+      );
+      return NextResponse.json(
+        { error: "Clé API invalide ou manquante. Veuillez fournir une clé API valide dans le header Authorization: Bearer <key> ou X-API-Key." },
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Rate limiting basé sur la clé API
+    const rateLimitError = rateLimitMiddleware(
+      request,
+      { maxRequests: apiKeyAuth.rateLimit, windowMs: 3600000 } // rateLimit de la clé par heure (3600s = 3600000ms)
+    );
+    if (rateLimitError) return rateLimitError;
+
     const { searchParams } = new URL(request.url);
     const language = searchParams.get("language") || "fr";
     const featured = searchParams.get("featured");
@@ -104,7 +120,7 @@ export async function GET(request: NextRequest) {
       language,
       count: formattedTestimonials.length,
       testimonials: formattedTestimonials,
-    });
+    }, { headers: { 'Content-Type': 'application/json' } });
   } catch (error) {
     logger.error("Error fetching public testimonials", error as Error, "PUBLIC_API");
     const errorMessage = process.env.NODE_ENV === "production"
@@ -112,7 +128,7 @@ export async function GET(request: NextRequest) {
       : (error as Error).message;
     return NextResponse.json(
       { error: errorMessage },
-      { status: 500 }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }
