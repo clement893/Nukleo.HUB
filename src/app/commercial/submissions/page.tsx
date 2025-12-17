@@ -19,6 +19,9 @@ interface Submission {
   version: number;
   title: string;
   description: string | null;
+  clientName: string | null;
+  clientEmail: string | null;
+  clientCompany: string | null;
   subtotal: number;
   taxRate: number;
   taxAmount: number;
@@ -590,8 +593,6 @@ export default function SubmissionsPage() {
                       Annuler
                     </button>
                   </div>
-                </>
-              )}
             </div>
           </div>
         )}
@@ -640,9 +641,22 @@ export default function SubmissionsPage() {
                             </p>
                           </>
                         ) : (
-                          <p>
-                            <strong>Soumission indépendante</strong> (gros projet)
-                          </p>
+                          <>
+                            <p>
+                              <strong>Soumission indépendante</strong> (gros projet)
+                            </p>
+                            {submission.clientName && (
+                              <p>
+                                <strong>Client :</strong> {submission.clientName}
+                                {submission.clientCompany && ` - ${submission.clientCompany}`}
+                              </p>
+                            )}
+                            {submission.clientEmail && (
+                              <p>
+                                <strong>Email :</strong> {submission.clientEmail}
+                              </p>
+                            )}
+                          </>
                         )}
                         {submission.description && (
                           <p className="mt-2">{submission.description}</p>
