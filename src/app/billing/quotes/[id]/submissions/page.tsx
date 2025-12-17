@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import Sidebar from "@/components/Sidebar";
 import {
@@ -57,7 +57,6 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
 
 export default function SubmissionsPage() {
   const params = useParams();
-  const router = useRouter();
   const quoteId = params.id as string;
 
   const [quote, setQuote] = useState<Quote | null>(null);
