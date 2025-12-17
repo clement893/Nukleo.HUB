@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireApiKey, isErrorResponse } from "@/lib/api-auth";
-import { rateLimitMiddleware, RATE_LIMITS } from "@/lib/rate-limit";
+import { rateLimitMiddleware } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
 /**
