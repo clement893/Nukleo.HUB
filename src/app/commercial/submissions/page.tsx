@@ -88,10 +88,13 @@ export default function SubmissionsPage() {
         setSelectedQuote(quote);
         if (quote.phases && quote.phases.trim()) {
           try {
-            setFormData((prev) => ({
-              ...prev,
-              phases: JSON.parse(quote.phases as string),
-            }));
+            const phasesString = quote.phases;
+            if (phasesString) {
+              setFormData((prev) => ({
+                ...prev,
+                phases: JSON.parse(phasesString),
+              }));
+            }
           } catch (error) {
             console.error("Error parsing phases:", error);
             setFormData((prev) => ({
