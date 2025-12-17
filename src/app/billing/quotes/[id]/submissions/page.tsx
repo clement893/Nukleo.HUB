@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Sidebar from "@/components/Sidebar";
 import {
-  FileText,
   Plus,
   ArrowLeft,
   Edit,
