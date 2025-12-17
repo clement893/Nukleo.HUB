@@ -9,16 +9,6 @@ interface LeoAssistanceRequest {
   additionalContext?: string;
 }
 
-interface LeoAssistanceResponse {
-  content: string;
-  suggestions?: string[];
-  metadata?: {
-    contentType: string;
-    estimatedReadTime?: number;
-    wordCount?: number;
-  };
-}
-
 /**
  * Récupère le contexte client pour Leo
  */
