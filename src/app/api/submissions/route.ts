@@ -27,9 +27,6 @@ export async function GET(_request: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    // Pour les soumissions sans devis, on doit récupérer les infos client depuis les champs de la soumission
-    // Note: Le modèle Submission n'a pas encore de champs clientName/clientCompany, donc on les récupère du quote si disponible
-
     return NextResponse.json(submissions);
   } catch (error) {
     logger.error("Error fetching all submissions", error as Error, "SUBMISSIONS_API");
