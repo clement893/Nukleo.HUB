@@ -267,7 +267,6 @@ export function logRequest(
   duration: number,
   userId?: string
 ): void {
-  const level = statusCode >= 500 ? LogLevel.ERROR : LogLevel.INFO;
   const message = `${method} ${path} - ${statusCode}`;
 
   logger.info(message, "API", {
