@@ -461,8 +461,44 @@ model Quote {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // Relations
+  submissions   Submission[] // Soumissions (variantes) de ce devis
+
   @@index([projectId])
   @@index([status])
+}
+
+// Soumissions (variantes/sous-devis) liées à un devis principal
+model Submission {
+  id            String    @id @default(cuid())
+  quoteId       String    // Devis parent
+  quote         Quote     @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  version       Int       @default(1) // Numéro de version de la soumission
+  title         String    // Titre de la soumission (ex: "Option 1", "Version Premium")
+  description   String?   @db.Text // Description des différences avec le devis principal
+  subtotal      Float     @default(0)
+  taxRate       Float     @default(0.15) // 15% TPS+TVQ
+  taxAmount     Float     @default(0)
+  total         Float     @default(0)
+  currency      String    @default("CAD")
+  phases        String?   @db.Text // JSON array of selected phases with pricing (peut différer du devis principal)
+  notes         String?   @db.Text // Notes spécifiques à cette soumission
+  differences   String?   @db.Text // JSON des différences avec le devis principal
+  status        String    @default("draft") // draft, sent, accepted, rejected
+  validUntil    DateTime? // Date de validité de cette soumission
+  sentAt        DateTime? // Date d'envoi au client
+  viewedAt      DateTime? // Date de visualisation par le client
+  acceptedAt    DateTime? // Date d'acceptation
+  rejectedAt    DateTime? // Date de rejet
+  rejectionReason String? @db.Text // Raison du rejet si applicable
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  createdBy     String? // Employee ID qui a créé la soumission
+
+  @@index([quoteId])
+  @@index([status])
+  @@index([version])
+  @@unique([quoteId, version]) // Une seule soumission par version pour un devis
 }
 
 // Entrées de temps pour le time tracking

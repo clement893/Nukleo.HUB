@@ -17,6 +17,7 @@ import {
   Calendar,
   Building2,
   ArrowLeft,
+  Copy,
 } from "lucide-react";
 
 interface Quote {
@@ -425,6 +426,13 @@ export default function QuotesPage() {
                               </button>
                             </>
                           )}
+                          <Link
+                            href={`/billing/quotes/${quote.id}/submissions`}
+                            className="p-2 rounded-lg hover:bg-violet-500/20 text-violet-400 transition-colors"
+                            title="Gérer les soumissions"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Link>
                           <button
                             onClick={() => openEditModal(quote)}
                             className="p-2 rounded-lg hover:bg-gray-700 text-gray-400 transition-colors"
