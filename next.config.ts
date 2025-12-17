@@ -153,7 +153,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "2mb",
     },
     // Optimiser les imports de React
-    optimizeCss: true,
+    // optimizeCss: true, // Désactivé - nécessite critters et peut causer des problèmes de build
   },
   
   // Optimisations de production
