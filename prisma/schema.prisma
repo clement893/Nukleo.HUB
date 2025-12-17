@@ -2505,3 +2505,23 @@ model ContractAmendmentSignature {
 
   @@index([amendmentId])
 }
+
+// Clés API pour l'accès externe
+model ApiKey {
+  id          String   @id @default(cuid())
+  name        String   // Nom descriptif de la clé (ex: "Site web principal")
+  key         String   @unique // La clé API elle-même (hashée)
+  keyPrefix   String   // Préfixe visible (ex: "nk_abc123...")
+  isActive    Boolean  @default(true)
+  lastUsedAt  DateTime? // Dernière utilisation
+  expiresAt   DateTime? // Date d'expiration (null = jamais)
+  allowedIps  String?  @db.Text // JSON array d'IPs autorisées (null = toutes)
+  rateLimit   Int      @default(1000) // Requêtes par heure
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String? // Employee ID qui a créé la clé
+
+  @@index([key])
+  @@index([isActive])
+  @@index([expiresAt])
+}

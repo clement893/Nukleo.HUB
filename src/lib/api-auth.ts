@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { cache, CACHE_TTL } from "@/lib/cache";
+import { createHash } from "crypto";
 
 const SESSION_COOKIE_NAME = "nukleo_session";
 
@@ -143,4 +144,115 @@ export async function requireSuperAdmin(): Promise<AuthUser | NextResponse> {
  */
 export function isErrorResponse(result: AuthUser | NextResponse): result is NextResponse {
   return result instanceof NextResponse;
+}
+
+/**
+ * Hash une clé API pour le stockage
+ */
+function hashApiKey(key: string): string {
+  return createHash("sha256").update(key).digest("hex");
+}
+
+/**
+ * Vérifie une clé API depuis les headers de la requête
+ * @param request La requête Next.js
+ * @returns L'objet ApiKey si valide, null sinon
+ */
+export async function verifyApiKey(request: NextRequest): Promise<{ id: string; name: string; rateLimit: number } | null> {
+  try {
+    // Chercher la clé dans le header Authorization: Bearer <key>
+    const authHeader = request.headers.get("authorization");
+    let apiKey: string | null = null;
+
+    if (authHeader?.startsWith("Bearer ")) {
+      apiKey = authHeader.substring(7);
+    } else {
+      // Fallback: chercher dans le header X-API-Key
+      apiKey = request.headers.get("x-api-key");
+    }
+
+    if (!apiKey) {
+      return null;
+    }
+
+    // Hash la clé pour la recherche
+    const hashedKey = hashApiKey(apiKey);
+
+    // Cache de courte durée
+    const cacheKey = `api_key:${hashedKey}`;
+    const cached = cache.get<{ id: string; name: string; rateLimit: number }>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    // Chercher la clé dans la base de données
+    const keyRecord = await prisma.apiKey.findUnique({
+      where: { key: hashedKey },
+      select: {
+        id: true,
+        name: true,
+        isActive: true,
+        expiresAt: true,
+        allowedIps: true,
+        rateLimit: true,
+      },
+    });
+
+    if (!keyRecord || !keyRecord.isActive) {
+      return null;
+    }
+
+    // Vérifier l'expiration
+    if (keyRecord.expiresAt && keyRecord.expiresAt < new Date()) {
+      return null;
+    }
+
+    // Vérifier l'IP si restreinte
+    if (keyRecord.allowedIps) {
+      const allowedIps = JSON.parse(keyRecord.allowedIps) as string[];
+      const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+                      request.headers.get("x-real-ip") ||
+                      "unknown";
+      
+      if (!allowedIps.includes(clientIp)) {
+        return null;
+      }
+    }
+
+    // Mettre à jour lastUsedAt (de manière asynchrone pour ne pas bloquer)
+    prisma.apiKey.update({
+      where: { id: keyRecord.id },
+      data: { lastUsedAt: new Date() },
+    }).catch(() => {});
+
+    const result = {
+      id: keyRecord.id,
+      name: keyRecord.name,
+      rateLimit: keyRecord.rateLimit,
+    };
+
+    // Mettre en cache pour 5 minutes
+    cache.set(cacheKey, result, CACHE_TTL.MEDIUM);
+
+    return result;
+  } catch (error) {
+    console.error("Error verifying API key:", error);
+    return null;
+  }
+}
+
+/**
+ * Requiert une clé API valide
+ * @param request La requête Next.js
+ * @returns L'objet ApiKey ou une réponse d'erreur 401
+ */
+export async function requireApiKey(request: NextRequest): Promise<{ id: string; name: string; rateLimit: number } | NextResponse> {
+  const apiKey = await verifyApiKey(request);
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "Clé API invalide ou manquante. Veuillez fournir une clé API valide dans le header Authorization: Bearer <key> ou X-API-Key." },
+      { status: 401 }
+    );
+  }
+  return apiKey;
 }
