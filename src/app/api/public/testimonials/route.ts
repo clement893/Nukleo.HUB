@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
   // Rate limiting basé sur la clé API
   const rateLimitError = rateLimitMiddleware(
     request,
-    { requests: apiKeyAuth.rateLimit, window: 3600 } // Par défaut: rateLimit de la clé par heure
+    { maxRequests: apiKeyAuth.rateLimit, windowMs: 3600000 } // rateLimit de la clé par heure (3600s = 3600000ms)
   );
   if (rateLimitError) return rateLimitError;
 
