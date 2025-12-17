@@ -129,7 +129,8 @@ export default function NewSubmissionPage() {
   return (
     <div className="flex min-h-screen bg-[#0a0a0f] text-white">
       <Sidebar />
-      <div className="flex-1 p-8 max-w-6xl">
+      <div className="flex-1 p-8 overflow-x-auto">
+        <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <button
             onClick={() => router.back()}
@@ -314,6 +315,7 @@ export default function NewSubmissionPage() {
               {loading ? "Envoi..." : "Créer et Envoyer au Client"}
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>
