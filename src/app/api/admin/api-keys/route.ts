@@ -22,6 +22,7 @@ export async function GET(_request: NextRequest) {
         isActive: true,
         lastUsedAt: true,
         expiresAt: true,
+        allowedIps: true,
         allowedEndpoints: true,
         rateLimit: true,
         createdAt: true,

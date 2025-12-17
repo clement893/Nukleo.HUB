@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Key, Plus, Copy, Trash2, Power, PowerOff, AlertCircle } from "lucide-react";
+import { Key, Plus, Copy, Trash2, Power, PowerOff, AlertCircle, Edit } from "lucide-react";
 
 interface ApiKey {
   id: string;
@@ -10,6 +10,7 @@ interface ApiKey {
   isActive: boolean;
   lastUsedAt: string | null;
   expiresAt: string | null;
+  allowedIps: string | null;
   allowedEndpoints: string | null;
   rateLimit: number;
   createdAt: string;
@@ -37,6 +38,16 @@ export default function ApiKeysPage() {
     name: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{
+    rateLimit: string;
+    allowedIps: string;
+    allowedEndpoints: string;
+  }>({
+    rateLimit: "",
+    allowedIps: "",
+    allowedEndpoints: "",
+  });
 
   useEffect(() => {
     fetchApiKeys();
@@ -128,6 +139,54 @@ export default function ApiKeysPage() {
       }
     } catch (err) {
       console.error("Error deleting API key:", err);
+    }
+  };
+
+  const handleEdit = (key: ApiKey) => {
+    setEditingKey(key.id);
+    setEditForm({
+      rateLimit: key.rateLimit.toString(),
+      allowedIps: key.allowedIps ? JSON.parse(key.allowedIps).join(", ") : "",
+      allowedEndpoints: key.allowedEndpoints ? JSON.parse(key.allowedEndpoints).join(", ") : "",
+    });
+  };
+
+  const handleUpdate = async (id: string) => {
+    setError(null);
+
+    try {
+      const body: Record<string, unknown> = {
+        rateLimit: parseInt(editForm.rateLimit, 10) || 1000,
+      };
+
+      if (editForm.allowedIps.trim()) {
+        body.allowedIps = editForm.allowedIps.split(",").map((ip) => ip.trim()).filter(Boolean);
+      } else {
+        body.allowedIps = null;
+      }
+
+      if (editForm.allowedEndpoints.trim()) {
+        body.allowedEndpoints = editForm.allowedEndpoints.split(",").map((endpoint) => endpoint.trim()).filter(Boolean);
+      } else {
+        body.allowedEndpoints = null;
+      }
+
+      const response = await fetch(`/api/admin/api-keys/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (response.ok) {
+        setEditingKey(null);
+        setEditForm({ rateLimit: "", allowedIps: "", allowedEndpoints: "" });
+        fetchApiKeys();
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || "Erreur lors de la mise à jour de la clé");
+      }
+    } catch (err) {
+      setError("Erreur lors de la mise à jour de la clé API");
     }
   };
 
@@ -305,69 +364,150 @@ export default function ApiKeysPage() {
           </div>
         ) : (
           apiKeys.map((key) => (
-            <div
-              key={key.id}
-              className="p-6 bg-card border rounded-lg flex items-center justify-between"
-            >
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-lg font-semibold">{key.name}</h3>
-                  {key.isActive ? (
-                    <span className="px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs rounded">
-                      Active
-                    </span>
-                  ) : (
-                    <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400 text-xs rounded">
-                      Inactive
-                    </span>
+            <div key={key.id} className="p-6 bg-card border rounded-lg">
+              {editingKey === key.id ? (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold mb-4">Modifier la clé API: {key.name}</h3>
+                  {error && (
+                    <div className="p-3 bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded">
+                      {error}
+                    </div>
                   )}
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                  <p>
-                    <strong>Préfixe :</strong> <code>{key.keyPrefix}</code>
-                  </p>
-                  <p>
-                    <strong>Limite :</strong> {key.rateLimit} requêtes/heure
-                  </p>
-                  {key.allowedEndpoints && (
-                    <p>
-                      <strong>Endpoints autorisés :</strong>{" "}
-                      {JSON.parse(key.allowedEndpoints).join(", ")}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        Limite de requêtes/heure
+                      </label>
+                      <input
+                        type="number"
+                        value={editForm.rateLimit}
+                        onChange={(e) => setEditForm({ ...editForm, rateLimit: e.target.value })}
+                        min="1"
+                        max="100000"
+                        className="w-full px-3 py-2 border rounded-lg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        IPs autorisées (optionnel, séparées par virgule)
+                      </label>
+                      <input
+                        type="text"
+                        value={editForm.allowedIps}
+                        onChange={(e) => setEditForm({ ...editForm, allowedIps: e.target.value })}
+                        placeholder="192.168.1.1, 10.0.0.1"
+                        className="w-full px-3 py-2 border rounded-lg"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Endpoints autorisés (optionnel, séparés par virgule)
+                    </label>
+                    <input
+                      type="text"
+                      value={editForm.allowedEndpoints}
+                      onChange={(e) => setEditForm({ ...editForm, allowedEndpoints: e.target.value })}
+                      placeholder="/api/public/testimonials, /api/public/*"
+                      className="w-full px-3 py-2 border rounded-lg"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Laissez vide pour autoriser tous les endpoints. Exemples: /api/public/testimonials, /api/public/*
                     </p>
-                  )}
-                  <p>
-                    <strong>Dernière utilisation :</strong> {formatDate(key.lastUsedAt)}
-                  </p>
-                  {key.expiresAt && (
-                    <p>
-                      <strong>Expire le :</strong> {formatDate(key.expiresAt)}
-                    </p>
-                  )}
-                  <p>
-                    <strong>Créée le :</strong> {formatDate(key.createdAt)}
-                  </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleUpdate(key.id)}
+                      className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+                    >
+                      Enregistrer
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingKey(null);
+                        setError(null);
+                        setEditForm({ rateLimit: "", allowedIps: "", allowedEndpoints: "" });
+                      }}
+                      className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+                    >
+                      Annuler
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleToggleActive(key.id, key.isActive)}
-                  className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
-                  title={key.isActive ? "Désactiver" : "Activer"}
-                >
-                  {key.isActive ? (
-                    <PowerOff className="w-5 h-5 text-gray-600" />
-                  ) : (
-                    <Power className="w-5 h-5 text-green-600" />
-                  )}
-                </button>
-                <button
-                  onClick={() => handleDelete(key.id)}
-                  className="p-2 rounded hover:bg-red-100 dark:hover:bg-red-900/20"
-                  title="Désactiver"
-                >
-                  <Trash2 className="w-5 h-5 text-red-600" />
-                </button>
-              </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-semibold">{key.name}</h3>
+                      {key.isActive ? (
+                        <span className="px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs rounded">
+                          Active
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400 text-xs rounded">
+                          Inactive
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                      <p>
+                        <strong>Préfixe :</strong> <code>{key.keyPrefix}</code>
+                      </p>
+                      <p>
+                        <strong>Limite :</strong> {key.rateLimit} requêtes/heure
+                      </p>
+                      {key.allowedEndpoints ? (
+                        <p>
+                          <strong>Endpoints autorisés :</strong>{" "}
+                          {JSON.parse(key.allowedEndpoints).join(", ")}
+                        </p>
+                      ) : (
+                        <p>
+                          <strong>Endpoints autorisés :</strong> Tous les endpoints
+                        </p>
+                      )}
+                      <p>
+                        <strong>Dernière utilisation :</strong> {formatDate(key.lastUsedAt)}
+                      </p>
+                      {key.expiresAt && (
+                        <p>
+                          <strong>Expire le :</strong> {formatDate(key.expiresAt)}
+                        </p>
+                      )}
+                      <p>
+                        <strong>Créée le :</strong> {formatDate(key.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEdit(key)}
+                      className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                      title="Modifier"
+                    >
+                      <Edit className="w-5 h-5 text-blue-600" />
+                    </button>
+                    <button
+                      onClick={() => handleToggleActive(key.id, key.isActive)}
+                      className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                      title={key.isActive ? "Désactiver" : "Activer"}
+                    >
+                      {key.isActive ? (
+                        <PowerOff className="w-5 h-5 text-gray-600" />
+                      ) : (
+                        <Power className="w-5 h-5 text-green-600" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(key.id)}
+                      className="p-2 rounded hover:bg-red-100 dark:hover:bg-red-900/20"
+                      title="Désactiver"
+                    >
+                      <Trash2 className="w-5 h-5 text-red-600" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ))
         )}

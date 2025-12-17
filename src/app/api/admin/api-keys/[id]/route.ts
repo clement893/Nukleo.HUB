@@ -52,12 +52,34 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { isActive, rateLimit } = body;
+    const { isActive, rateLimit, allowedIps, allowedEndpoints } = body;
 
     const updateData: Record<string, unknown> = {};
     if (typeof isActive === "boolean") updateData.isActive = isActive;
     if (typeof rateLimit === "number" && rateLimit > 0) {
       updateData.rateLimit = Math.min(100000, rateLimit);
+    }
+    
+    // Mettre à jour les IPs autorisées
+    if (allowedIps !== undefined) {
+      if (Array.isArray(allowedIps) && allowedIps.length > 0) {
+        updateData.allowedIps = JSON.stringify(allowedIps.filter((ip: string) => ip.trim()));
+      } else if (typeof allowedIps === "string" && allowedIps.trim()) {
+        updateData.allowedIps = JSON.stringify(allowedIps.split(",").map((ip: string) => ip.trim()).filter(Boolean));
+      } else {
+        updateData.allowedIps = null;
+      }
+    }
+    
+    // Mettre à jour les endpoints autorisés
+    if (allowedEndpoints !== undefined) {
+      if (Array.isArray(allowedEndpoints) && allowedEndpoints.length > 0) {
+        updateData.allowedEndpoints = JSON.stringify(allowedEndpoints.filter((ep: string) => ep.trim()));
+      } else if (typeof allowedEndpoints === "string" && allowedEndpoints.trim()) {
+        updateData.allowedEndpoints = JSON.stringify(allowedEndpoints.split(",").map((ep: string) => ep.trim()).filter(Boolean));
+      } else {
+        updateData.allowedEndpoints = null;
+      }
     }
 
     const apiKey = await prisma.apiKey.update({
@@ -69,6 +91,8 @@ export async function PATCH(
         keyPrefix: true,
         isActive: true,
         rateLimit: true,
+        allowedIps: true,
+        allowedEndpoints: true,
         expiresAt: true,
         lastUsedAt: true,
         createdAt: true,

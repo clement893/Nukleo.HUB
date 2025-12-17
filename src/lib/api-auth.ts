@@ -229,11 +229,14 @@ export async function verifyApiKey(request: NextRequest): Promise<{ id: string; 
       const allowedEndpoints = JSON.parse(keyRecord.allowedEndpoints) as string[];
       // Vérifier si le chemin correspond à un des endpoints autorisés
       const isAllowed = allowedEndpoints.some(endpoint => {
-        // Support des patterns simples comme "/api/testimonials" ou "/api/testimonials*"
-        if (endpoint.endsWith("*")) {
-          return pathname.startsWith(endpoint.slice(0, -1));
+        const trimmedEndpoint = endpoint.trim();
+        // Support des patterns avec wildcard comme "/api/public/*"
+        if (trimmedEndpoint.endsWith("*")) {
+          const basePath = trimmedEndpoint.slice(0, -1);
+          return pathname.startsWith(basePath);
         }
-        return pathname === endpoint || pathname.startsWith(endpoint + "/");
+        // Correspondance exacte ou sous-chemin
+        return pathname === trimmedEndpoint || pathname.startsWith(trimmedEndpoint + "/");
       });
       
       if (!isAllowed) {
