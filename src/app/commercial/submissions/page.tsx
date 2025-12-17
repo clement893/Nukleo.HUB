@@ -15,7 +15,7 @@ import {
 
 interface Submission {
   id: string;
-  quoteId: string;
+  quoteId: string | null;
   version: number;
   title: string;
   description: string | null;
@@ -33,7 +33,7 @@ interface Submission {
     clientName: string;
     clientCompany: string | null;
     total: number;
-  };
+  } | null;
 }
 
 interface Quote {
@@ -66,9 +66,14 @@ export default function SubmissionsPage() {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    clientName: "",
+    clientEmail: "",
+    clientCompany: "",
     phases: [] as Array<{ name: string; description: string; estimatedHours: number; hourlyRate: number; selected: boolean }>,
     notes: "",
     validUntil: "",
+    taxRate: "0.14975",
+    currency: "CAD",
   });
 
   useEffect(() => {
@@ -81,10 +86,23 @@ export default function SubmissionsPage() {
       const quote = quotes.find((q) => q.id === selectedQuoteId);
       if (quote) {
         setSelectedQuote(quote);
-        if (quote.phases) {
+        if (quote.phases && quote.phases.trim()) {
+          try {
+            setFormData((prev) => ({
+              ...prev,
+              phases: JSON.parse(quote.phases as string),
+            }));
+          } catch (error) {
+            console.error("Error parsing phases:", error);
+            setFormData((prev) => ({
+              ...prev,
+              phases: [],
+            }));
+          }
+        } else {
           setFormData((prev) => ({
             ...prev,
-            phases: JSON.parse(quote.phases),
+            phases: [],
           }));
         }
       }
@@ -152,24 +170,47 @@ export default function SubmissionsPage() {
   };
 
   const handleCreate = async () => {
-    if (!selectedQuoteId) {
-      alert("Veuillez sélectionner un devis");
-      return;
-    }
     if (!formData.title.trim()) {
       alert("Veuillez entrer un titre pour la soumission");
       return;
     }
 
+    if (!formData.clientName.trim()) {
+      alert("Veuillez entrer le nom du client");
+      return;
+    }
+
     try {
-      const res = await fetch(`/api/quotes/${selectedQuoteId}/submissions`, {
+      // Si un devis est sélectionné, créer via l'API des soumissions de devis
+      // Sinon, créer une soumission indépendante
+      const url = selectedQuoteId 
+        ? `/api/quotes/${selectedQuoteId}/submissions`
+        : `/api/submissions`;
+      
+      const body = selectedQuoteId
+        ? {
+            ...formData,
+            phases: formData.phases,
+            validUntil: formData.validUntil || null,
+          }
+        : {
+            title: formData.title,
+            description: formData.description,
+            clientName: formData.clientName,
+            clientEmail: formData.clientEmail || null,
+            clientCompany: formData.clientCompany || null,
+            phases: formData.phases,
+            notes: formData.notes,
+            validUntil: formData.validUntil || null,
+            taxRate: parseFloat(formData.taxRate),
+            currency: formData.currency,
+            quoteId: null, // Soumission indépendante
+          };
+
+      const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          phases: formData.phases,
-          validUntil: formData.validUntil || null,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (res.ok) {
@@ -179,9 +220,14 @@ export default function SubmissionsPage() {
         setFormData({
           title: "",
           description: "",
+          clientName: "",
+          clientEmail: "",
+          clientCompany: "",
           phases: [],
           notes: "",
           validUntil: "",
+          taxRate: "0.14975",
+          currency: "CAD",
         });
         fetchSubmissions();
       } else {
@@ -201,10 +247,31 @@ export default function SubmissionsPage() {
       }
       return acc;
     }, 0);
-    const taxRate = selectedQuote?.taxRate || 0.14975;
+    const taxRate = parseFloat(formData.taxRate) || (selectedQuote?.taxRate || 0.14975);
     const taxAmount = subtotal * taxRate;
     const total = subtotal + taxAmount;
     return { subtotal, taxAmount, total };
+  };
+
+  const addPhase = () => {
+    setFormData({
+      ...formData,
+      phases: [
+        ...formData.phases,
+        {
+          name: "",
+          description: "",
+          estimatedHours: 0,
+          hourlyRate: 150,
+          selected: true,
+        },
+      ],
+    });
+  };
+
+  const removePhase = (index: number) => {
+    const newPhases = formData.phases.filter((_, i) => i !== index);
+    setFormData({ ...formData, phases: newPhases });
   };
 
   if (loading) {
@@ -240,55 +307,107 @@ export default function SubmissionsPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Sélectionner un devis *
+                  Lier à un devis existant (optionnel)
                 </label>
                 <select
                   value={selectedQuoteId}
                   onChange={(e) => setSelectedQuoteId(e.target.value)}
                   className="w-full px-3 py-2 bg-[#0a0a0f] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-violet-500"
                 >
-                  <option value="">-- Sélectionner un devis --</option>
+                  <option value="">-- Créer une soumission indépendante --</option>
                   {quotes.map((quote) => (
                     <option key={quote.id} value={quote.id}>
                       {quote.title} - {quote.clientName} ({formatCurrency(quote.total)})
                     </option>
                   ))}
                 </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Les soumissions sont pour les gros projets. Vous pouvez créer une soumission indépendante ou la lier à un devis existant.
+                </p>
               </div>
 
-              {selectedQuote && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                      Titre de la soumission *
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      placeholder="Ex: Option Premium, Version All-inclusive"
-                      className="w-full px-3 py-2 bg-[#0a0a0f] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-violet-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                      Description des différences
-                    </label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      rows={3}
-                      placeholder="Décrivez les différences avec le devis principal..."
-                      className="w-full px-3 py-2 bg-[#0a0a0f] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-violet-500"
-                    />
-                  </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Titre de la soumission *
+                </label>
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="Ex: Soumission - Projet de transformation numérique"
+                  className="w-full px-3 py-2 bg-[#0a0a0f] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-violet-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Nom du client *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.clientName}
+                    onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
+                    placeholder="Nom du client"
+                    className="w-full px-3 py-2 bg-[#0a0a0f] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-violet-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Entreprise du client
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.clientCompany}
+                    onChange={(e) => setFormData({ ...formData, clientCompany: e.target.value })}
+                    placeholder="Nom de l'entreprise"
+                    className="w-full px-3 py-2 bg-[#0a0a0f] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-violet-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Email du client
+                </label>
+                <input
+                  type="email"
+                  value={formData.clientEmail}
+                  onChange={(e) => setFormData({ ...formData, clientEmail: e.target.value })}
+                  placeholder="client@example.com"
+                  className="w-full px-3 py-2 bg-[#0a0a0f] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-violet-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Description du projet
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={3}
+                  placeholder="Décrivez le projet et la soumission..."
+                  className="w-full px-3 py-2 bg-[#0a0a0f] border border-gray-700 rounded-lg text-white focus:outline-none focus:border-violet-500"
+                />
+              </div>
 
                   {/* Phases */}
-                  {formData.phases.length > 0 && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Phases (modifiez les sélections et tarifs pour cette soumission)
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="block text-sm font-medium text-gray-300">
+                        Phases du projet
                       </label>
+                      <button
+                        type="button"
+                        onClick={addPhase}
+                        className="px-3 py-1 bg-violet-600 hover:bg-violet-700 rounded text-sm"
+                      >
+                        <Plus className="w-4 h-4 inline mr-1" />
+                        Ajouter une phase
+                      </button>
+                    </div>
+                    {formData.phases.length > 0 ? (
                       <div className="space-y-2 max-h-64 overflow-y-auto">
                         {formData.phases.map((phase, index) => (
                           <div key={index} className="flex items-center gap-3 p-3 bg-[#0a0a0f] border border-gray-700 rounded">
@@ -342,22 +461,59 @@ export default function SubmissionsPage() {
                             <div className="text-right text-sm text-gray-400">
                               {phase.selected && formatCurrency(phase.estimatedHours * phase.hourlyRate)}
                             </div>
+                            <button
+                              type="button"
+                              onClick={() => removePhase(index)}
+                              className="p-1 text-red-400 hover:text-red-300"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <p className="text-sm text-gray-500">Aucune phase ajoutée. Cliquez sur "Ajouter une phase" pour commencer.</p>
+                    )}
+                  </div>
 
                   {/* Totals */}
                   {formData.phases.length > 0 && (
                     <div className="bg-[#0a0a0f] border border-gray-700 rounded-lg p-4">
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Taux de taxes
+                          </label>
+                          <input
+                            type="number"
+                            step="0.0001"
+                            value={formData.taxRate}
+                            onChange={(e) => setFormData({ ...formData, taxRate: e.target.value })}
+                            className="w-full px-3 py-2 bg-transparent border border-gray-700 rounded text-white text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-1">
+                            Devise
+                          </label>
+                          <select
+                            value={formData.currency}
+                            onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                            className="w-full px-3 py-2 bg-transparent border border-gray-700 rounded text-white text-sm"
+                          >
+                            <option value="CAD">CAD</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                          </select>
+                        </div>
+                      </div>
                       <div className="space-y-2 text-right">
                         <div className="flex justify-between text-gray-400">
                           <span>Sous-total</span>
                           <span>{formatCurrency(calculateTotal().subtotal)}</span>
                         </div>
                         <div className="flex justify-between text-gray-400">
-                          <span>Taxes ({(selectedQuote.taxRate * 100).toFixed(3)}%)</span>
+                          <span>Taxes ({(parseFloat(formData.taxRate) * 100).toFixed(3)}%)</span>
                           <span>{formatCurrency(calculateTotal().taxAmount)}</span>
                         </div>
                         <div className="flex justify-between text-lg font-bold text-white border-t border-gray-700 pt-2">
@@ -416,9 +572,14 @@ export default function SubmissionsPage() {
                         setFormData({
                           title: "",
                           description: "",
+                          clientName: "",
+                          clientEmail: "",
+                          clientCompany: "",
                           phases: [],
                           notes: "",
                           validUntil: "",
+                          taxRate: "0.14975",
+                          currency: "CAD",
                         });
                       }}
                       className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg"
@@ -459,19 +620,27 @@ export default function SubmissionsPage() {
                         </span>
                       </div>
                       <div className="text-sm text-gray-400 space-y-1">
-                        <p>
-                          <strong>Devis :</strong>{" "}
-                          <Link
-                            href={`/billing/quotes/${submission.quoteId}`}
-                            className="text-violet-400 hover:text-violet-300 hover:underline"
-                          >
-                            {submission.quote.title}
-                          </Link>
-                        </p>
-                        <p>
-                          <strong>Client :</strong> {submission.quote.clientName}
-                          {submission.quote.clientCompany && ` - ${submission.quote.clientCompany}`}
-                        </p>
+                        {submission.quote ? (
+                          <>
+                            <p>
+                              <strong>Devis :</strong>{" "}
+                              <Link
+                                href={`/billing/quotes/${submission.quoteId}`}
+                                className="text-violet-400 hover:text-violet-300 hover:underline"
+                              >
+                                {submission.quote.title}
+                              </Link>
+                            </p>
+                            <p>
+                              <strong>Client :</strong> {submission.quote.clientName}
+                              {submission.quote.clientCompany && ` - ${submission.quote.clientCompany}`}
+                            </p>
+                          </>
+                        ) : (
+                          <p>
+                            <strong>Soumission indépendante</strong> (gros projet)
+                          </p>
+                        )}
                         {submission.description && (
                           <p className="mt-2">{submission.description}</p>
                         )}
@@ -484,12 +653,14 @@ export default function SubmissionsPage() {
                       <div className="text-sm text-gray-400">
                         Sous-total: {formatCurrency(submission.subtotal)}
                       </div>
-                      <Link
-                        href={`/billing/quotes/${submission.quoteId}/submissions`}
-                        className="inline-flex items-center gap-1 mt-2 text-sm text-violet-400 hover:text-violet-300"
-                      >
-                        Voir toutes les soumissions <ArrowRight className="w-3 h-3" />
-                      </Link>
+                      {submission.quoteId && (
+                        <Link
+                          href={`/billing/quotes/${submission.quoteId}/submissions`}
+                          className="inline-flex items-center gap-1 mt-2 text-sm text-violet-400 hover:text-violet-300"
+                        >
+                          Voir toutes les soumissions <ArrowRight className="w-3 h-3" />
+                        </Link>
+                      )}
                     </div>
                   </div>
 

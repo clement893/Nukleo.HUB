@@ -468,11 +468,11 @@ model Quote {
   @@index([status])
 }
 
-// Soumissions (variantes/sous-devis) liées à un devis principal
+// Soumissions (pour gros projets) - peuvent être liées à un devis ou indépendantes
 model Submission {
   id            String    @id @default(cuid())
-  quoteId       String    // Devis parent
-  quote         Quote     @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  quoteId       String?   // Devis parent (optionnel - pour les soumissions liées à un devis)
+  quote         Quote?    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
   version       Int       @default(1) // Numéro de version de la soumission
   title         String    // Titre de la soumission (ex: "Option 1", "Version Premium")
   description   String?   @db.Text // Description des différences avec le devis principal
@@ -498,7 +498,6 @@ model Submission {
   @@index([quoteId])
   @@index([status])
   @@index([version])
-  @@unique([quoteId, version]) // Une seule soumission par version pour un devis
 }
 
 // Entrées de temps pour le time tracking
