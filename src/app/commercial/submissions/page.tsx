@@ -115,7 +115,7 @@ export default function SubmissionsPage() {
   return (
     <div className="flex min-h-screen bg-[#0a0a0f] text-white">
       <Sidebar />
-      <div className="flex-1 p-8 overflow-x-auto">
+      <div className="flex-1 p-8 overflow-x-auto ml-64">
         <div className="mb-6 flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold mb-2">Soumissions</h1>

@@ -129,7 +129,7 @@ export default function NewSubmissionPage() {
   return (
     <div className="flex min-h-screen bg-[#0a0a0f] text-white">
       <Sidebar />
-      <div className="flex-1 p-8 overflow-x-auto">
+      <div className="flex-1 p-8 overflow-x-auto ml-64">
         <div className="max-w-6xl mx-auto">
         <div className="mb-6">
           <button
