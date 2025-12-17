@@ -10,14 +10,18 @@ import {
   CheckCircle,
   XCircle,
   ArrowRight,
+  Clock,
 } from "lucide-react";
 
 interface Submission {
   id: string;
-  quoteId: string;
+  quoteId: string | null;
   version: number;
   title: string;
   description: string | null;
+  clientName: string | null;
+  clientEmail: string | null;
+  clientCompany: string | null;
   subtotal: number;
   taxRate: number;
   taxAmount: number;
@@ -32,11 +36,12 @@ interface Submission {
     clientName: string;
     clientCompany: string | null;
     total: number;
-  };
+  } | null;
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   draft: { label: "Brouillon", color: "bg-gray-500/10 text-gray-500", icon: <Edit className="w-4 h-4" /> },
+  pending_approval: { label: "En attente", color: "bg-yellow-500/10 text-yellow-500", icon: <Clock className="w-4 h-4" /> },
   sent: { label: "Envoyée", color: "bg-blue-500/10 text-blue-500", icon: <Send className="w-4 h-4" /> },
   accepted: { label: "Acceptée", color: "bg-green-500/10 text-green-500", icon: <CheckCircle className="w-4 h-4" /> },
   rejected: { label: "Rejetée", color: "bg-red-500/10 text-red-500", icon: <XCircle className="w-4 h-4" /> },
@@ -111,9 +116,25 @@ export default function SubmissionsPage() {
     <div className="flex min-h-screen bg-[#0a0a0f] text-white">
       <Sidebar />
       <div className="flex-1 p-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Soumissions</h1>
-          <p className="text-gray-400">Gérez toutes les soumissions (variantes de devis)</p>
+        <div className="mb-6 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Soumissions</h1>
+            <p className="text-gray-400">Gérez toutes les soumissions (variantes de devis)</p>
+          </div>
+          <div className="flex gap-3">
+            <Link
+              href="/commercial/submissions/new"
+              className="px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded text-sm font-medium"
+            >
+              Créer une Soumission
+            </Link>
+            <Link
+              href="/commercial/submissions/approve"
+              className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-medium"
+            >
+              Approbations
+            </Link>
+          </div>
         </div>
 
         <div className="space-y-4">
@@ -143,19 +164,35 @@ export default function SubmissionsPage() {
                         </span>
                       </div>
                       <div className="text-sm text-gray-400 space-y-1">
-                        <p>
-                          <strong>Devis :</strong>{" "}
-                          <Link
-                            href={`/billing/quotes/${submission.quoteId}`}
-                            className="text-violet-400 hover:text-violet-300 hover:underline"
-                          >
-                            {submission.quote.title}
-                          </Link>
-                        </p>
-                        <p>
-                          <strong>Client :</strong> {submission.quote.clientName}
-                          {submission.quote.clientCompany && ` - ${submission.quote.clientCompany}`}
-                        </p>
+                        {submission.quote ? (
+                          <>
+                            <p>
+                              <strong>Devis :</strong>{" "}
+                              <Link
+                                href={`/billing/quotes/${submission.quoteId}`}
+                                className="text-violet-400 hover:text-violet-300 hover:underline"
+                              >
+                                {submission.quote.title}
+                              </Link>
+                            </p>
+                            <p>
+                              <strong>Client :</strong> {submission.quote.clientName}
+                              {submission.quote.clientCompany && ` - ${submission.quote.clientCompany}`}
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p>
+                              <strong>Client :</strong> {submission.clientName || "Non spécifié"}
+                              {submission.clientCompany && ` - ${submission.clientCompany}`}
+                            </p>
+                            {submission.clientEmail && (
+                              <p>
+                                <strong>Email :</strong> {submission.clientEmail}
+                              </p>
+                            )}
+                          </>
+                        )}
                         {submission.description && (
                           <p className="mt-2">{submission.description}</p>
                         )}
@@ -168,12 +205,14 @@ export default function SubmissionsPage() {
                       <div className="text-sm text-gray-400">
                         Sous-total: {formatCurrency(submission.subtotal)}
                       </div>
-                      <Link
-                        href={`/billing/quotes/${submission.quoteId}/submissions`}
-                        className="inline-flex items-center gap-1 mt-2 text-sm text-violet-400 hover:text-violet-300"
-                      >
-                        Voir toutes les soumissions <ArrowRight className="w-3 h-3" />
-                      </Link>
+                      {submission.quoteId && (
+                        <Link
+                          href={`/billing/quotes/${submission.quoteId}/submissions`}
+                          className="inline-flex items-center gap-1 mt-2 text-sm text-violet-400 hover:text-violet-300"
+                        >
+                          Voir toutes les soumissions <ArrowRight className="w-3 h-3" />
+                        </Link>
+                      )}
                     </div>
                   </div>
 
