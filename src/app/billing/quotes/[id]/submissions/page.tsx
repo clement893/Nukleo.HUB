@@ -12,9 +12,6 @@ import {
   Send,
   CheckCircle,
   XCircle,
-  Copy,
-  DollarSign,
-  AlertCircle,
 } from "lucide-react";
 
 interface Submission {
