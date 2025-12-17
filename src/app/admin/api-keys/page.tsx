@@ -10,6 +10,7 @@ interface ApiKey {
   isActive: boolean;
   lastUsedAt: string | null;
   expiresAt: string | null;
+  allowedEndpoints: string | null;
   rateLimit: number;
   createdAt: string;
 }
@@ -328,6 +329,12 @@ export default function ApiKeysPage() {
                   <p>
                     <strong>Limite :</strong> {key.rateLimit} requêtes/heure
                   </p>
+                  {key.allowedEndpoints && (
+                    <p>
+                      <strong>Endpoints autorisés :</strong>{" "}
+                      {JSON.parse(key.allowedEndpoints).join(", ")}
+                    </p>
+                  )}
                   <p>
                     <strong>Dernière utilisation :</strong> {formatDate(key.lastUsedAt)}
                   </p>
