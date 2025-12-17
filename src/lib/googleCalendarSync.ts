@@ -300,7 +300,7 @@ export async function syncTaskToGoogleCalendar(
 export async function syncMilestoneToGoogleCalendar(
   milestoneId: string,
   employeeIds: string[],
-  action: "create" | "update" | "delete"
+  _action: "create" | "update" | "delete"
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const milestone = await prisma.milestone.findUnique({
