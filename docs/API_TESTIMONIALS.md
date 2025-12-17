@@ -125,6 +125,23 @@ Si la limite est dépassée, l'API retournera un status `429 Too Many Requests`.
 - Option de restriction par IP disponible
 - Toutes les requêtes sont loggées avec l'ID de la clé API utilisée
 
+## Configuration du projet consommateur
+
+Pour utiliser cette API depuis votre projet (ex: `nukleo.digital`), vous devez configurer les variables d'environnement suivantes :
+
+### Variables d'environnement requises
+
+1. **`INTERNAL_PLATFORM_URL`** (obligatoire)
+   - URL de base du HUB Nukleo
+   - Exemple: `https://nukleo-hub.up.railway.app` ou `https://hub.nukleo.digital`
+
+2. **`INTERNAL_PLATFORM_API_KEY`** (optionnelle)
+   - Clé API pour authentifier les requêtes
+   - Générée via le script `generate-api-key.mjs`
+   - Seulement nécessaire si l'authentification est activée
+
+Voir le guide complet : [Configuration du projet consommateur](./SETUP_CONSUMER_PROJECT.md)
+
 ## Notes importantes
 
 ⚠️ **Important:** Une fois générée, la clé API complète ne sera plus affichée. Assurez-vous de la copier immédiatement.

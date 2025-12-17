@@ -40,10 +40,10 @@ export async function GET(request: NextRequest) {
       }
 
       // Valider la langue si fournie
-      const lang = language || "fr";
-      if (lang !== "fr" && lang !== "en") {
+      const lang = language || "both"; // Par défaut, retourner les deux langues
+      if (lang !== "fr" && lang !== "en" && lang !== "both") {
         return NextResponse.json(
-          { error: "Le paramètre 'language' doit être 'fr' ou 'en'" },
+          { error: "Le paramètre 'language' doit être 'fr', 'en' ou 'both'" },
           { status: 400 }
         );
       }
@@ -69,24 +69,49 @@ export async function GET(request: NextRequest) {
       });
 
       // Formater pour l'API publique avec filtre de langue
-      const formattedTestimonials = testimonials
-        .filter((t) => {
-          const text = lang === "fr" ? t.textFr : t.textEn;
-          return text && text.trim().length > 0;
-        })
-        .map((t) => ({
-          id: t.id,
-          clientName: t.clientName,
-          companyName: t.companyName,
-          text: lang === "fr" ? t.textFr : t.textEn,
-          title: lang === "fr" ? t.titleFr : t.titleEn,
-          rating: t.rating,
-          featured: t.featured,
-          createdAt: t.createdAt.toISOString(),
-        }));
+      let formattedTestimonials;
+      
+      if (lang === "both") {
+        // Retourner les deux langues
+        formattedTestimonials = testimonials
+          .filter((t) => {
+            // Inclure si au moins une langue a du contenu
+            return (t.textFr && t.textFr.trim().length > 0) || 
+                   (t.textEn && t.textEn.trim().length > 0);
+          })
+          .map((t) => ({
+            id: t.id,
+            clientName: t.clientName,
+            companyName: t.companyName,
+            textFr: t.textFr || null,
+            textEn: t.textEn || null,
+            titleFr: t.titleFr || null,
+            titleEn: t.titleEn || null,
+            rating: t.rating,
+            featured: t.featured,
+            createdAt: t.createdAt.toISOString(),
+          }));
+      } else {
+        // Retourner une seule langue
+        formattedTestimonials = testimonials
+          .filter((t) => {
+            const text = lang === "fr" ? t.textFr : t.textEn;
+            return text && text.trim().length > 0;
+          })
+          .map((t) => ({
+            id: t.id,
+            clientName: t.clientName,
+            companyName: t.companyName,
+            text: lang === "fr" ? t.textFr : t.textEn,
+            title: lang === "fr" ? t.titleFr : t.titleEn,
+            rating: t.rating,
+            featured: t.featured,
+            createdAt: t.createdAt.toISOString(),
+          }));
+      }
 
       logger.info(
-        `Public API testimonials fetched: ${formattedTestimonials.length} testimonials in ${lang}`,
+        `Public API testimonials fetched: ${formattedTestimonials.length} testimonials (language: ${lang})`,
         "PUBLIC_API",
         { apiKeyId: apiKeyAuth.id, language: lang, count: formattedTestimonials.length }
       );
