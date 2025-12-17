@@ -8,7 +8,7 @@ import { logger } from "@/lib/logger";
  * Supprime ou désactive une clé API
  */
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const auth = await requireAdmin();
