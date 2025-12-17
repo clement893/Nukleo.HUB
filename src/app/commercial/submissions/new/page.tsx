@@ -9,8 +9,6 @@ import {
   ArrowLeft,
   Plus,
   Trash2,
-  DollarSign,
-  Calendar,
 } from "lucide-react";
 
 interface Phase {
