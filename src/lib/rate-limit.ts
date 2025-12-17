@@ -34,7 +34,7 @@ class MemoryRateLimitStore implements RateLimitStore {
     return rateLimitStore.get(key) || null;
   }
 
-  async set(key: string, entry: RateLimitEntry, ttl: number): Promise<void> {
+  async set(key: string, entry: RateLimitEntry, _ttl: number): Promise<void> {
     rateLimitStore.set(key, entry);
   }
 
