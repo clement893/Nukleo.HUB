@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireApiKey, isErrorResponse } from "@/lib/api-auth";
+import { requireApiKey } from "@/lib/api-auth";
 import { rateLimitMiddleware } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
@@ -18,7 +18,7 @@ import { logger } from "@/lib/logger";
 export async function GET(request: NextRequest) {
   // Vérifier la clé API
   const apiKeyAuth = await requireApiKey(request);
-  if (isErrorResponse(apiKeyAuth)) {
+  if (apiKeyAuth instanceof NextResponse) {
     return apiKeyAuth;
   }
 

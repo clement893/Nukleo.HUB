@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     // Si accès public, vérifier la clé API et appliquer le rate limiting
     if (isPublicAccess) {
       const apiKeyAuth = await requireApiKey(request);
-      if (isErrorResponse(apiKeyAuth)) {
+      if (apiKeyAuth instanceof NextResponse) {
         return apiKeyAuth;
       }
 
