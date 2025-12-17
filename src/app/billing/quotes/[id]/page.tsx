@@ -9,11 +9,8 @@ import {
   Printer,
   Mail,
   Edit,
-  FileText,
-  Calendar,
   Building2,
   User,
-  DollarSign,
 } from "lucide-react";
 
 interface Quote {
