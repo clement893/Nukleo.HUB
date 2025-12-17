@@ -54,6 +54,7 @@ const navigation: NavItem[] = [
     children: [
       { name: "Tableau de bord", href: "/commercial/dashboard" },
       { name: "Pipeline", href: "/commercial/pipeline" },
+      { name: "Soumissions", href: "/commercial/submissions" },
     ],
   },
   {
@@ -144,6 +145,7 @@ export default function Sidebar() {
       "/billing": "Finances",
       "/billing/invoices": "Finances",
       "/billing/quotes": "Finances",
+      "/commercial/submissions": "Commercial",
     };
     
     const parentMenu = pathToParent[pathname];
@@ -228,6 +230,7 @@ export default function Sidebar() {
       "/billing": "/finances",
       "/billing/invoices": "/finances",
       "/billing/quotes": "/finances",
+      "/commercial/submissions": "/commercial",
     };
     
     // Vérifier si le chemin actuel correspond à un parent
