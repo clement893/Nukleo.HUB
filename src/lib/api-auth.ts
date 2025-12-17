@@ -178,8 +178,12 @@ export async function verifyApiKey(request: NextRequest): Promise<{ id: string; 
     // Hash la clé pour la recherche
     const hashedKey = hashApiKey(apiKey);
 
-    // Cache de courte durée
-    const cacheKey = `api_key:${hashedKey}`;
+    // Récupérer le chemin de la requête pour vérifier les endpoints autorisés
+    const url = new URL(request.url);
+    const pathname = url.pathname;
+
+    // Cache de courte durée (inclure le pathname pour éviter les conflits)
+    const cacheKey = `api_key:${hashedKey}:${pathname}`;
     const cached = cache.get<{ id: string; name: string; rateLimit: number }>(cacheKey);
     if (cached) {
       return cached;
@@ -194,6 +198,7 @@ export async function verifyApiKey(request: NextRequest): Promise<{ id: string; 
         isActive: true,
         expiresAt: true,
         allowedIps: true,
+        allowedEndpoints: true,
         rateLimit: true,
       },
     });
@@ -215,6 +220,23 @@ export async function verifyApiKey(request: NextRequest): Promise<{ id: string; 
                       "unknown";
       
       if (!allowedIps.includes(clientIp)) {
+        return null;
+      }
+    }
+
+    // Vérifier les endpoints autorisés
+    if (keyRecord.allowedEndpoints) {
+      const allowedEndpoints = JSON.parse(keyRecord.allowedEndpoints) as string[];
+      // Vérifier si le chemin correspond à un des endpoints autorisés
+      const isAllowed = allowedEndpoints.some(endpoint => {
+        // Support des patterns simples comme "/api/testimonials" ou "/api/testimonials*"
+        if (endpoint.endsWith("*")) {
+          return pathname.startsWith(endpoint.slice(0, -1));
+        }
+        return pathname === endpoint || pathname.startsWith(endpoint + "/");
+      });
+      
+      if (!isAllowed) {
         return null;
       }
     }

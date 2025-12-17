@@ -22,6 +22,7 @@ export async function GET(_request: NextRequest) {
         isActive: true,
         lastUsedAt: true,
         expiresAt: true,
+        allowedEndpoints: true,
         rateLimit: true,
         createdAt: true,
         createdBy: true,
@@ -53,6 +54,7 @@ export async function POST(request: NextRequest) {
       expiresInDays,
       rateLimit = 1000,
       allowedIps,
+      allowedEndpoints,
     } = body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
@@ -82,6 +84,12 @@ export async function POST(request: NextRequest) {
       allowedIpsJson = JSON.stringify(allowedIps);
     }
 
+    // Parser les endpoints autorisés
+    let allowedEndpointsJson: string | null = null;
+    if (allowedEndpoints && Array.isArray(allowedEndpoints) && allowedEndpoints.length > 0) {
+      allowedEndpointsJson = JSON.stringify(allowedEndpoints);
+    }
+
     // Créer la clé dans la base de données
     const apiKey = await prisma.apiKey.create({
       data: {
@@ -91,6 +99,7 @@ export async function POST(request: NextRequest) {
         isActive: true,
         expiresAt,
         allowedIps: allowedIpsJson,
+        allowedEndpoints: allowedEndpointsJson,
         rateLimit: Math.max(1, Math.min(100000, rateLimit)), // Entre 1 et 100000
         createdBy: auth.id,
       },
@@ -110,6 +119,7 @@ export async function POST(request: NextRequest) {
       rateLimit: apiKey.rateLimit,
       expiresAt: apiKey.expiresAt,
       allowedIps: allowedIpsJson ? JSON.parse(allowedIpsJson) : null,
+      allowedEndpoints: allowedEndpointsJson ? JSON.parse(allowedEndpointsJson) : null,
       createdAt: apiKey.createdAt,
       warning: "⚠️ IMPORTANT: Copiez cette clé maintenant, elle ne sera plus affichée!",
     }, { status: 201 });

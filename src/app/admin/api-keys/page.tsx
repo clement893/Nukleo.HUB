@@ -23,11 +23,13 @@ export default function ApiKeysPage() {
     expiresInDays: string;
     rateLimit: string;
     allowedIps: string;
+    allowedEndpoints: string;
   }>({
     name: "",
     expiresInDays: "",
     rateLimit: "1000",
     allowedIps: "",
+    allowedEndpoints: "",
   });
   const [createdKey, setCreatedKey] = useState<{
     key: string;
@@ -71,6 +73,10 @@ export default function ApiKeysPage() {
         body.allowedIps = newKey.allowedIps.split(",").map((ip) => ip.trim()).filter(Boolean);
       }
 
+      if (newKey.allowedEndpoints) {
+        body.allowedEndpoints = newKey.allowedEndpoints.split(",").map((endpoint) => endpoint.trim()).filter(Boolean);
+      }
+
       const response = await fetch("/api/admin/api-keys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -81,7 +87,7 @@ export default function ApiKeysPage() {
         const data = await response.json();
         setCreatedKey({ key: data.key, name: data.name });
         setShowCreateForm(false);
-        setNewKey({ name: "", expiresInDays: "", rateLimit: "1000", allowedIps: "" });
+        setNewKey({ name: "", expiresInDays: "", rateLimit: "1000", allowedIps: "", allowedEndpoints: "" });
         fetchApiKeys();
       } else {
         const errorData = await response.json();
@@ -253,6 +259,21 @@ export default function ApiKeysPage() {
                 placeholder="192.168.1.1, 10.0.0.1"
                 className="w-full px-3 py-2 border rounded-lg"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Endpoints autorisés (optionnel, séparés par virgule)
+              </label>
+              <input
+                type="text"
+                value={newKey.allowedEndpoints}
+                onChange={(e) => setNewKey({ ...newKey, allowedEndpoints: e.target.value })}
+                placeholder="/api/testimonials, /api/public/testimonials"
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Laissez vide pour autoriser tous les endpoints. Exemples: /api/testimonials, /api/public/*
+              </p>
             </div>
             <div className="flex gap-2">
               <button
