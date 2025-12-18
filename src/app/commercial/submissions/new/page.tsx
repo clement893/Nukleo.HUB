@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import {
@@ -30,21 +30,121 @@ const DEFAULT_PHASES: Phase[] = [
   { id: "8", name: "Suivi", estimatedHours: 8, hourlyRate: 150, selected: false },
 ];
 
+interface Contact {
+  id: string;
+  fullName: string;
+  email: string | null;
+  company: string | null;
+}
+
+interface Company {
+  id: string;
+  name: string;
+  mainContactEmail: string | null;
+}
+
+interface CommunicationClient {
+  id: string;
+  name: string;
+  email: string | null;
+  company: string | null;
+}
+
 export default function NewSubmissionPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [clients, setClients] = useState<CommunicationClient[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     clientName: "",
     clientEmail: "",
     clientCompany: "",
+    contactId: "",
+    companyId: "",
+    clientId: "",
     validUntil: "",
     notes: "",
     taxRate: 0.14975,
     currency: "CAD",
   });
   const [phases, setPhases] = useState<Phase[]>(DEFAULT_PHASES);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [contactsRes, companiesRes, clientsRes] = await Promise.all([
+          fetch("/api/contacts"),
+          fetch("/api/companies"),
+          fetch("/api/communication-clients"),
+        ]);
+
+        if (contactsRes.ok) {
+          const contactsData = await contactsRes.json();
+          setContacts(Array.isArray(contactsData) ? contactsData : contactsData.data || []);
+        }
+        if (companiesRes.ok) {
+          const companiesData = await companiesRes.json();
+          setCompanies(Array.isArray(companiesData) ? companiesData : companiesData.data || []);
+        }
+        if (clientsRes.ok) {
+          const clientsData = await clientsRes.json();
+          setClients(Array.isArray(clientsData) ? clientsData : clientsData.data || []);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoadingData(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Mettre à jour les champs clientName, clientEmail, clientCompany quand un contact/entreprise/client est sélectionné
+  useEffect(() => {
+    if (formData.contactId) {
+      const contact = contacts.find((c) => c.id === formData.contactId);
+      if (contact) {
+        setFormData((prev) => ({
+          ...prev,
+          clientName: contact.fullName,
+          clientEmail: contact.email || prev.clientEmail,
+          clientCompany: contact.company || prev.clientCompany,
+        }));
+      }
+    }
+  }, [formData.contactId, contacts]);
+
+  useEffect(() => {
+    if (formData.companyId) {
+      const company = companies.find((c) => c.id === formData.companyId);
+      if (company) {
+        setFormData((prev) => ({
+          ...prev,
+          clientCompany: company.name,
+          clientEmail: company.mainContactEmail || prev.clientEmail,
+        }));
+      }
+    }
+  }, [formData.companyId, companies]);
+
+  useEffect(() => {
+    if (formData.clientId) {
+      const client = clients.find((c) => c.id === formData.clientId);
+      if (client) {
+        setFormData((prev) => ({
+          ...prev,
+          clientName: client.name,
+          clientEmail: client.email || prev.clientEmail,
+          clientCompany: client.company || prev.clientCompany,
+        }));
+      }
+    }
+  }, [formData.clientId, clients]);
 
   const calculateTotals = () => {
     const subtotal = phases
@@ -93,6 +193,9 @@ export default function NewSubmissionPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          contactId: formData.contactId || null,
+          companyId: formData.companyId || null,
+          clientId: formData.clientId || null,
           phases: phases.map((p) => ({
             name: p.name,
             estimatedHours: p.estimatedHours,
@@ -159,12 +262,58 @@ export default function NewSubmissionPage() {
                 />
               </div>
               <div>
+                <label className="block text-sm text-gray-400 mb-2">Lier à un Contact</label>
+                <select
+                  value={formData.contactId}
+                  onChange={(e) => setFormData({ ...formData, contactId: e.target.value })}
+                  className="w-full px-4 py-2 bg-[#0a0a0f] border border-gray-700 rounded text-white focus:border-violet-500 focus:outline-none"
+                >
+                  <option value="">-- Aucun contact --</option>
+                  {contacts.map((contact) => (
+                    <option key={contact.id} value={contact.id}>
+                      {contact.fullName} {contact.email ? `(${contact.email})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Lier à une Entreprise</label>
+                <select
+                  value={formData.companyId}
+                  onChange={(e) => setFormData({ ...formData, companyId: e.target.value })}
+                  className="w-full px-4 py-2 bg-[#0a0a0f] border border-gray-700 rounded text-white focus:border-violet-500 focus:outline-none"
+                >
+                  <option value="">-- Aucune entreprise --</option>
+                  {companies.map((company) => (
+                    <option key={company.id} value={company.id}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">Lier à un Client de Communication</label>
+                <select
+                  value={formData.clientId}
+                  onChange={(e) => setFormData({ ...formData, clientId: e.target.value })}
+                  className="w-full px-4 py-2 bg-[#0a0a0f] border border-gray-700 rounded text-white focus:border-violet-500 focus:outline-none"
+                >
+                  <option value="">-- Aucun client --</option>
+                  {clients.map((client) => (
+                    <option key={client.id} value={client.id}>
+                      {client.name} {client.company ? `(${client.company})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="block text-sm text-gray-400 mb-2">Nom du Client *</label>
                 <input
                   type="text"
                   value={formData.clientName}
                   onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
                   className="w-full px-4 py-2 bg-[#0a0a0f] border border-gray-700 rounded text-white focus:border-violet-500 focus:outline-none"
+                  placeholder="Saisir manuellement ou sélectionner ci-dessus"
                 />
               </div>
               <div>
@@ -174,6 +323,7 @@ export default function NewSubmissionPage() {
                   value={formData.clientEmail}
                   onChange={(e) => setFormData({ ...formData, clientEmail: e.target.value })}
                   className="w-full px-4 py-2 bg-[#0a0a0f] border border-gray-700 rounded text-white focus:border-violet-500 focus:outline-none"
+                  placeholder="Saisir manuellement ou sélectionner ci-dessus"
                 />
               </div>
               <div>
@@ -183,6 +333,7 @@ export default function NewSubmissionPage() {
                   value={formData.clientCompany}
                   onChange={(e) => setFormData({ ...formData, clientCompany: e.target.value })}
                   className="w-full px-4 py-2 bg-[#0a0a0f] border border-gray-700 rounded text-white focus:border-violet-500 focus:outline-none"
+                  placeholder="Saisir manuellement ou sélectionner ci-dessus"
                 />
               </div>
               <div>

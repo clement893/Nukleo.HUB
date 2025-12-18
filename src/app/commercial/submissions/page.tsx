@@ -11,6 +11,7 @@ import {
   XCircle,
   ArrowRight,
   Clock,
+  Plus,
 } from "lucide-react";
 
 interface Submission {

@@ -106,6 +106,7 @@ model Contact {
 
   opportunities  Opportunity[]
   linkedProjects Project[]
+  submissions    Submission[]
 
   @@index([region])
   @@index([employmentField])
@@ -187,6 +188,7 @@ model Company {
 
   projects  Project[]
   contracts Contract[]
+  submissions Submission[]
 
   @@index([type])
   @@index([industry])
@@ -479,6 +481,13 @@ model Submission {
   clientName    String?   // Nom du client (pour soumissions indépendantes)
   clientEmail   String?   // Email du client
   clientCompany String?   // Entreprise du client
+  // Relations avec Contact, Company et CommunicationClient
+  contactId     String?   // Contact lié
+  contact       Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  companyId     String?   // Entreprise liée
+  company       Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  clientId      String?   // Client de communication lié
+  client        CommunicationClient? @relation(fields: [clientId], references: [id], onDelete: SetNull)
   subtotal      Float     @default(0)
   taxRate       Float     @default(0.15) // 15% TPS+TVQ
   taxAmount     Float     @default(0)
@@ -504,6 +513,9 @@ model Submission {
   @@index([status])
   @@index([version])
   @@index([clientEmail])
+  @@index([contactId])
+  @@index([companyId])
+  @@index([clientId])
 }
 
 // Entrées de temps pour le time tracking
@@ -616,6 +628,7 @@ model CommunicationClient {
   reports          CommunicationReport[]
   contentIdeas     ContentIdea[]
   contextDocuments CommunicationContextDocument[]
+  submissions      Submission[]
 
   @@index([status])
   @@index([projectId])

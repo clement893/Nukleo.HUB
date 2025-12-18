@@ -27,6 +27,9 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         quoteId: true,
+        contactId: true,
+        companyId: true,
+        clientId: true,
         version: true,
         title: true,
         description: true,
@@ -50,6 +53,29 @@ export async function GET(request: NextRequest) {
             clientName: true,
             clientCompany: true,
             total: true,
+          },
+        },
+        contact: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            company: true,
+          },
+        },
+        company: {
+          select: {
+            id: true,
+            name: true,
+            mainContactEmail: true,
+          },
+        },
+        client: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            company: true,
           },
         },
       },
@@ -82,6 +108,9 @@ export async function POST(request: NextRequest) {
       clientName,
       clientEmail,
       clientCompany,
+      contactId, // Optionnel - pour lier à un contact
+      companyId, // Optionnel - pour lier à une entreprise
+      clientId, // Optionnel - pour lier à un client de communication
       phases,
       notes,
       validUntil,
@@ -154,9 +183,49 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Vérifier que les relations existent si fournies
+    if (contactId && contactId.trim()) {
+      const contact = await prisma.contact.findUnique({
+        where: { id: contactId },
+      });
+      if (!contact) {
+        return NextResponse.json(
+          { error: "Contact non trouvé" },
+          { status: 404 }
+        );
+      }
+    }
+
+    if (companyId && companyId.trim()) {
+      const company = await prisma.company.findUnique({
+        where: { id: companyId },
+      });
+      if (!company) {
+        return NextResponse.json(
+          { error: "Entreprise non trouvée" },
+          { status: 404 }
+        );
+      }
+    }
+
+    if (clientId && clientId.trim()) {
+      const client = await prisma.communicationClient.findUnique({
+        where: { id: clientId },
+      });
+      if (!client) {
+        return NextResponse.json(
+          { error: "Client de communication non trouvé" },
+          { status: 404 }
+        );
+      }
+    }
+
     const submission = await prisma.submission.create({
       data: {
         quoteId: quoteId && quoteId.trim() ? quoteId : null,
+        contactId: contactId && contactId.trim() ? contactId : null,
+        companyId: companyId && companyId.trim() ? companyId : null,
+        clientId: clientId && clientId.trim() ? clientId : null,
         version,
         title: title.trim(),
         description: description || null,
@@ -180,6 +249,9 @@ export async function POST(request: NextRequest) {
     logger.info(`Submission created: ${submission.title}`, "SUBMISSIONS_API", {
       submissionId: submission.id,
       quoteId: submission.quoteId,
+      contactId: submission.contactId,
+      companyId: submission.companyId,
+      clientId: submission.clientId,
       createdBy: auth.id,
     });
 
