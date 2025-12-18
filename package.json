@@ -7,7 +7,7 @@
     "build": "prisma generate && next build",
     "postinstall": "prisma generate",
     "db:sync": "prisma db push --accept-data-loss",
-    "start": "prisma db push --accept-data-loss --skip-generate && node .next/standalone/server.js",
+    "start": "prisma db push --accept-data-loss --skip-generate || echo 'Warning: Database sync failed, continuing anyway...' && node .next/standalone/server.js",
     "lint": "eslint",
     "test": "vitest",
     "test:ui": "vitest --ui",
