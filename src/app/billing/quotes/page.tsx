@@ -427,6 +427,13 @@ export default function QuotesPage() {
                             </>
                           )}
                           <Link
+                            href={`/billing/quotes/${quote.id}`}
+                            className="p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 transition-colors"
+                            title="Voir le devis"
+                          >
+                            <FileText className="w-4 h-4" />
+                          </Link>
+                          <Link
                             href={`/billing/quotes/${quote.id}/submissions`}
                             className="p-2 rounded-lg hover:bg-violet-500/20 text-violet-400 transition-colors"
                             title="Gérer les soumissions"

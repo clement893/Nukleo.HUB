@@ -10,7 +10,7 @@ import {
   CheckCircle,
   XCircle,
   ArrowRight,
-  Plus,
+  Clock,
 } from "lucide-react";
 
 interface Submission {
@@ -54,6 +54,7 @@ interface Quote {
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   draft: { label: "Brouillon", color: "bg-gray-500/10 text-gray-500", icon: <Edit className="w-4 h-4" /> },
+  pending_approval: { label: "En attente", color: "bg-yellow-500/10 text-yellow-500", icon: <Clock className="w-4 h-4" /> },
   sent: { label: "Envoyée", color: "bg-blue-500/10 text-blue-500", icon: <Send className="w-4 h-4" /> },
   accepted: { label: "Acceptée", color: "bg-green-500/10 text-green-500", icon: <CheckCircle className="w-4 h-4" /> },
   rejected: { label: "Rejetée", color: "bg-red-500/10 text-red-500", icon: <XCircle className="w-4 h-4" /> },
@@ -292,19 +293,26 @@ export default function SubmissionsPage() {
   return (
     <div className="flex min-h-screen bg-[#0a0a0f] text-white">
       <Sidebar />
-      <div className="flex-1 p-8">
-        <div className="mb-6 flex justify-between items-center">
+      <div className="flex-1 p-8 overflow-x-auto ml-64">
+        <div className="mb-6 flex justify-between items-start">
           <div>
             <h1 className="text-3xl font-bold mb-2">Soumissions</h1>
             <p className="text-gray-400">Gérez toutes les soumissions (variantes de devis)</p>
           </div>
-          <button
-            onClick={() => setShowCreateForm(!showCreateForm)}
-            className="flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg"
-          >
-            <Plus className="w-4 h-4" />
-            Créer une soumission
-          </button>
+          <div className="flex gap-3">
+            <Link
+              href="/commercial/submissions/new"
+              className="px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded text-sm font-medium"
+            >
+              Créer une Soumission
+            </Link>
+            <Link
+              href="/commercial/submissions/approve"
+              className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 rounded text-sm font-medium"
+            >
+              Approbations
+            </Link>
+          </div>
         </div>
 
         {showCreateForm && (
@@ -643,14 +651,9 @@ export default function SubmissionsPage() {
                         ) : (
                           <>
                             <p>
-                              <strong>Soumission indépendante</strong> (gros projet)
+                              <strong>Client :</strong> {submission.clientName || "Non spécifié"}
+                              {submission.clientCompany && ` - ${submission.clientCompany}`}
                             </p>
-                            {submission.clientName && (
-                              <p>
-                                <strong>Client :</strong> {submission.clientName}
-                                {submission.clientCompany && ` - ${submission.clientCompany}`}
-                              </p>
-                            )}
                             {submission.clientEmail && (
                               <p>
                                 <strong>Email :</strong> {submission.clientEmail}

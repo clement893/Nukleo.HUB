@@ -471,13 +471,12 @@ model Quote {
 // Soumissions (pour gros projets) - peuvent être liées à un devis ou indépendantes
 model Submission {
   id            String    @id @default(cuid())
-  quoteId       String?   // Devis parent (optionnel - pour les soumissions liées à un devis)
+  quoteId       String?   // Devis parent (optionnel pour soumissions indépendantes)
   quote         Quote?    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
   version       Int       @default(1) // Numéro de version de la soumission
-  title         String    // Titre de la soumission
-  description   String?   @db.Text // Description du projet
-  // Informations client (pour soumissions indépendantes)
-  clientName    String?   // Nom du client
+  title         String    // Titre de la soumission (ex: "Option 1", "Version Premium")
+  description   String?   @db.Text // Description des différences avec le devis principal
+  clientName    String?   // Nom du client (pour soumissions indépendantes)
   clientEmail   String?   // Email du client
   clientCompany String?   // Entreprise du client
   subtotal      Float     @default(0)
@@ -487,14 +486,16 @@ model Submission {
   currency      String    @default("CAD")
   phases        String?   @db.Text // JSON array of selected phases with pricing
   notes         String?   @db.Text // Notes spécifiques à cette soumission
-  differences   String?   @db.Text // JSON des différences avec le devis principal (si liée à un devis)
-  status        String    @default("draft") // draft, sent, accepted, rejected
+  differences   String?   @db.Text // JSON des différences avec le devis principal
+  status        String    @default("draft") // draft, pending_approval, sent, accepted, rejected
   validUntil    DateTime? // Date de validité de cette soumission
   sentAt        DateTime? // Date d'envoi au client
   viewedAt      DateTime? // Date de visualisation par le client
   acceptedAt    DateTime? // Date d'acceptation
   rejectedAt    DateTime? // Date de rejet
   rejectionReason String? @db.Text // Raison du rejet si applicable
+  approvedAt    DateTime? // Date d'approbation interne
+  approvedBy    String?   // Employee ID qui a approuvé
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   createdBy     String? // Employee ID qui a créé la soumission
@@ -502,6 +503,7 @@ model Submission {
   @@index([quoteId])
   @@index([status])
   @@index([version])
+  @@index([clientEmail])
 }
 
 // Entrées de temps pour le time tracking

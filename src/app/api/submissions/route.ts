@@ -6,24 +6,24 @@ import { logger } from "@/lib/logger";
 /**
  * GET /api/submissions
  * Liste toutes les soumissions avec leurs devis associés
+ * Query params: status (comma-separated list of statuses to filter)
  */
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   const auth = await requireAuth();
   if (isErrorResponse(auth)) return auth;
 
   try {
+    const { searchParams } = new URL(request.url);
+    const statusFilter = searchParams.get("status");
+
+    const where: { status?: { in: string[] } } = {};
+    if (statusFilter) {
+      const statuses = statusFilter.split(",").map((s) => s.trim());
+      where.status = { in: statuses };
+    }
+
     const submissions = await prisma.submission.findMany({
-      include: {
-        quote: {
-          select: {
-            id: true,
-            title: true,
-            clientName: true,
-            clientCompany: true,
-            total: true,
-          },
-        },
-      },
+      where,
       select: {
         id: true,
         quoteId: true,
@@ -41,6 +41,8 @@ export async function GET(_request: NextRequest) {
         status: true,
         validUntil: true,
         createdAt: true,
+        phases: true,
+        notes: true,
         quote: {
           select: {
             id: true,
@@ -123,7 +125,7 @@ export async function POST(request: NextRequest) {
     let differences: string | null = null;
     let version = 1;
 
-    if (quoteId) {
+    if (quoteId && quoteId.trim()) {
       const quote = await prisma.quote.findUnique({
         where: { id: quoteId },
       });
@@ -154,7 +156,7 @@ export async function POST(request: NextRequest) {
 
     const submission = await prisma.submission.create({
       data: {
-        quoteId: quoteId || null,
+        quoteId: quoteId && quoteId.trim() ? quoteId : null,
         version,
         title: title.trim(),
         description: description || null,
