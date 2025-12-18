@@ -56,7 +56,6 @@ export default function NewSubmissionPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [clients, setClients] = useState<CommunicationClient[]>([]);
-  const [loadingData, setLoadingData] = useState(true);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -96,8 +95,6 @@ export default function NewSubmissionPage() {
         }
       } catch (error) {
         console.error("Error fetching data:", error);
-      } finally {
-        setLoadingData(false);
       }
     };
 
